@@ -1,41 +1,41 @@
-# ðŸ“Š AnÃ¡lisis y VisualizaciÃ³n de Datos del Gobierno / Government Data Analysis & Visualization
+# ?? An¨¢lisis y Visualizaci¨®n de Datos del Gobierno / Government Data Analysis & Visualization
 
-ðŸš€ **Un proyecto full-stack para analizar y visualizar datos del gobierno de manera accesible. / A full-stack project for analyzing and visualizing government data in an accessible way.**
+?? **Un proyecto full-stack para analizar y visualizar datos del gobierno de manera accesible. / A full-stack project for analyzing and visualizing government data in an accessible way.**
 
-## ðŸ“Œ CaracterÃ­sticas / Features
-âœ”ï¸ **VisualizaciÃ³n de Datos / Data Visualization:**  
-Mapas de calor, diagramas de dispersiÃ³n, clustering y mÃ¡s. / Heatmaps, scatter plots, clustering, and more.  
+## ?? Caracter¨ªsticas / Features
+?? **Visualizaci¨®n de Datos / Data Visualization:**  
+Mapas de calor, diagramas de dispersi¨®n, clustering y m¨¢s. / Heatmaps, scatter plots, clustering, and more.  
   
-âœ”ï¸ **CorrelaciÃ³n de Variables / Variable Correlation:**  
-Comparar indicadores econÃ³micos (por ejemplo, inflaciÃ³n vs. desempleo). / Compare economic indicators (e.g., inflation vs. unemployment).  
+?? **Correlaci¨®n de Variables / Variable Correlation:**  
+Comparar indicadores econ¨®micos (por ejemplo, inflaci¨®n vs. desempleo). / Compare economic indicators (e.g., inflation vs. unemployment).  
   
-âœ”ï¸ **Calculadora de Impuestos y Gasto PÃºblico / Tax & Public Spending Calculator:**  
-Ver cÃ³mo los salarios contribuyen a los presupuestos pÃºblicos. / See how salaries contribute to public budgets.  
+?? **Calculadora de Impuestos y Gasto P¨²blico / Tax & Public Spending Calculator:**  
+Ver c¨®mo los salarios contribuyen a los presupuestos p¨²blicos. / See how salaries contribute to public budgets.  
   
-âœ”ï¸ **AnÃ¡lisis EstadÃ­stico / Statistical Analysis:**  
+?? **An¨¢lisis Estad¨ªstico / Statistical Analysis:**  
 Media, mediana, varianza, percentiles, etc. / Mean, median, variance, percentiles, etc.  
   
-âœ”ï¸ **AnÃ¡lisis de Series Temporales / Time Series Analysis:**  
+?? **An¨¢lisis de Series Temporales / Time Series Analysis:**  
 Rastrear tendencias de datos a lo largo del tiempo. / Track data trends over time.  
   
-âœ”ï¸ **Modelado Predictivo / Predictive Modeling:**  
-Predicciones basadas en ML (bajo investigaciÃ³n de viabilidad). / ML-based forecasts (feasibility under research).  
+?? **Modelado Predictivo / Predictive Modeling:**  
+Predicciones basadas en ML (bajo investigaci¨®n de viabilidad). / ML-based forecasts (feasibility under research).  
   
-âœ”ï¸ **Modo Transparencia / Transparency Mode:**  
-Muestra cÃ¡lculos y fuentes de datos. / Shows calculations & data sources.  
+?? **Modo Transparencia / Transparency Mode:**  
+Muestra c¨¢lculos y fuentes de datos. / Shows calculations & data sources.  
   
-âœ”ï¸ **Datos en Tiempo Real / Real-time Data:**  
-IntegraciÃ³n con APIs de datos abiertos del gobierno. / Integrated with government open data APIs.  
+?? **Datos en Tiempo Real / Real-time Data:**  
+Integraci¨®n con APIs de datos abiertos del gobierno. / Integrated with government open data APIs.  
   
-âœ”ï¸ **Seguridad Primero / Security First:**  
-Mejores prÃ¡cticas para integridad de datos y ciberseguridad. / Best practices for data integrity & cybersecurity.  
+?? **Seguridad Primero / Security First:**  
+Mejores pr¨¢cticas para integridad de datos y ciberseguridad. / Best practices for data integrity & cybersecurity.  
 
-## ðŸŽ¯ Objetivos / Goals
-- Hacer que los datos gubernamentales complejos sean accesibles a un pÃºblico amplio. / Make complex government data accessible to a wide audience.  
-- Proporcionar herramientas interactivas y fÃ¡ciles de usar para el anÃ¡lisis. / Provide interactive and easy-to-use analysis tools.  
-- Asegurar transparencia y explicabilidad en todos los cÃ¡lculos. / Ensure transparency and explainability in all computations.  
+## ?? Objetivos / Goals
+- Hacer que los datos gubernamentales complejos sean accesibles a un p¨²blico amplio. / Make complex government data accessible to a wide audience.  
+- Proporcionar herramientas interactivas y f¨¢ciles de usar para el an¨¢lisis. / Provide interactive and easy-to-use analysis tools.  
+- Asegurar transparencia y explicabilidad en todos los c¨¢lculos. / Ensure transparency and explainability in all computations.  
 
-## ðŸ› ï¸?Stack TecnolÃ³gico / Tech Stack
+## ??? Stack Tecnol¨®gico / Tech Stack
 - **Frontend:**  
 - **Backend:**  
 - **Base de Datos / Database:**  
@@ -43,13 +43,14 @@ Mejores prÃ¡cticas para integridad de datos y ciberseguridad. / Best practices f
 - **Visualizaciones / Visualizations:**  
 - **Machine Learning:**  
 
-## ðŸ“‚ Estructura del Proyecto / Project Structure
+## ?? Estructura del Proyecto / Project Structure
 ```
 /project-root  
- â”œâ”€â”€ frontend/        #  
- â”œâ”€â”€ backend/         # 
- â”œâ”€â”€ data/            # Sample datasets
- â”œâ”€â”€    â”œâ”€â”€ docs/            # Documentation & research
- â”œâ”€â”€ scripts/         # Utility scripts 
- â””â”€â”€ README.md        # This file
+ ©À©¤©¤ frontend/        #  
+ ©À©¤©¤ backend/         # 
+ ©À©¤©¤ data/            # Sample datasets
+ ©À©¤©¤ docs/            # Documentation & research
+ ©¦   ©À©¤©¤ gantt.mpp    # Gantt chart project file
+ ©À©¤©¤ scripts/         # Utility scripts 
+ ©¸©¤©¤ README.md        # This file
 ```
