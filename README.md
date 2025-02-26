@@ -35,7 +35,7 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 - Proporcionar herramientas interactivas y fáciles de usar para el análisis. / Provide interactive and easy-to-use analysis tools.  
 - Asegurar transparencia y explicabilidad en todos los cálculos. / Ensure transparency and explainability in all computations.  
 
-## 🛠️ Stack Tecnológico / Tech Stack
+## 🛠�?Stack Tecnológico / Tech Stack
 - **Frontend:**  
 - **Backend:**  
 - **Base de Datos / Database:**  
@@ -49,7 +49,7 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
  ├── frontend/        #  
  ├── backend/         # 
  ├── data/            # Sample datasets
- ├── docs/            # Documentation & research 
+ ├──    ├── docs/            # Documentation & research
  ├── scripts/         # Utility scripts 
  └── README.md        # This file
 ```
