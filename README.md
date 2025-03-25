@@ -82,7 +82,6 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 │   ├── db.sqlite3     
 │   └── manage.py
 ├── docs/            # Documentation & research
-│   └── gantt.mpp    
-├── scripts/         # Utility scripts
+│   └── gantt.mpp
 └── README.md        # This file
 ```
