@@ -36,8 +36,8 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 - Asegurar transparencia y explicabilidad en todos los cálculos. / Ensure transparency and explainability in all computations.  
 
 ## 🛠️ Stack Tecnológico / Tech Stack
-- **Frontend:**  
-- **Backend:**  
+- Frontend: **React**  
+- Backend: **Django**  
 - **Base de Datos / Database:**  
 - **APIs:** [datos.gob.es](https://datos.gob.es), otras fuentes de datos abiertos / other open data sources  
 - **Visualizaciones / Visualizations:**  
@@ -45,12 +45,44 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 
 ## 📂 Estructura del Proyecto / Project Structure
 ```
-/project-root  
- ├── frontend/        #  
- ├── backend/         # 
- ├── data/            # Sample datasets
- ├── docs/            # Documentation & research
- │   ├── gantt.mpp    # Gantt chart project file
- ├── scripts/         # Utility scripts 
- └── README.md        # This file
+/TFG
+├── frontend/        # Frontend de la aplicación (React)
+│   ├── node_modules/   
+│   ├── public/        
+│   │   ├── index.html   
+│   │   └── vite.svg    
+│   └── src/           
+│       ├── assets/    
+│       ├── App.css    
+│       ├── App.jsx    
+│       ├── index.css    
+│       └── main.jsx   
+│   ├── .gitignore     
+│   ├── eslint.config.js 
+│   ├── package-lock.json 
+│   ├── package.json     
+│   ├── README.md        
+│   └── vite.config.js   
+├── backend/         # Backend de la aplicación (Django)
+│   ├── backend/     
+│   │   ├── __init__.py 
+│   │   ├── asgi.py     
+│   │   ├── settings.py 
+│   │   ├── urls.py     
+│   │   └── wsgi.py     
+│   ├── core/        # Aplicación Django principal
+│   │   ├── migrations/ 
+│   │   ├── __init__.py 
+│   │   ├── admin.py    
+│   │   ├── apps.py     
+│   │   ├── models.py   
+│   │   ├── tests.py    
+│   │   ├── urls.py     
+│   │   └── views.py    
+│   ├── db.sqlite3     
+│   └── manage.py
+├── docs/            # Documentation & research
+│   └── gantt.mpp    
+├── scripts/         # Utility scripts
+└── README.md        # This file
 ```
