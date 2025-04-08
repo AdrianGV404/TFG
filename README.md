@@ -38,7 +38,7 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 ## 🛠️ Stack Tecnológico / Tech Stack
 - Frontend: **React**  
 - Backend: **Django**  
-- **Base de Datos / Database:**  
+- Base de Datos / Database:**PostgreSQL**  
 - **APIs:** [datos.gob.es](https://datos.gob.es), otras fuentes de datos abiertos / other open data sources  
 - **Visualizaciones / Visualizations:**  
 - **Machine Learning:**  
