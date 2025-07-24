@@ -1,3 +1,7 @@
+# Config DB, apps, CORS, etc.
+# Base de datos: Configuración de PostgreSQL.
+# CORS: Permite peticiones desde React al backend.
+
 """
 Django settings for backend project.
 
@@ -37,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
+    'corsheaders', # CORS: Permite peticiones desde React.
     'rest_framework',
     'core'
 ]
@@ -50,9 +54,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # CORS: Permite peticiones desde React.
 ]
-
+# CORS: Permite peticiones desde React.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Puerto de Vite/React
 ]

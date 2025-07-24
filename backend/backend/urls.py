@@ -1,3 +1,4 @@
+# Rutas principales
 """
 URL configuration for backend project.
 
@@ -19,24 +20,8 @@ from django.urls import include, path
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 
-def test_api(request):
-    try:
-        # Consulta a la BD: Cuenta cuántos usuarios hay
-        user_count = User.objects.count()
-        
-        return JsonResponse({
-            "message": "¡Conexión con Django y PostgreSQL exitosa!",
-            "user_count": user_count,  # Datos desde la BD
-        }, status=200)
-    
-    except Exception as e:
-        return JsonResponse(
-            {"error": f"Error al conectar con la BD: {str(e)}"},
-            status=500
-        )
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),
-    path('api/test/', test_api),
+    path('api/', include('core.urls')),
+    path('', include('core.urls')), # Ruta duplicada
 ]

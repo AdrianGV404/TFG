@@ -1,6 +1,8 @@
+# Rutas de la app
 from django.urls import path
-from .views import home_view
+from . import views
 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('', views.home, name='home'),
+    path('test/', views.test_conexion_bd_api, name='test_conexion_bd_api'),  # si ya tienes esta función
 ]

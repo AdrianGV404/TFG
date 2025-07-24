@@ -1,18 +1,44 @@
+//# Punto de entrada
 import { useState } from 'react';
+import { testBackendConnection } from "./api/backendService";
 
 function App() {
   const [apiResponse, setApiResponse] = useState(null);
+  const [downloadStatus, setDownloadStatus] = useState(null); // Estado faltante
 
-  const fetchDataFromDjango = async () => {
+const fetchDataFromDjango = async () => {
+  try {
+    const data = await testBackendConnection();
+    setApiResponse(data);
+  } catch (error) {
+    setApiResponse({
+      error: "Error al conectar con el backend",
+      details: error.message
+    });
+  }
+};
+
+  // Función para descargar datos del gobierno (faltaba implementación)
+  const downloadGovernmentData = async () => {
+    setDownloadStatus("Descargando...");
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/test/`);
+      // Ejemplo con API de datos abiertos (reemplaza con tu API real)
+      const response = await fetch('https://api.datos.gob.mx/v1/ejemplo-api');
       const data = await response.json();
-      setApiResponse(data);
+      
+      // Crear archivo descargable
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'datos-gobierno.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setDownloadStatus("✅ Descarga completada");
     } catch (error) {
-      setApiResponse({
-        error: "Error al conectar con el backend",
-        details: error.message
-      });
+      setDownloadStatus(`❌ Error: ${error.message}`);
     }
   };
 
@@ -35,6 +61,30 @@ function App() {
       >
         Probar conexión con Django y PostgreSQL
       </button>
+
+      <button 
+        onClick={downloadGovernmentData}
+        style={{
+          margin: '20px',
+          padding: '10px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        disabled={downloadStatus === "Descargando..."}
+      >
+        {downloadStatus === "Descargando..." ? "Descargando..." : "Descargar Datos Gobierno"}
+      </button>
+
+      {downloadStatus && (
+        <p style={{
+          color: downloadStatus.includes("✅") ? "green" : downloadStatus.includes("❌") ? "red" : "black"
+        }}>
+          {downloadStatus}
+        </p>
+      )}
 
       {apiResponse && (
         <div style={{ marginTop: '20px' }}>
