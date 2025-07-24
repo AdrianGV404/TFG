@@ -1,42 +1,27 @@
-//# Punto de entrada
 import { useState } from 'react';
-import { testBackendConnection } from "./api/backendService";
+import { downloadDatasets, testBackendConnection } from "./api/backendService";
 
 function App() {
   const [apiResponse, setApiResponse] = useState(null);
-  const [downloadStatus, setDownloadStatus] = useState(null); // Estado faltante
+  const [downloadStatus, setDownloadStatus] = useState(null);
 
-const fetchDataFromDjango = async () => {
-  try {
-    const data = await testBackendConnection();
-    setApiResponse(data);
-  } catch (error) {
-    setApiResponse({
-      error: "Error al conectar con el backend",
-      details: error.message
-    });
-  }
-};
+  const fetchDataFromDjango = async () => {
+    try {
+      const data = await testBackendConnection();
+      setApiResponse(data);
+    } catch (error) {
+      setApiResponse({
+        error: "Error al conectar con el backend",
+        details: error.message
+      });
+    }
+  };
 
-  // Función para descargar datos del gobierno (faltaba implementación)
   const downloadGovernmentData = async () => {
     setDownloadStatus("Descargando...");
     try {
-      // Ejemplo con API de datos abiertos (reemplaza con tu API real)
-      const response = await fetch('https://api.datos.gob.mx/v1/ejemplo-api');
-      const data = await response.json();
-      
-      // Crear archivo descargable
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'datos-gobierno.json';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      setDownloadStatus("✅ Descarga completada");
+      const result = await downloadDatasets();
+      setDownloadStatus(result.message || "✅ Descarga completada");
     } catch (error) {
       setDownloadStatus(`❌ Error: ${error.message}`);
     }
@@ -98,15 +83,6 @@ const fetchDataFromDjango = async () => {
           )}
         </div>
       )}
-
-      <a 
-        href={import.meta.env.VITE_API_BASE_URL} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        style={{ display: 'block', marginTop: '20px' }}
-      >
-        Ver panel de administración Django
-      </a>
     </div>
   );
 }
