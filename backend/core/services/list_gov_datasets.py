@@ -16,18 +16,3 @@ def search_datasets():
     except requests.exceptions.RequestException as e:
         print(f"Error al realizar la consulta: {e}")
         return None
-
-def store_datasets_as_json(datos, nombre_archivo="datasets_empleo.json"):
-    """Guarda los datos en una carpeta organizada."""
-    directorio = os.path.join("core", "data")
-    os.makedirs(directorio, exist_ok=True)  # crea la carpeta si no existe
-    ruta = os.path.join(directorio, nombre_archivo)
-
-    try:
-        with open(ruta, "w", encoding="utf-8") as archivo:
-            json.dump(datos, archivo, indent=4, ensure_ascii=False)
-        print(f"Datos guardados en {ruta}")
-        return ruta
-    except Exception as e:
-        print(f"Error al guardar el archivo JSON: {e}")
-        return None

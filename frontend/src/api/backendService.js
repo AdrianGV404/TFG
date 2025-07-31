@@ -4,10 +4,18 @@ export async function testBackendConnection() {
   return await response.json();
 }
 
-export async function downloadDatasets() {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/datasets/`);
+//---------------------------------------------------------------------------------------
+export async function store_datasets_as_json() {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/search/`);
   if (!response.ok) {
     throw new Error("Error al descargar datasets desde el backend");
   }
   return response.json();
+}
+//---------------------------------------------------------------------------------------
+
+export async function search_by_title(titulo) {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/search/title/?title=${encodeURIComponent(titulo)}`);
+  if (!response.ok) throw new Error("Error al buscar datasets por título");
+  return await response.json();
 }
