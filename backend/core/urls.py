@@ -7,4 +7,5 @@ urlpatterns = [
     path('search/title/', views.search_by_title_view, name='search_by_title_view'),
     path('search/keyword/', views.search_by_keyword_view, name='search_by_keyword_view'),
     path('search/spatial/', views.search_by_spatial_view, name='search_by_spatial_view'),
+    path('search/category/', views.search_by_category_view, name='search_by_category_view'),
 ]

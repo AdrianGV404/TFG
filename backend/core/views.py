@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 import os
 
-from core.services.list_gov_datasets import *
 from core.services.search_datasets import *
 from core.utils.file_utils import handle_dataset_file
 
@@ -122,6 +121,39 @@ def search_by_spatial_view(request):
     if status != 200 or not data:
         return JsonResponse({"error": message}, status=status)
 
+    return JsonResponse({
+        "message": message,
+        "result": data.get("result", {}),
+        "items_count": len(data.get("result", {}).get("items", [])),
+        "file_path": os.path.join(DATASETS_DIR, f"{slugify(filename)}.json")
+    }, status=status)
+
+@require_GET
+def search_by_category_view(request):
+    category = request.GET.get("category")
+    page = request.GET.get("page", "0")
+    print(f"search_by_category_view called with category={category}, page={page}")
+    if not category:
+        return JsonResponse({"error": "Falta el parámetro 'category'"}, status=400)
+    try:
+        page_int = int(page)
+        if page_int < 0:
+            page_int = 0
+    except ValueError:
+        page_int = 0
+
+    filename = f"{category}_{page_int}"
+
+    data, message, status = handle_dataset_file(
+        directory=DATASETS_DIR,
+        filename=filename,
+        fetch_function=search_by_category,
+        fetch_args=(category, page_int)
+    )
+
+    if status != 200 or not data:
+        return JsonResponse({"error": message}, status=status)
+    
     return JsonResponse({
         "message": message,
         "result": data.get("result", {}),

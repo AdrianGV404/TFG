@@ -12,9 +12,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Ruta padre con Layout */}
         <Route path="/" element={<Layout />}>
-          {/* Rutas hijas */}
           <Route index element={<Home />} />
           <Route path="search" element={<SearchAndFilter />} />
           <Route path="correlation" element={<CorrelationAnalysis />} />

@@ -18,10 +18,14 @@ export async function search_by_keyword(keyword, page = 0) {
 
 export async function search_by_spatial(spatial_type, spatial_value, page = 0) {
   const encodedType = encodeURIComponent(spatial_type);
-  const encodedValue = encodeURIComponent(spatial_value);
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/search/spatial/?spatial_type=${encodedType}&spatial_value=${encodedValue}&_page=${page}`;
-    
-  const response = await fetch(url);
+  const encodedValue = encodeURIComponent(spatial_value);    
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/search/spatial/?spatial_type=${encodedType}&spatial_value=${encodedValue}&_page=${page}`);
   if (!response.ok) throw new Error("Error al buscar datasets por spatial");
+  return await response.json();
+}
+
+export async function search_by_category(category, page = 0) {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/search/category/?category=${category}&page=${page}`);
+  if (!response.ok) throw new Error("Error al buscar por categoría");
   return await response.json();
 }
