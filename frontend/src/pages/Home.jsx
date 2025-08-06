@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SearchComponent from "../components/SearchComponent";
+import FuncionalidadesPanel from "../components/FuncionalidadesPanel";
 
 const categorias = [
   "sector-publico",
@@ -60,13 +61,19 @@ function Home() {
         color: "white",
       }}
     >
-      {/* Sidebar categorías */}
+      {/* Sidebar categorías con sticky */}
       <div
         style={{
-          width: "250px",
+          width: 250,
           borderRight: "1px solid #444",
           padding: "20px",
           backgroundColor: "#1a1a1a",
+
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          overflowY: "auto", // para scroll interno si contenido se pasa
+          boxSizing: "border-box",
         }}
       >
         <h2 style={{ marginTop: 0, fontSize: "1.2rem", marginBottom: "1rem" }}>
@@ -89,7 +96,7 @@ function Home() {
                   cursor: "pointer",
                   textAlign: "left",
                   fontSize: "1rem",
-                  transition: "background-color 0.3s",
+                  transition: "background-color 0.3s ease",
                 }}
               >
                 {cat.replace(/-/g, " ")}
@@ -99,12 +106,14 @@ function Home() {
         </ul>
       </div>
 
+      {/* Contenido principal */}
       <main
         style={{
           flex: 1,
           padding: "40px",
           backgroundColor: "#242424",
           overflowY: "auto",
+          maxWidth: 800,
         }}
       >
         <h1 style={{ marginTop: 0 }}>📊 Plataforma de Análisis de Datos Públicos</h1>
@@ -113,7 +122,6 @@ function Home() {
         <div
           style={{
             margin: "30px auto",
-            maxWidth: "800px",
             backgroundColor: "#333",
             padding: "20px",
             borderRadius: "8px",
@@ -134,7 +142,7 @@ function Home() {
               padding: "15px",
               borderRadius: "6px",
               margin: "20px auto",
-              maxWidth: "800px",
+              maxWidth: 800,
             }}
           >
             {searchError}
@@ -144,7 +152,7 @@ function Home() {
         <div style={{ marginTop: "40px" }}>
           {hasSearched ? (
             searchResults.length > 0 ? (
-              <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+              <div style={{ margin: "0 auto" }}>
                 <h3>Resultados de la búsqueda:</h3>
                 <ul style={{ listStyle: "none", padding: 0 }}>
                   {searchResults.map((item, i) => (
@@ -192,7 +200,7 @@ function Home() {
             <div
               style={{
                 margin: "30px auto",
-                maxWidth: "800px",
+                maxWidth: 800,
                 backgroundColor: "#333",
                 padding: "20px",
                 borderRadius: "8px",
@@ -210,6 +218,27 @@ function Home() {
           )}
         </div>
       </main>
+
+      {/* Panel funcionalidades derecho con sticky */}
+      <div
+        style={{
+          width: 250,
+          borderLeft: "1px solid #444",
+          padding: "24px 20px",
+          backgroundColor: "#1a1a1a",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          overflowY: "auto",
+          boxSizing: "border-box",
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        }}
+      >
+        <FuncionalidadesPanel />
+      </div>
     </div>
   );
 }
