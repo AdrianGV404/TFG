@@ -1,0 +1,22 @@
+{
+  "format": "linked-data-api",
+  "version": "0.2",
+  "result": {
+    "_about": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_pageSize=200&_page=1&_sort=title",
+    "definition": "http://datos.gob.es/apidata/catalog/meta/dataset/title/_varTitle.json?_sort=title",
+    "extendedMetadataVersion": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_pageSize=200&_page=1&_metadata=all&_sort=title",
+    "first": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_page=0&_sort=title",
+    "isPartOf": {
+      "_about": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_sort=title",
+      "definition": "http://datos.gob.es/apidata/catalog/meta/dataset/title/_varTitle.json?_sort=title",
+      "hasPart": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_pageSize=200&_page=1&_sort=title",
+      "type": "http://purl.org/linked-data/api/vocab#ListEndpoint"
+    },
+    "items": [],
+    "itemsPerPage": 200,
+    "page": 1,
+    "prev": "http://datos.gob.es/apidata/catalog/dataset/title/robo.json?_page=0&_sort=title",
+    "startIndex": 201,
+    "type": "http://purl.org/linked-data/api/vocab#Page"
+  }
+}
