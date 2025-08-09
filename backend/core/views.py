@@ -7,7 +7,8 @@ from django.utils.text import slugify
 import os
 
 from core.services.search_datasets import *
-from core.utils.file_utils import handle_dataset_file
+from .services.sparql_service import *
+from core.utils.file_utils import *
 
 DATASETS_DIR = os.path.join("core", "data")
 
@@ -160,3 +161,21 @@ def search_by_category_view(request):
         "items_count": len(data.get("result", {}).get("items", [])),
         "file_path": os.path.join(DATASETS_DIR, f"{slugify(filename)}.json")
     }, status=status)
+
+def total_datasets_view(request):
+    total = get_total_datasets()
+    return JsonResponse({"total_datasets": total})
+
+def all_themes_view(request):
+    try:
+        themes = get_all_themes()
+        return JsonResponse({"themes": themes}, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def dataset_counts_by_theme_view(request):
+    try:
+        data = get_dataset_counts_by_theme()
+        return JsonResponse({"themes": data})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchComponent from "../components/SearchComponent";
 import FuncionalidadesPanel from "../components/FuncionalidadesPanel";
 
@@ -63,6 +63,7 @@ function Home() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchError, setSearchError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [totalGeneral, setTotalGeneral] = useState(null);
 
   const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("");
   // Cambiado: array de objetos completos seleccionados
@@ -74,7 +75,12 @@ function Home() {
     setSelectedItems([]);
   };
 
+  const [totalDatasets, setTotalDatasets] = useState(null);
+  const [conteosPorCategoria, setConteosPorCategoria] = useState([]);
+
+
   // Para obtener ID único de un item (asegura que coincida en todo el código)
+
   const getItemId = (item, fallback = null) =>
     item.identifier || item.id || item["@id"] || item.processedLink || fallback?.toString() || "";
 
@@ -112,15 +118,57 @@ function Home() {
     setHasSearched(true);
   };
 
-  const handleCategoriaClick = (cat) => {
-    setCategoriaSeleccionada(cat);
-    setSearchResults([]);
-    setSearchError(null);
-    setHasSearched(false);
-    setSelectedItems([]); // reset selección al cambiar categoría
-  };
+    const handleCategoriaClick = (cat) => {
+      setCategoriaSeleccionada(cat);
+      setSearchResults([]);
+      setSearchError(null);
+      setHasSearched(false);
+      setSelectedItems([]);
 
-  // Un set para acelerar comprobaciones en una lista grande
+      if (cat) {
+        const encontrado = conteosPorCategoria.find(c => c.slug === cat);
+        if (encontrado) {
+          setTotalDatasets(encontrado.count);
+        } else {
+          setTotalDatasets(null);
+        }
+      } else {
+        setTotalDatasets(totalGeneral);
+      }
+    };
+
+
+    useEffect(() => {
+    fetch("/api/stats/total-datasets/")
+      .then(res => res.json())
+      .then(data => {
+        if (data.total_datasets !== undefined) {
+          setTotalGeneral(data.total_datasets);
+          setTotalDatasets(data.total_datasets);
+        }
+      })
+      .catch(err => console.error("Error al obtener total general:", err));
+  }, []);
+
+    useEffect(() => {
+      fetch("/api/stats/dataset-counts-by-theme/")
+        .then(res => res.json())
+        .then(data => {
+          if (data.themes) {
+            const categoriasConSlug = data.themes.map(t => {
+              const slugFromTheme = t.theme.split("/").pop(); // ← parte final de la URI
+              return {
+                ...t,
+                slug: slugFromTheme.toLowerCase()
+              };
+            });
+            setConteosPorCategoria(categoriasConSlug);
+          }
+        })
+        .catch(err => console.error("Error al obtener conteos por categoría:", err));
+    }, []);
+
+
   const selectedIdsSet = new Set(selectedItems.map(item => getItemId(item)));
 
   return (
@@ -187,6 +235,20 @@ function Home() {
       >
         <h1 style={{ marginTop: 0 }}>📊 Plataforma de Análisis de Datos Públicos</h1>
         <p>Selecciona una categoría o busca datasets para ver su información.</p>
+
+        {totalDatasets !== null && (
+          <div style={{
+            margin: "10px 0 20px 0",
+            padding: "10px",
+            background: "#333",
+            borderRadius: "6px",
+            fontSize: "1.1rem",
+            color: "#fff",
+            fontWeight: "500"
+          }}>
+            Total de conjuntos en la base de datos pública: {totalDatasets.toLocaleString()}
+          </div>
+        )}
 
         <div
           style={{
