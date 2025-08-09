@@ -41,47 +41,58 @@ Mejores prácticas para integridad de datos y ciberseguridad. / Best practices f
 - Base de Datos / Database:**PostgreSQL**  
 - **APIs:** [datos.gob.es](https://datos.gob.es), otras fuentes de datos abiertos / other open data sources  
 - **Visualizaciones / Visualizations:**  
-- **Machine Learning:**  
 
 ## 📂 Estructura del Proyecto / Project Structure
 ```
 /TFG
-├── frontend/        # Frontend de la aplicación (React)
-│   ├── node_modules/   
-│   ├── public/        
-│   │   ├── index.html   
-│   │   └── vite.svg    
-│   └── src/           
-│       ├── assets/    
-│       ├── App.css    
-│       ├── App.jsx    
-│       ├── index.css    
-│       └── main.jsx   
-│   ├── .gitignore     
-│   ├── eslint.config.js 
-│   ├── package-lock.json 
-│   ├── package.json     
-│   ├── README.md        
-│   └── vite.config.js   
-├── backend/         # Backend de la aplicación (Django)
-│   ├── backend/     
-│   │   ├── __init__.py 
-│   │   ├── asgi.py     
-│   │   ├── settings.py 
-│   │   ├── urls.py     
-│   │   └── wsgi.py     
-│   ├── core/        # Aplicación Django principal
-│   │   ├── migrations/ 
-│   │   ├── __init__.py 
-│   │   ├── admin.py    
-│   │   ├── apps.py     
-│   │   ├── models.py   
-│   │   ├── tests.py    
-│   │   ├── urls.py     
-│   │   └── views.py    
-│   ├── db.sqlite3     
-│   └── manage.py
-├── docs/            # Documentation & research
-│   └── gantt.mpp
-└── README.md        # This file
+├── backend/                      # Backend Django
+│   ├── settings.py
+│   ├── urls.py
+│
+├── core/                         # App principal Django
+│   ├── static/core/              # Archivos estáticos
+│   │   └── # styles/             # (Carpeta vacía o no mostrada)
+│   ├── templates/core/           # Plantillas
+│   │   └── home.html
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+│
+├── data/                         # Módulo de datos
+│   ├── services/                 # Servicios de datos
+│   │   ├── search_datasets.py
+│   │   └── sparql_service.py
+│   └── utils/                    # Utilidades
+│       ├── file_utils.py
+│
+├── frontend/                     # Frontend React
+│   ├── node_modules/
+│   ├── public/                   # Assets públicos
+│   │   ├── index.html
+│   ├── src/                      # Código fuente
+│   │   ├── api/
+│   │   ├── components/           # Componentes React
+│   │   │   ├── FunctionalidadesPanel.jsx
+│   │   │   ├── Layout.jsx
+│   │   │   └── SearchComponent.jsx
+│   │   ├── pages/               # Páginas
+│   │   │   ├── CorrelationAnalysis.jsx
+│   │   │   ├── ExportReports.jsx
+│   │   │   ├── Home.jsx
+│   │   │   ├── Prediction.jsx
+│   │   │   ├── PublicSpending.jsx
+│   │   │   └── SearchAndFilter.jsx
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── backendService.js
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── .env
+│   ├── start_project.ps1         # Scripts de inicio/detención
+│   └── stop_project.ps1
+│
+├── docs/                         # Diagrama de Gantt
 ```
