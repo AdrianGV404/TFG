@@ -5,7 +5,6 @@ function FuncionalidadesPanel({ funcionalidadSeleccionada, setFuncionalidadSelec
     "Predicción",
     "Correlación de variables",
     "Gasto Público",
-    "Exportar Datos (descargar)",
     "Ver datos en gráficos",
   ];
 

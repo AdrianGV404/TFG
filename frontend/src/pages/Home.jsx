@@ -34,8 +34,6 @@ function getInfoMessage(func) {
       return "Selecciona 1 conjunto de datos para realizar una predicción.";
     case "Correlación de variables":
       return "Selecciona 2 conjuntos de datos para calcular la correlación.";
-    case "Exportar Datos (descargar)":
-      return "Puedes seleccionar tantos conjuntos como desees para descargar.";
     case "Ver datos en gráficos":
       return "Selecciona 1 o más conjuntos para visualizar en gráficos.";
     default:
@@ -50,7 +48,6 @@ function getSelectLimit(func) {
       return 1;
     case "Correlación de variables":
       return 2;
-    case "Exportar Datos (descargar)":
     case "Ver datos en gráficos":
       return Number.POSITIVE_INFINITY;
     default:
@@ -170,6 +167,55 @@ function Home() {
 
 
   const selectedIdsSet = new Set(selectedItems.map(item => getItemId(item)));
+
+  const downloadFile = async (url, filename) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename || 'dataset-descargado';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Error al descargar:', error);
+    alert('Error al descargar el archivo');
+  }
+};
+
+const getAvailableFormats = (item) => {
+  if (!item.distribution) return [];
+
+  const formats = [];
+  const distributions = Array.isArray(item.distribution)
+    ? item.distribution
+    : [item.distribution];
+
+  distributions.forEach(dist => {
+    try {
+      const format =
+        typeof dist.format === "string"
+          ? dist.format.toLowerCase().trim()
+          : dist.format?.value?.toLowerCase().trim() || dist.format?._value?.toLowerCase().trim() || "";
+
+      const accessUrl =
+        typeof dist.accessURL === "string"
+          ? dist.accessURL
+          : dist.accessURL?.value || dist.accessURL?._value || "";
+
+      if (format && accessUrl && !formats.some(f => f.format === format)) {
+        formats.push({ format, url: accessUrl });
+      }
+    } catch (e) {
+      console.error("Error procesando distribución:", e);
+    }
+  });
+
+  return formats;
+};
 
   return (
     <div
@@ -335,12 +381,10 @@ function Home() {
                 <ul style={{ listStyle: "none", padding: 0 }}>
                   {searchResults.map((item, i) => {
                     const itemId = getItemId(item, i);
-
                     const limit = getSelectLimit(funcionalidadSeleccionada);
                     const isChecked = selectedIdsSet.has(itemId);
-                    // Deshabilita si ya se llegó al límite y no está seleccionado
-                    const isDisabled =
-                      !isChecked && selectedItems.length >= limit && limit !== Number.POSITIVE_INFINITY;
+                    const isDisabled = !isChecked && selectedItems.length >= limit && limit !== Number.POSITIVE_INFINITY;
+                    const availableFormats = getAvailableFormats(item);
 
                     return (
                       <li
@@ -353,6 +397,7 @@ function Home() {
                           padding: "12px 18px",
                           borderRadius: "6px",
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "flex-start",
                           cursor: isDisabled ? "not-allowed" : "pointer",
                           outline: isChecked ? "2px solid #222" : "none",
@@ -370,60 +415,94 @@ function Home() {
                           }
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          disabled={isDisabled}
-                          onChange={() => {}}
-                          tabIndex={-1}
-                          style={{
-                            marginRight: "16px",
-                            width: "28px",
-                            height: "28px",
-                            accentColor: isChecked ? "#222" : "#646cff",
-                            cursor: isDisabled ? "not-allowed" : "pointer",
-                            outline: "none",
-                          }}
-                        />
-                        <div style={{ flex: 1 }}>
-                          <h4
+                        <div style={{ display: "flex", width: "100%", alignItems: "flex-start" }}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={isDisabled}
+                            onChange={() => {}}
+                            tabIndex={-1}
                             style={{
-                              margin: "0 0 8px 0",
-                              color: isChecked ? "#0e4028" : "#fafafa",
-                              textShadow: isChecked ? "0px 1px 0px #aaffc9" : "none",
+                              marginRight: "16px",
+                              width: "28px",
+                              height: "28px",
+                              accentColor: isChecked ? "#222" : "#646cff",
+                              cursor: isDisabled ? "not-allowed" : "pointer",
+                              outline: "none",
                             }}
-                          >
-                            {item.processedTitle || "Dataset sin título"}
-                          </h4>
-                          {item.processedDescription && (
-                            <p
+                          />
+                          <div style={{ flex: 1 }}>
+                            <h4
                               style={{
-                                margin: "0 0 10px 0",
-                                color: isChecked ? "#185026" : "#d1ffd6",
+                                margin: "0 0 8px 0",
+                                color: isChecked ? "#0e4028" : "#fafafa",
+                                textShadow: isChecked ? "0px 1px 0px #aaffc9" : "none",
                               }}
                             >
-                              {item.processedDescription.length > 200
-                                ? `${item.processedDescription.substring(0, 200)}...`
-                                : item.processedDescription}
-                            </p>
-                          )}
-                          {item.processedLink && (
-                            <a
-                              href={item.processedLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                color: isChecked ? "#0d54b2" : "#646cff",
-                                textDecoration: "none",
-                                fontWeight: "bold",
-                                borderBottom: isChecked ? "1.5px solid #0d54b2" : "none",
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              🔗 Ver dataset
-                            </a>
-                          )}
+                              {item.processedTitle || "Dataset sin título"}
+                            </h4>
+                            {item.processedDescription && (
+                              <p
+                                style={{
+                                  margin: "0 0 10px 0",
+                                  color: isChecked ? "#185026" : "#d1ffd6",
+                                }}
+                              >
+                                {item.processedDescription.length > 200
+                                  ? `${item.processedDescription.substring(0, 200)}...`
+                                  : item.processedDescription}
+                              </p>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Botones de formato */}
+                        {availableFormats.length > 0 && (
+                          <div style={{ 
+                            display: "flex", 
+                            flexWrap: "wrap", 
+                            gap: "8px", 
+                            marginTop: "10px",
+                            width: "100%",
+                            paddingLeft: "44px"
+                          }}>
+                           {availableFormats.map(({format, url}) => {
+                              const fmtLabel = format && format.includes("/")
+                                ? format.split("/").pop().toUpperCase()
+                                : (format ? format.toUpperCase() : "");
+
+                              return (
+                                <button
+                                  key={`${itemId}-${format}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    downloadFile(url, `${item.processedTitle || 'dataset'}.${fmtLabel.toLowerCase()}`);
+                                  }}
+                                  style={{
+                                    backgroundColor: 
+                                      fmtLabel === 'CSV' ? '#28a745' : 
+                                      fmtLabel === 'JSON' ? '#6f42c1' : 
+                                      fmtLabel === 'XML' ? '#fd7e14' : '#646cff',
+                                    color: "white",
+                                    border: "none",
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    fontSize: "0.8rem",
+                                    cursor: "pointer",
+                                    textTransform: "uppercase",
+                                    fontWeight: "bold",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                  }}
+                                  title={`Descargar ${fmtLabel}`}
+                                >
+                                  {fmtLabel} <span style={{ fontSize: "0.7rem" }}>↓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </li>
                     );
                   })}
