@@ -200,24 +200,50 @@ function Home() {
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {categorias.map((cat) => (
             <li key={cat} style={{ marginBottom: "0.5rem" }}>
-              <button
-                onClick={() => handleCategoriaClick(cat)}
+              <div
                 style={{
-                  width: "100%",
-                  backgroundColor: categoriaSeleccionada === cat ? "#646cff" : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  backgroundColor:
+                    categoriaSeleccionada === cat ? "#646cff" : "transparent",
                   color: categoriaSeleccionada === cat ? "white" : "#ccc",
-                  border: "none",
-                  padding: "8px 12px",
                   borderRadius: "4px",
-                  textTransform: "capitalize",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontSize: "1rem",
-                  transition: "background-color 0.3s ease",
                 }}
               >
-                {cat.replace(/-/g, " ")}
-              </button>
+                <button
+                  onClick={() => handleCategoriaClick(cat)}
+                  style={{
+                    flex: 1,
+                    background: "transparent",
+                    border: "none",
+                    padding: "8px 12px",
+                    textTransform: "capitalize",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontSize: "1rem",
+                    color: "inherit",
+                  }}
+                >
+                  {cat.replace(/-/g, " ")}
+                </button>
+
+                {categoriaSeleccionada === cat && (
+                  <button
+                    onClick={() => handleCategoriaClick(null)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "white",
+                      cursor: "pointer",
+                      padding: "0 8px",
+                      fontSize: "1.2rem",
+                    }}
+                    title="Deseleccionar categoría"
+                  >
+                    ✖
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
