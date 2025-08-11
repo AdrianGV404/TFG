@@ -18,7 +18,7 @@ export default function ProcessDatasetPanel({ selectedItems }) {
 
   // Elige la mejor distribución según prioridad
   const pickBestDistribution = (distributionArray) => {
-    const supportedPriority = ["json", "csv", "xml", "rdf+xml", "html"];
+    const supportedPriority = ["json", "csv", "xml", "rdf+xml", "html", "pc-axis"];
 
     const normalizeFormat = (fmt) => {
       if (!fmt) return "";
@@ -28,6 +28,7 @@ export default function ProcessDatasetPanel({ selectedItems }) {
       if (fmt.includes("xml") && fmt.includes("rdf")) return "rdf+xml";
       if (fmt.includes("xml")) return "xml";
       if (fmt.includes("html")) return "html";
+      if (fmt.includes("pc-axis") || fmt === "px") return "pc-axis"
       return fmt;
     };
 

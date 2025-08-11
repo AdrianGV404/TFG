@@ -108,6 +108,20 @@ const handleResultCheck = (item) => {
   });
 };
 
+  const formatDate = (dateStr) => {
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj)) return dateStr; // fallback si no parsea
+
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hours}:${minutes} GMT+1`;
+  };
+
+
   // Remover desde lista visual
   const handleRemoveSelected = (item) => {
     const itemId = getItemId(item);
@@ -469,6 +483,15 @@ const getAvailableFormats = (item) => {
                             >
                               {item.processedTitle || "Dataset sin título"}
                             </h4>
+                            {item.modified && (
+                              <p style={{
+                                margin: "0 0 6px 0",
+                                fontSize: "0.85rem",
+                                color: isChecked ? "#0e4028" : "#ccc"
+                              }}>
+                                Última actualización: {formatDate(item.modified)}
+                              </p>
+                            )}
                             {item.processedDescription && (
                               <p
                                 style={{
@@ -535,18 +558,6 @@ const getAvailableFormats = (item) => {
                     );
                   })}
                 </ul>
-
-                {/* Indicador cantidad seleccionados */}
-                <div style={{ marginTop: 16, color: "#aaa" }}>
-                  {funcionalidadSeleccionada ? (
-                    <>
-                      Conjuntos seleccionados: {selectedItems.length} /{" "}
-                      {getSelectLimit(funcionalidadSeleccionada) === Number.POSITIVE_INFINITY
-                        ? "∞"
-                        : getSelectLimit(funcionalidadSeleccionada)}
-                    </>
-                  ) : null}
-                </div>
               </div>
             ) : (
               <p style={{ textAlign: "center" }}>No se encontraron resultados</p>
