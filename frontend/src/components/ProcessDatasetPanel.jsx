@@ -108,7 +108,7 @@ export default function ProcessDatasetPanel({ selectedItems }) {
     <div style={{ padding: 12, borderRadius: 6, background: "#222", color: "#fff" }}>
       <h4 style={{ marginTop: 0 }}>Procesar dataset seleccionado</h4>
       <p style={{ color: "#ccc" }}>
-        Selecciona un dataset a la izquierda y pulsa <strong>Procesar</strong> para detectar el tipo de datos y ver sugerencias.
+        Cantidad de filas a <strong>Procesar</strong> del conjunto de datos.
       </p>
 
       {selectedItems && selectedItems.length > 0 && (

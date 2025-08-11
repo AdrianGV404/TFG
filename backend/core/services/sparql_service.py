@@ -1,8 +1,34 @@
-# backend/services/sparql_service.py
-
 import requests
+import logging
 
 SPARQL_ENDPOINT = "http://datos.gob.es/virtuoso/sparql"
+logger = logging.getLogger(__name__)
+
+DEFAULT_TIMEOUT = 20  # segundos
+
+def run_sparql_query(query, timeout=DEFAULT_TIMEOUT):
+    """
+    Ejecuta una consulta SPARQL y devuelve el JSON ya parseado.
+    Lanza excepción si la respuesta no es 200 o el JSON es inválido.
+    """
+    headers = {"Accept": "application/sparql-results+json"}
+    try:
+        response = requests.get(
+            SPARQL_ENDPOINT,
+            params={"query": query},
+            headers=headers,
+            timeout=timeout
+        )
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logger.exception("Error de red al consultar SPARQL")
+        raise RuntimeError(f"Error al conectar con SPARQL endpoint: {e}")
+    
+    try:
+        return response.json()
+    except ValueError as e:
+        logger.error("Respuesta SPARQL no es JSON válido")
+        raise RuntimeError(f"Respuesta no es JSON válido: {e}")
 
 def get_total_datasets():
     query = """
@@ -10,37 +36,17 @@ def get_total_datasets():
       ?dataset a <http://www.w3.org/ns/dcat#Dataset> .
     }
     """
-    params = {
-        "query": query,
-        "format": "application/sparql-results+json"
-    }
-    response = requests.get(SPARQL_ENDPOINT, params=params, timeout=10)
-    response.raise_for_status()  # Para levantar excepción si no es 200 OK
-
-    # Comprueba si la respuesta está vacía (puede pasar)
-    if not response.content:
-        raise ValueError("Respuesta vacía del endpoint SPARQL")
-
-    try:
-        data = response.json()
-    except Exception as e:
-        # Muy útil para ver qué está llegando
-        raise ValueError(f"Error parseando JSON de respuesta SPARQL: {e}\nContenido: {response.text}")
-
-    # Extraemos el total de la respuesta, protegemos por si estructuras cambian
+    data = run_sparql_query(query)
     try:
         total_str = data["results"]["bindings"][0]["total"]["value"]
-        total = int(total_str)
+        return int(total_str)
     except (KeyError, IndexError, ValueError) as e:
-        raise ValueError(f"No se pudo extraer el total desde la respuesta SPARQL: {e}\nDatos: {data}")
-
-    return total
+        raise RuntimeError(f"No se pudo extraer 'total' del resultado SPARQL: {e}")
 
 def get_all_themes():
     query = """
     PREFIX dcat: <http://www.w3.org/ns/dcat#>
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
     SELECT DISTINCT ?themeURI ?themeLabel WHERE {
       ?dataset a dcat:Dataset ;
                dcat:theme ?themeURI .
@@ -51,19 +57,11 @@ def get_all_themes():
     }
     ORDER BY ?themeLabel
     """
-    params = {
-        "query": query,
-        "format": "application/sparql-results+json"
-    }
-    resp = requests.get(SPARQL_ENDPOINT, params=params, timeout=30)
-    resp.raise_for_status()
-    data = resp.json()
-
-    # Transformar a lista [{uri: "...", label: "..."}]
+    data = run_sparql_query(query, timeout=30)
     themes = []
-    for b in data["results"]["bindings"]:
+    for b in data.get("results", {}).get("bindings", []):
         uri = b.get("themeURI", {}).get("value")
-        label = b.get("themeLabel", {}).get("value", uri)  # si no hay label, usar uri
+        label = b.get("themeLabel", {}).get("value", uri)
         themes.append({"uri": uri, "label": label})
     return themes
 
@@ -71,7 +69,6 @@ def get_dataset_counts_by_theme():
     query = """
     PREFIX dcat: <http://www.w3.org/ns/dcat#>
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
     SELECT ?theme ?themeLabel (COUNT(?dataset) AS ?datasetCount)
     WHERE {
       ?dataset a dcat:Dataset ;
@@ -82,24 +79,17 @@ def get_dataset_counts_by_theme():
     GROUP BY ?theme ?themeLabel
     ORDER BY DESC(?datasetCount)
     """
-    params = {
-        "query": query,
-        "format": "application/sparql-results+json"
-    }
-    response = requests.get(SPARQL_ENDPOINT, params=params, timeout=30)
-    response.raise_for_status()
-    data = response.json()
-
+    data = run_sparql_query(query, timeout=30)
     results = []
-    for binding in data["results"]["bindings"]:
-        theme_uri = binding["theme"]["value"]
-        theme_label = binding["themeLabel"]["value"]
-        count = int(binding["datasetCount"]["value"])
-        results.append({
-            "theme": theme_uri,
-            "label": theme_label,
-            "count": count,
-        })
+    for b in data.get("results", {}).get("bindings", []):
+        try:
+            results.append({
+                "theme": b["theme"]["value"],
+                "label": b["themeLabel"]["value"],
+                "count": int(b["datasetCount"]["value"]),
+            })
+        except (KeyError, ValueError):
+            continue
     return results
 
 def search_datasets_by_theme_sparql(theme_uri, search_type="", value="", page=0):
@@ -118,27 +108,16 @@ def search_datasets_by_theme_sparql(theme_uri, search_type="", value="", page=0)
     }}
     LIMIT 10 OFFSET {page * 10}
     """
-
     data = run_sparql_query(query)
-
-    # Transformar el formato SPARQL a un JSON uniforme
-    results = []
-    for b in data["results"]["bindings"]:
-        results.append({
+    items = []
+    for b in data.get("results", {}).get("bindings", []):
+        items.append({
             "dataset": b.get("dataset", {}).get("value"),
             "title": b.get("title", {}).get("value"),
             "description": b.get("description", {}).get("value"),
-            "distribution": b.get("distribution", {}).get("value", None)
+            "distribution": b.get("distribution", {}).get("value")
         })
-
     return {
-        "items_count": len(results),
-        "items": results
+        "items_count": len(items),
+        "items": items
     }
-
-
-def run_sparql_query(query):
-    headers = {"Accept": "application/sparql-results+json"}
-    response = requests.get(SPARQL_ENDPOINT, params={"query": query}, headers=headers)
-    response.raise_for_status()
-    return response.json()

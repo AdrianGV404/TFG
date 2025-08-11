@@ -63,7 +63,7 @@ function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [totalGeneral, setTotalGeneral] = useState(null);
 
-  const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("");
+const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver datos en gráficos");
   // Cambiado: array de objetos completos seleccionados
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -346,11 +346,6 @@ const getAvailableFormats = (item) => {
                 setFuncionalidadSeleccionada={handleSelectFunc}
             />
         </div>
-        {selectedItems.length > 0 && (
-          <div style={{ margin: "20px 0" }}>
-            <ProcessDatasetPanel selectedItems={selectedItems} />
-          </div>
-        )}
         <div
           style={{
             margin: "30px auto",
@@ -597,7 +592,15 @@ const getAvailableFormats = (item) => {
             fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
             display: "block"
           }}
-        >
+        >  
+          <div style={{
+            backgroundColor: "#2a653d",
+            padding: "16px 12px",
+            borderRadius: 6,
+            marginBottom: "15px"
+          }}>
+            <ProcessDatasetPanel selectedItems={selectedItems} />
+          </div>
           <div
             style={{
               flex: "1 1 25%",
