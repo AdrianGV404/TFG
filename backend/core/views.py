@@ -1,3 +1,9 @@
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+import requests
+import logging
+
+
 # views.py
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
@@ -179,3 +185,48 @@ def dataset_counts_by_theme_view(request):
         return JsonResponse({"themes": data})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+logger = logging.getLogger(__name__)
+@require_GET
+def analyze_dataset_view(request):
+    dataset_url = request.GET.get("url")
+    fmt = request.GET.get("format", "").lower()
+
+    if not dataset_url:
+        return JsonResponse({"error": "Parámetro 'url' es obligatorio"}, status=400)
+
+    supported_formats = ["json", "csv", "xml", "rdf+xml", "html"]
+    if fmt not in supported_formats:
+        return JsonResponse({"error": f"Formato '{fmt}' no soportado"}, status=415)
+
+    try:
+        resp = requests.get(dataset_url, timeout=15)
+        resp.raise_for_status()
+
+        if fmt == "json":
+            try:
+                data = resp.json()
+            except ValueError as e:
+                logger.error(f"Error parsing JSON from {dataset_url}: {e}")
+                return JsonResponse({"error": "El dataset no contiene JSON válido"}, status=415)
+            # Tu lógica de análisis JSON aquí: validar estructura, extraer schema, etc.
+            analysis_result = {
+                "format_detected": "json",
+                "sample_rows_count": len(data) if isinstance(data, list) else 1,
+                "schema": [],  # construir esquema aquí si puedes
+                "sample_rows": data[:10] if isinstance(data, list) else [data],
+                "suggestions": [],  # tus sugerencias de visualización
+            }
+            return JsonResponse(analysis_result)
+
+        # Implementa análisis para csv, xml, rdf+xml, html según corresponda
+
+        # Por ahora, si formato no implementado:
+        return JsonResponse({"error": f"Análisis para formato '{fmt}' no implementado"}, status=501)
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error descargando dataset {dataset_url}: {e}")
+        return JsonResponse({"error": f"Error descargando dataset: {str(e)}"}, status=500)
+    except Exception as e:
+        logger.exception(f"Error inesperado analizando dataset: {e}")
+        return JsonResponse({"error": "Error interno del servidor"}, status=500)

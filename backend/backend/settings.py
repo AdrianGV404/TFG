@@ -149,3 +149,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+CSRF_COOKIE_SAMESITE = "None"  # cross-site; requiere CSRF_COOKIE_SECURE=True en navegadores modernos
+CSRF_COOKIE_SECURE = False # en dev. En prod, True y HTTPS obligatorio

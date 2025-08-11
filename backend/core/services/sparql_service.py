@@ -101,3 +101,44 @@ def get_dataset_counts_by_theme():
             "count": count,
         })
     return results
+
+def search_datasets_by_theme_sparql(theme_uri, search_type="", value="", page=0):
+    query = f"""
+    PREFIX dcat: <http://www.w3.org/ns/dcat#>
+    PREFIX dct: <http://purl.org/dc/terms/>
+    SELECT ?dataset ?title ?description ?distribution
+    WHERE {{
+      ?dataset a dcat:Dataset ;
+               dct:title ?title ;
+               dct:description ?description ;
+               dcat:theme <{theme_uri}> .
+      OPTIONAL {{ ?dataset dcat:distribution ?distribution . }}
+      FILTER(LANG(?title) = "es" || LANG(?title) = "en")
+      FILTER(LANG(?description) = "es" || LANG(?description) = "en")
+    }}
+    LIMIT 10 OFFSET {page * 10}
+    """
+
+    data = run_sparql_query(query)
+
+    # Transformar el formato SPARQL a un JSON uniforme
+    results = []
+    for b in data["results"]["bindings"]:
+        results.append({
+            "dataset": b.get("dataset", {}).get("value"),
+            "title": b.get("title", {}).get("value"),
+            "description": b.get("description", {}).get("value"),
+            "distribution": b.get("distribution", {}).get("value", None)
+        })
+
+    return {
+        "items_count": len(results),
+        "items": results
+    }
+
+
+def run_sparql_query(query):
+    headers = {"Accept": "application/sparql-results+json"}
+    response = requests.get(SPARQL_ENDPOINT, params={"query": query}, headers=headers)
+    response.raise_for_status()
+    return response.json()

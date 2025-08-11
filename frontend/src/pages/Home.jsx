@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import SearchComponent from "../components/SearchComponent";
 import FuncionalidadesPanel from "../components/FuncionalidadesPanel";
+import ProcessDatasetPanel from "../components/ProcessDatasetPanel";
 
 const categorias = [
   "sector-publico",
@@ -35,7 +36,7 @@ function getInfoMessage(func) {
     case "Correlación de variables":
       return "Selecciona 2 conjuntos de datos para calcular la correlación.";
     case "Ver datos en gráficos":
-      return "Selecciona 1 o más conjuntos para visualizar en gráficos.";
+      return "Selecciona 1 conjunto para visualizar en gráficos.";
     default:
       return "";
   }
@@ -49,7 +50,7 @@ function getSelectLimit(func) {
     case "Correlación de variables":
       return 2;
     case "Ver datos en gráficos":
-      return Number.POSITIVE_INFINITY;
+      return 2;
     default:
       return 0;
   }
@@ -75,26 +76,38 @@ function Home() {
   const [totalDatasets, setTotalDatasets] = useState(null);
   const [conteosPorCategoria, setConteosPorCategoria] = useState([]);
 
-
   // Para obtener ID único de un item (asegura que coincida en todo el código)
+  const getItemId = (item) => {
+    return (
+      item.identifier ||
+      item.id ||
+      item["@id"] ||
+      item.processedLink ||
+      (
+        Array.isArray(item.distribution)
+          ? item.distribution[0]?.accessURL || item.distribution[0]?.downloadURL
+          : item.distribution?.accessURL || item.distribution?.downloadURL
+      ) ||
+      ""
+    );
+  };
 
-  const getItemId = (item, fallback = null) =>
-    item.identifier || item.id || item["@id"] || item.processedLink || fallback?.toString() || "";
 
-  // Añadir o eliminar elemento completo
-  const handleResultCheck = (item) => {
-    const itemId = getItemId(item);
-
-    const exists = selectedItems.some(sel => getItemId(sel) === itemId);
+const handleResultCheck = (item) => {
+  const itemId = getItemId(item);
+  setSelectedItems(prevSelected => {
+    const exists = prevSelected.some(sel => getItemId(sel) === itemId);
 
     if (exists) {
-      setSelectedItems(selectedItems.filter(sel => getItemId(sel) !== itemId));
+      // Si ya está seleccionado, lo quitamos
+      return [];
     } else {
-      if (selectedItems.length < getSelectLimit(funcionalidadSeleccionada)) {
-        setSelectedItems([...selectedItems, item]);
-      }
+      // Siempre sustituimos por el nuevo
+      return [item];
     }
-  };
+  });
+};
+
 
   // Remover desde lista visual
   const handleRemoveSelected = (item) => {
@@ -388,7 +401,7 @@ const getAvailableFormats = (item) => {
 
                     return (
                       <li
-                        key={itemId}
+                        key={`${itemId}-${i}`} 
                         onClick={() => !isDisabled && handleResultCheck(item)}
                         style={{
                           marginBottom: "15px",
@@ -420,7 +433,12 @@ const getAvailableFormats = (item) => {
                             type="checkbox"
                             checked={isChecked}
                             disabled={isDisabled}
-                            onChange={() => {}}
+                            onClick={(e) => e.stopPropagation()} // evita doble disparo si hay onClick en <li>
+                            onChange={() => {
+                              if (!isDisabled) {
+                                handleResultCheck(item); // marcar o desmarcar
+                              }
+                            }}
                             tabIndex={-1}
                             style={{
                               marginRight: "16px",
@@ -549,7 +567,7 @@ const getAvailableFormats = (item) => {
       {/* Panel funcionalidades derecho con lista visual de seleccionados a la derecha */}
       <div
         style={{
-          width: 380,
+          flex: "1",
           borderLeft: "1px solid #444",
           padding: "16px 18px",
           backgroundColor: "#1a1a1a",
@@ -580,7 +598,9 @@ const getAvailableFormats = (item) => {
             setFuncionalidadSeleccionada={handleSelectFunc}
           />
         </div>
-
+        {selectedItems.length > 0 && (
+          <ProcessDatasetPanel selectedItems={selectedItems} />
+        )}
         {/* Lista visual seleccionados, ancho mayor y texto más grande */}
         <div
           style={{
@@ -604,7 +624,7 @@ const getAvailableFormats = (item) => {
                 const itemId = getItemId(item, i);
                 return (
                   <li
-                    key={itemId}
+                    key={`${itemId}-${i}`} 
                     style={{
                       backgroundColor: "#2a653d",
                       marginBottom: "10px",
