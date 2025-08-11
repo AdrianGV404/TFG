@@ -12,11 +12,6 @@ function FuncionalidadesPanel({ funcionalidadSeleccionada, setFuncionalidadSelec
     setFuncionalidadSeleccionada(e.target.value);
   };
 
-  const handleProcesarClick = () => {
-    console.log("Procesar:", funcionalidadSeleccionada);
-    // Aquí iría la funcionalidad futura
-  };
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div>
@@ -28,16 +23,21 @@ function FuncionalidadesPanel({ funcionalidadSeleccionada, setFuncionalidadSelec
             fontSize: "1.3rem",
           }}
         >
-          Funcionalidades
         </h3>
-        <form>
+        <form
+          style={{
+            display: "flex",
+            flexDirection: "row", // ← en fila
+            gap: "28px",          // ← separación horizontal entre opciones
+            marginBottom: "1.2rem"
+          }}
+        >
           {funcionalidades.map((func) => (
             <label
               key={func}
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: "18px",
                 cursor: "pointer",
                 fontSize: "1.1rem",
                 userSelect: "none",
@@ -51,7 +51,7 @@ function FuncionalidadesPanel({ funcionalidadSeleccionada, setFuncionalidadSelec
                 checked={funcionalidadSeleccionada === func}
                 onChange={handleChange}
                 style={{
-                  marginRight: "12px",
+                  marginRight: "8px",  // separación entre el círculo y el texto
                   width: "20px",
                   height: "20px",
                   cursor: "pointer",
@@ -63,34 +63,6 @@ function FuncionalidadesPanel({ funcionalidadSeleccionada, setFuncionalidadSelec
           ))}
         </form>
       </div>
-      <button
-        onClick={handleProcesarClick}
-        disabled={!funcionalidadSeleccionada}
-        style={{
-          padding: "12px 0",
-          backgroundColor: funcionalidadSeleccionada ? "#646cff" : "#555555",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: funcionalidadSeleccionada ? "pointer" : "not-allowed",
-          fontWeight: "700",
-          fontSize: "1.1rem",
-          marginTop: "auto",
-          boxShadow: funcionalidadSeleccionada
-            ? "0 4px 12px rgba(100, 108, 255, 0.5)"
-            : "none",
-          transition: "background-color 0.3s ease, box-shadow 0.3s ease",
-          userSelect: "none",
-        }}
-        onMouseEnter={(e) => {
-          if (funcionalidadSeleccionada) e.currentTarget.style.backgroundColor = "#5058e8";
-        }}
-        onMouseLeave={(e) => {
-          if (funcionalidadSeleccionada) e.currentTarget.style.backgroundColor = "#646cff";
-        }}
-      >
-        Procesar
-      </button>
     </div>
   );
 }

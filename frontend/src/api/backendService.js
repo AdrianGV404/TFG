@@ -47,11 +47,13 @@ export async function search_by_category(category, page = 0) {
   return await response.json();
 }
 
-/* ---------- Analizar dataset con GET ---------- */
-export async function analyze_dataset(datasetUrl, format) {
+export async function analyze_dataset(datasetUrl, format, rows) {
   const url = new URL(`${API_BASE}/api/dataset/analyze/`);
   url.searchParams.set("url", datasetUrl);
   url.searchParams.set("format", format);
+  if (rows !== undefined) {
+    url.searchParams.set("rows", rows);
+  }
   const response = await fetch(url.toString(), { credentials: "include" });
   if (!response.ok) throw new Error(`Error al analizar dataset: ${response.status}`);
   return await response.json();

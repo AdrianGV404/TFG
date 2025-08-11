@@ -288,10 +288,6 @@ function SearchComponent({ onResults, onError, categoria }) {
           >
             Anterior
           </button>
-          <span>
-            Página {currentPage + 1}
-            {totalPages ? ` de ${totalPages}` : ""}
-          </span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={isSearching || (totalPages !== null && currentPage + 1 >= totalPages)}

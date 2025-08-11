@@ -15,6 +15,7 @@ import os
 from core.services.search_datasets import *
 from .services.sparql_service import *
 from core.utils.file_utils import *
+from core.services.dataset_analyzer import *
 
 DATASETS_DIR = os.path.join("core", "data")
 
@@ -191,6 +192,7 @@ logger = logging.getLogger(__name__)
 def analyze_dataset_view(request):
     dataset_url = request.GET.get("url")
     fmt = request.GET.get("format", "").lower()
+    rows_param = request.GET.get("rows")
 
     if not dataset_url:
         return JsonResponse({"error": "Parámetro 'url' es obligatorio"}, status=400)
@@ -200,33 +202,15 @@ def analyze_dataset_view(request):
         return JsonResponse({"error": f"Formato '{fmt}' no soportado"}, status=415)
 
     try:
-        resp = requests.get(dataset_url, timeout=15)
-        resp.raise_for_status()
+        # Si rows_param es -1, interpretamos como "sin límite" (None)
+        max_rows = None if rows_param == "-1" else int(rows_param) if rows_param else 80
 
-        if fmt == "json":
-            try:
-                data = resp.json()
-            except ValueError as e:
-                logger.error(f"Error parsing JSON from {dataset_url}: {e}")
-                return JsonResponse({"error": "El dataset no contiene JSON válido"}, status=415)
-            # Tu lógica de análisis JSON aquí: validar estructura, extraer schema, etc.
-            analysis_result = {
-                "format_detected": "json",
-                "sample_rows_count": len(data) if isinstance(data, list) else 1,
-                "schema": [],  # construir esquema aquí si puedes
-                "sample_rows": data[:10] if isinstance(data, list) else [data],
-                "suggestions": [],  # tus sugerencias de visualización
-            }
-            return JsonResponse(analysis_result)
-
-        # Implementa análisis para csv, xml, rdf+xml, html según corresponda
-
-        # Por ahora, si formato no implementado:
-        return JsonResponse({"error": f"Análisis para formato '{fmt}' no implementado"}, status=501)
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error descargando dataset {dataset_url}: {e}")
-        return JsonResponse({"error": f"Error descargando dataset: {str(e)}"}, status=500)
+        analysis_result = analyze_distribution_url(
+            dataset_url,
+            format_override=fmt,
+            sample_rows=max_rows if max_rows is not None else 999999  # Un número muy alto
+        )
+        return JsonResponse(analysis_result, safe=False)
     except Exception as e:
-        logger.exception(f"Error inesperado analizando dataset: {e}")
+        logger.exception(f"Error analizando dataset: {e}")
         return JsonResponse({"error": "Error interno del servidor"}, status=500)
