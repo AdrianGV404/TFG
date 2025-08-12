@@ -1,28 +1,32 @@
+# core/services/dataset_analyzer.py
 import requests
 import io
 import csv
 import json
 import re
-import pyaxis  # <-- añadido para soporte pc-axis
-from dateutil import parser as dateparser  # pip install python-dateutil
-from typing import List, Dict, Any
+import pyaxis  # soporte PC-Axis (si lo tienes instalado)
+from dateutil import parser as dateparser
+from typing import List, Dict, Any, Optional
 
+# Importación del servicio INE (asegúrate de tener el archivo core/services/ine_api_service.py actualizado
+# para que get_dataset_from_ine devuelva labels y series — te lo indico más abajo si hace falta).
+from core.services.ine_api_service import is_ine_dataset, get_dataset_from_ine
 
-# (Lista de comunidades usada para detección geo)
 SPANISH_COMMUNITIES = [
     "andalucía", "andalucia", "aragón", "aragon", "asturias", "islas baleares",
     "baleares", "canarias", "cantabria", "castilla-la mancha", "castilla y león",
     "castilla y leon", "cataluña", "cataluna", "comunidad valenciana", "valenciana",
-    "extremadura", "galicia", "la rioja", "madrid", "murcia", "navarra", "navarra",
+    "extremadura", "galicia", "la rioja", "madrid", "murcia", "navarra",
     "país vasco", "pais vasco", "paisvasco", "ceuta", "melilla"
 ]
 
-
+# -----------------------
+# Utilidades básicas
+# -----------------------
 def safe_text(s):
     if s is None:
         return ""
     return str(s).strip()
-
 
 def try_parse_number(v):
     try:
@@ -35,7 +39,6 @@ def try_parse_number(v):
     except Exception:
         return None
 
-
 def looks_like_date(s):
     if s is None or s == "":
         return False
@@ -44,7 +47,6 @@ def looks_like_date(s):
         return True
     except Exception:
         return False
-
 
 def find_first_list_in_json(obj):
     if isinstance(obj, list):
@@ -58,11 +60,9 @@ def find_first_list_in_json(obj):
                 return v
     return None
 
-
 # -----------------------
 # Normalización / flatten
 # -----------------------
-
 def auto_normalize_key(key: str) -> str:
     if key is None:
         return ""
@@ -73,9 +73,7 @@ def auto_normalize_key(key: str) -> str:
     s = re.sub(r'[^0-9A-Za-z\u00C0-\u017F ]+', ' ', s)
     s = re.sub(r'\s+', ' ', s).strip()
     parts = [p.capitalize() for p in s.split()]
-    normalized = " ".join(parts)
-    return normalized
-
+    return " ".join(parts)
 
 def _flatten(obj: Any, prefix: str = "", out: Dict[str, Any] = None, max_list_items: int = 3):
     if out is None:
@@ -101,7 +99,6 @@ def _flatten(obj: Any, prefix: str = "", out: Dict[str, Any] = None, max_list_it
         out[prefix or "value"] = obj
     return out
 
-
 def flatten_row(row: Dict[str, Any]) -> Dict[str, str]:
     if not isinstance(row, dict):
         return {"Value": safe_text(row)}
@@ -110,7 +107,6 @@ def flatten_row(row: Dict[str, Any]) -> Dict[str, str]:
         nk = auto_normalize_key(k)
         _flatten(v, nk, flat)
     return {k: safe_text(v) for k, v in flat.items()}
-
 
 def normalize_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     flat_rows = [flatten_row(r) for r in rows]
@@ -121,15 +117,12 @@ def normalize_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
                 all_cols.append(k)
     normalized = []
     for r in flat_rows:
-        newr = {col: r.get(col, "") for col in all_cols}
-        normalized.append(newr)
+        normalized.append({col: r.get(col, "") for col in all_cols})
     return normalized
-
 
 # -----------------------
 # Sampling CSV / JSON / PC-AXIS
 # -----------------------
-
 def sample_csv_from_url(url, max_rows=100, max_lines=1000, timeout=30):
     resp = requests.get(url, stream=True, timeout=timeout)
     resp.raise_for_status()
@@ -151,15 +144,10 @@ def sample_csv_from_url(url, max_rows=100, max_lines=1000, timeout=30):
     f = io.StringIO(text)
     try:
         reader = csv.DictReader(f)
-        rows = []
-        for r in reader:
-            rows.append({k: safe_text(v) for k, v in r.items()})
-            if len(rows) >= max_rows:
-                break
-        return rows
+        rows = [{k: safe_text(v) for k, v in r.items()} for r in reader]
+        return rows[:max_rows]
     except Exception:
         return []
-
 
 def sample_json_from_url(url, max_rows=100, timeout=30):
     resp = requests.get(url, timeout=timeout)
@@ -173,30 +161,19 @@ def sample_json_from_url(url, max_rows=100, timeout=30):
             return []
     rows = []
     for item in arr[:max_rows]:
-        if isinstance(item, dict):
-            rows.append(item)
-        else:
-            rows.append({"value": item})
+        rows.append(item if isinstance(item, dict) else {"value": item})
     return rows
 
-
 def sample_pcaxis_from_url(url, max_rows=100, timeout=30):
-    """
-    Lee un archivo PC-Axis (.px) y lo convierte a lista de dicts.
-    Requiere: pip install pyaxis
-    """
     resp = requests.get(url, timeout=timeout)
     resp.raise_for_status()
-    # pyaxis.parse devuelve un pandas DataFrame
+    # pyaxis.parse devuelve dataframe; convertir a records
     df = pyaxis.parse(io.BytesIO(resp.content), encoding="utf-8")
-    rows = df.to_dict(orient="records")
-    return rows[:max_rows]
-
+    return df.to_dict(orient="records")[:max_rows]
 
 # -----------------------
 # Schema inference
 # -----------------------
-
 def infer_schema_from_rows(rows: List[Dict[str, str]], sample_limit=20):
     schema = []
     if not rows:
@@ -204,7 +181,7 @@ def infer_schema_from_rows(rows: List[Dict[str, str]], sample_limit=20):
     cols = list(rows[0].keys())
     for col in cols:
         values = [safe_text(r.get(col, "")) for r in rows[:sample_limit]]
-        non_empty = [v for v in values if v != "" and v is not None]
+        non_empty = [v for v in values if v]
         inferred = "string"
         num_count = 0
         date_count = 0
@@ -225,13 +202,11 @@ def infer_schema_from_rows(rows: List[Dict[str, str]], sample_limit=20):
                     pass
             if looks_like_date(v):
                 date_count += 1
-        if len(non_empty) > 0:
+        if non_empty:
             if num_count / len(non_empty) >= 0.8:
                 inferred = "numeric"
             elif date_count / len(non_empty) >= 0.6:
                 inferred = "datetime"
-            else:
-                inferred = "string"
         lowname = col.lower()
         if any(k in lowname for k in ("lat", "latitude", "latitud")):
             inferred = "latitude"
@@ -239,7 +214,7 @@ def infer_schema_from_rows(rows: List[Dict[str, str]], sample_limit=20):
             inferred = "longitude"
         lower_vals = [v.lower() for v in non_empty[:min(30, len(non_empty))]]
         matches = sum(1 for v in lower_vals for c in SPANISH_COMMUNITIES if c in v)
-        if len(non_empty) > 0 and matches / len(lower_vals) >= 0.2:
+        if non_empty and matches / len(lower_vals) >= 0.2:
             inferred = "geo_name"
         schema.append({
             "name": col,
@@ -249,11 +224,9 @@ def infer_schema_from_rows(rows: List[Dict[str, str]], sample_limit=20):
         })
     return schema
 
-
 # -----------------------
 # Suggestions builder
 # -----------------------
-
 def build_suggestions(schema):
     suggestions = []
     numeric_cols = [c["name"] for c in schema if c["inferred_type"] == "numeric"]
@@ -263,63 +236,109 @@ def build_suggestions(schema):
     geo_name_cols = [c["name"] for c in schema if c["inferred_type"] == "geo_name"]
     categorical_candidates = [c["name"] for c in schema if c["inferred_type"] == "string" and c["unique_count_estimate"] < 200]
 
+    # Priorizar timeseries si hay datetime + numeric
     for dcol in datetime_cols:
         for ncol in numeric_cols:
-            suggestions.append({
-                "type": "timeseries",
-                "title": f"Time series: {ncol} by {dcol}",
-                "x": dcol,
-                "y": ncol
-            })
+            suggestions.append({"type": "timeseries", "title": f"{ncol} por {dcol}", "x": dcol, "y": ncol})
+
+    # Agrupar numéricos por categorías -> barras / pastel
     for cat in categorical_candidates:
         for ncol in numeric_cols:
-            suggestions.append({
-                "type": "barchart",
-                "title": f"Bar chart by {cat} ({ncol})",
-                "category": cat,
-                "value": ncol
-            })
-            suggestions.append({
-                "type": "piechart",
-                "title": f"Pie chart by {cat} ({ncol})",
-                "category": cat,
-                "value": ncol
-            })
+            suggestions.append({"type": "barchart", "title": f"{ncol} por {cat}", "category": cat, "value": ncol})
+            suggestions.append({"type": "piechart", "title": f"{ncol} por {cat}", "category": cat, "value": ncol})
+
+    # Geoespacial
     if lat_cols and lon_cols:
-        suggestions.append({
-            "type": "heatmap",
-            "title": f"Heatmap by coords ({lat_cols[0]} / {lon_cols[0]})",
-            "lat": lat_cols[0],
-            "lon": lon_cols[0]
-        })
+        suggestions.append({"type": "heatmap", "title": f"Coordenadas ({lat_cols[0]} / {lon_cols[0]})", "lat": lat_cols[0], "lon": lon_cols[0]})
     if geo_name_cols and numeric_cols:
         for ncol in numeric_cols:
-            suggestions.append({
-                "type": "choropleth",
-                "title": f"Geo values ({geo_name_cols[0]} - {ncol})",
-                "geo_name": geo_name_cols[0],
-                "value": ncol
-            })
-    suggestions.append({"type": "table", "title": "Show table (raw view)"})
+            suggestions.append({"type": "choropleth", "title": f"{ncol} por {geo_name_cols[0]}", "geo_name": geo_name_cols[0], "value": ncol})
+
+    # Siempre añadir tabla al final
+    suggestions.append({"type": "table", "title": "Mostrar tabla"})
     return suggestions
 
+def choose_primary_suggestion(suggestions):
+    # Preferir visualizaciones gráficas antes que table
+    order = ["timeseries", "barchart", "piechart", "choropleth", "heatmap", "table"]
+    for t in order:
+        for s in suggestions:
+            if s.get("type") == t:
+                return s
+    return suggestions[0] if suggestions else {"type": "table", "title": "Mostrar tabla"}
 
 # -----------------------
-# Analyze distribution url
+# Analyze distribution url (con soporte INE)
 # -----------------------
-
 def analyze_distribution_url(url: str, format_override: str = None, sample_rows=80):
+    """
+    Descarga una muestra del recurso (PC-Axis prioritario, luego CSV, luego JSON)
+    y devuelve esquema, muestra y sugerencias.
+    En caso de detectar recurso INE (ine-api), usa get_dataset_from_ine para obtener labels/series.
+    """
+    # Si es INE -> usar su API (prioritario)
+    try:
+        if is_ine_dataset(url):
+            # get_dataset_from_ine debe devolver al menos: schema, sample_rows, labels, series
+            # sample_rows argument pasa el tamaño máximo de sample (o -1 para todo)
+            try:
+                ine_data = get_dataset_from_ine(url, sample_rows=sample_rows)
+            except Exception as e:
+                raise RuntimeError(f"Error al obtener datos INE: {e}")
+
+            # Normalizar nombres de keys por si acaso
+            schema = ine_data.get("schema", [])
+            normalized_rows = ine_data.get("sample_rows", [])
+            labels = ine_data.get("labels", [])    # ejes X (fechas, periodos)
+            series = ine_data.get("series", [])    # lista de {name, data}
+
+            # Si la función get_dataset_from_ine no devolviera schema/samplerows (compatibilidad),
+            # intentar normalizar a partir de 'raw' si está presente.
+            if not schema:
+                schema = infer_schema_from_rows(normalized_rows, sample_limit=30)
+
+            suggestions = build_suggestions(schema)
+            primary = choose_primary_suggestion(suggestions)
+
+            # Forzar que la sugerencia principal sea timeseries si tenemos labels+series
+            if labels and series and primary.get("type") == "table":
+                primary = {"type": "timeseries", "title": primary.get("title", "Series temporales (INE)"), "x": None, "y": None}
+
+            result = {
+                "format_detected": "ine-api",
+                "schema": schema,
+                "sample_rows": normalized_rows,
+                "suggestions": suggestions,
+                "suggestion": primary,
+                "sample_rows_count": len(normalized_rows),
+            }
+            # añadir labels/series para que el frontend pinte directamente
+            if labels:
+                result["labels"] = labels
+            if series:
+                result["series"] = series
+
+            return result
+
+    except Exception as e:
+        # Si falla la ruta INE, se sigue a la ruta genérica más abajo (no romper todo)
+        # Loguear/ignorar y continuar
+        print(f"[analyze_distribution_url] fallo INE: {e}")
+
+    # ---------------------------------------------------------
+    # Código no-INE: intentar detectar formato y samplear
+    # ---------------------------------------------------------
     fmt = None
     if format_override:
         fmt = format_override.lower()
     else:
-        if url.lower().endswith(".csv") or "rows.csv" in url or "format=csv" in url:
+        if ".px" in url.lower() or "pc-axis" in url.lower() or "format=pc-axis" in url.lower():
+            fmt = "pc-axis"
+        elif url.lower().endswith(".csv") or "rows.csv" in url.lower() or "format=csv" in url.lower():
             fmt = "csv"
-        elif url.lower().endswith(".json") or "rows.json" in url or "format=json" in url:
+        elif url.lower().endswith(".json") or "rows.json" in url.lower() or "format=json" in url.lower():
             fmt = "json"
-        elif url.lower().endswith(".px") or "pc-axis" in url.lower() or "format=pc-axis" in url.lower():
-            fmt = "pc-axis"  # <--- soporte pc-axis
-        elif "rdf" in url or "xml" in url:
+        elif "rdf" in url.lower() or "xml" in url.lower():
             fmt = "rdf"
         else:
             fmt = None
@@ -327,42 +346,56 @@ def analyze_distribution_url(url: str, format_override: str = None, sample_rows=
     rows = []
     last_format_used = None
 
-    if fmt == "csv":
-        rows = sample_csv_from_url(url, max_rows=sample_rows)
-        last_format_used = "csv"
+    try:
+        if fmt == "pc-axis":
+            rows = sample_pcaxis_from_url(url, max_rows=sample_rows)
+            last_format_used = "pc-axis"
 
-    elif fmt == "json":
-        rows = sample_json_from_url(url, max_rows=sample_rows)
-        last_format_used = "json"
-
-    elif fmt == "pc-axis":  # <--- nuevo bloque
-        rows = sample_pcaxis_from_url(url, max_rows=sample_rows)
-        last_format_used = "pc-axis"
-
-    else:
-        # fallback: probar csv luego json
-        try:
+        elif fmt == "csv":
             rows = sample_csv_from_url(url, max_rows=sample_rows)
-            if rows:
-                last_format_used = "csv"
-            else:
-                rows = sample_json_from_url(url, max_rows=sample_rows)
-                last_format_used = "json"
-        except Exception:
+            last_format_used = "csv"
+
+        elif fmt == "json":
+            rows = sample_json_from_url(url, max_rows=sample_rows)
+            last_format_used = "json"
+
+        else:
+            # fallback: pc-axis -> csv -> json
             try:
-                rows = sample_json_from_url(url, max_rows=sample_rows)
-                last_format_used = "json"
-            except Exception as e:
-                raise RuntimeError(f"Could not sample CSV/JSON/PC-AXIS from url: {e}")
+                rows = sample_pcaxis_from_url(url, max_rows=sample_rows)
+                if rows:
+                    last_format_used = "pc-axis"
+                else:
+                    rows = sample_csv_from_url(url, max_rows=sample_rows)
+                    if rows:
+                        last_format_used = "csv"
+                    else:
+                        rows = sample_json_from_url(url, max_rows=sample_rows)
+                        last_format_used = "json"
+            except Exception:
+                try:
+                    rows = sample_csv_from_url(url, max_rows=sample_rows)
+                    if rows:
+                        last_format_used = "csv"
+                    else:
+                        rows = sample_json_from_url(url, max_rows=sample_rows)
+                        last_format_used = "json"
+                except Exception as e:
+                    raise RuntimeError(f"No se pudo obtener muestra en ningún formato: {e}")
+
+    except Exception as e:
+        raise RuntimeError(f"Error al procesar la URL {url}: {e}")
 
     normalized = normalize_rows(rows) if rows else []
     schema = infer_schema_from_rows(normalized, sample_limit=30)
     suggestions = build_suggestions(schema)
+    primary = choose_primary_suggestion(suggestions)
 
     return {
         "format_detected": last_format_used,
         "schema": schema,
         "sample_rows": normalized[:min(len(normalized), 200)],
         "suggestions": suggestions,
+        "suggestion": primary,
         "sample_rows_count": len(normalized)
     }

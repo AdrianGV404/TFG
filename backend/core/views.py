@@ -18,6 +18,14 @@ from core.services.sparql_service import (
     get_all_themes,
     get_dataset_counts_by_theme,
 )
+
+from core.services.ine_api_service import (
+    is_ine_dataset,
+    get_dataset_from_ine,
+    extract_ine_idtable,
+    INEApiError,
+)
+
 from core.utils.file_utils import handle_dataset_file
 from core.services.dataset_analyzer import analyze_distribution_url
 
@@ -131,10 +139,6 @@ def _generic_search_view(
         status=200,
     )
 
-
-# --- Thin wrappers that use the generic helper ---
-
-
 @require_GET
 def search_by_title_view(request):
     return _generic_search_view(
@@ -170,7 +174,6 @@ def search_by_spatial_view(request):
 
 @require_GET
 def search_by_category_view(request):
-    # keep compatibility: category param name is 'category'
     return _generic_search_view(
         request,
         required_params=["category"],
@@ -179,8 +182,6 @@ def search_by_category_view(request):
         extra_args_from_request=lambda params, page: (params["category"], page),
     )
 
-
-# --- Stats / themes endpoints (unchanged but hardened) ---
 @require_GET
 def total_datasets_view(request):
     try:
@@ -211,7 +212,6 @@ def dataset_counts_by_theme_view(request):
         return JsonResponse({"success": False, "message": str(e)}, status=500)
 
 
-# --- Dataset analyzer (GET) ---
 @require_GET
 def analyze_dataset_view(request):
     dataset_url = request.GET.get("url")
@@ -221,8 +221,7 @@ def analyze_dataset_view(request):
     if not dataset_url:
         return JsonResponse({"success": False, "message": "Parámetro 'url' es obligatorio"}, status=400)
 
-    # if format is empty, allow None (analyze function autodetects)
-    supported_formats = [None, "", "json", "csv", "xml", "rdf+xml", "html"]
+    supported_formats = [None, "", "json", "csv", "xml", "rdf+xml", "html", "pc-axis"]
     if fmt not in supported_formats:
         return JsonResponse({"success": False, "message": f"Formato '{fmt}' no soportado"}, status=415)
 
@@ -232,12 +231,30 @@ def analyze_dataset_view(request):
         max_rows = 80
 
     try:
+        # Si es dataset del INE -> usar wstempus via our service
+        if is_ine_dataset(dataset_url):
+            try:
+                data = get_dataset_from_ine(dataset_url, sample_rows=max_rows)
+            except INEApiError as ie:
+                logger.exception("Error INE API")
+                return JsonResponse({"success": False, "message": str(ie)}, status=500)
+
+            suggestion = {"type": "table", "title": f"Tabla INE {extract_ine_idtable(dataset_url)}"}
+            return JsonResponse({
+                "success": True,
+                **data,
+                "suggestions": [suggestion],  # 🔹 ya como array
+                "format_detected": "ine-api"  # 🔹 para diferenciar
+            }, status=200)
+
+        # Flujo "normal" para CSV/JSON/XML/PC-AXIS ya implementado
         analysis_result = analyze_distribution_url(
             dataset_url,
             format_override=(fmt if fmt else None),
             sample_rows=max_rows if max_rows is not None else 999999,
         )
-        return JsonResponse({"success": True, **analysis_result}, safe=False)
+        return JsonResponse({"success": True, **analysis_result}, status=200)
+
     except Exception as e:
         logger.exception("Error analizando dataset")
         return JsonResponse({"success": False, "message": "Error interno del servidor"}, status=500)

@@ -1,4 +1,3 @@
-// src/components/ProcessDatasetPanel.jsx
 import { useState } from "react";
 import { analyze_dataset } from "../api/backendService";
 import SimpleChart from "./DataVisualization";
@@ -9,17 +8,13 @@ export default function ProcessDatasetPanel({ selectedItems }) {
   const [error, setError] = useState(null);
   const [chosenSuggestionIndex, setChosenSuggestionIndex] = useState(0);
 
-  // Estado para número de filas y máximo
-  const [rowsToProcess, setRowsToProcess] = useState(80); // por defecto
+  const [rowsToProcess, setRowsToProcess] = useState(80);
   const [useMaxRows, setUseMaxRows] = useState(true);
 
-  //Popup
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Elige la mejor distribución según prioridad
   const pickBestDistribution = (distributionArray) => {
     const supportedPriority = ["json", "csv", "xml", "rdf+xml", "html", "pc-axis"];
-
     const normalizeFormat = (fmt) => {
       if (!fmt) return "";
       fmt = fmt.toLowerCase();
@@ -28,30 +23,24 @@ export default function ProcessDatasetPanel({ selectedItems }) {
       if (fmt.includes("xml") && fmt.includes("rdf")) return "rdf+xml";
       if (fmt.includes("xml")) return "xml";
       if (fmt.includes("html")) return "html";
-      if (fmt.includes("pc-axis") || fmt === "px") return "pc-axis"
+      if (fmt.includes("pc-axis") || fmt === "px") return "pc-axis";
       return fmt;
     };
-
-    const clean = distributionArray
-      .map((d) => ({
-        format: normalizeFormat(
-          typeof d.format === "string"
-            ? d.format
-            : d.format?.value || d.format?._value || ""
-        ),
-        url:
-          typeof d.accessURL === "string"
-            ? d.accessURL
-            : d.accessURL?.value || d.accessURL?._value || "",
-      }))
-      .filter((d) => d.url && supportedPriority.includes(d.format));
-
-    clean.sort(
-      (a, b) =>
-        supportedPriority.indexOf(a.format) -
-        supportedPriority.indexOf(b.format)
-    );
-
+    const mapped = distributionArray.map((d) => {
+      const url =
+        typeof d.accessURL === "string"
+          ? d.accessURL
+          : d.accessURL?.value || d.accessURL?._value || "";
+      const fmt =
+        typeof d.format === "string"
+          ? d.format
+          : d.format?.value || d.format?._value || "";
+      return { format: normalizeFormat(fmt), url };
+    });
+    const ineDist = mapped.find((d) => d.url && d.url.toLowerCase().includes("ine.es"));
+    if (ineDist) return ineDist;
+    const clean = mapped.filter((d) => d.url && supportedPriority.includes(d.format));
+    clean.sort((a, b) => supportedPriority.indexOf(a.format) - supportedPriority.indexOf(b.format));
     return clean.length > 0 ? clean[0] : null;
   };
 
@@ -61,34 +50,34 @@ export default function ProcessDatasetPanel({ selectedItems }) {
       setError("Selecciona al menos un dataset antes de procesar.");
       return;
     }
-
     const item = selectedItems[0];
     let chosen = null;
-
     if (item.distribution) {
       const distArray = Array.isArray(item.distribution)
         ? item.distribution
         : [item.distribution];
       chosen = pickBestDistribution(distArray);
     }
-
     if (!chosen) {
       setError(
-        "No hay formatos soportados (json, csv, xml, rdf+xml, html) para este dataset."
+        "No hay formatos soportados (json, csv, xml, rdf+xml, html, pc-axis) para este dataset."
       );
       return;
     }
-
     setIsProcessing(true);
     try {
+      const isIne = chosen.url.toLowerCase().includes("ine.es");
       const res = await analyze_dataset(
         chosen.url,
-        chosen.format,
+        isIne ? "" : chosen.format,
         useMaxRows ? -1 : rowsToProcess
       );
+      if (res.success && res.suggestion && !res.suggestions) {
+        res.suggestions = [res.suggestion];
+      }
       setAnalysis(res);
       setChosenSuggestionIndex(0);
-      setIsModalOpen(true); // Abrir modal cuando ya hay resultados
+      setIsModalOpen(true);
     } catch (e) {
       console.error(e);
       setError(e.message || "Error al analizar dataset");
@@ -96,14 +85,6 @@ export default function ProcessDatasetPanel({ selectedItems }) {
       setIsProcessing(false);
     }
   };
-
-  // Log de depuración para ver la sugerencia activa
-  if (analysis && Array.isArray(analysis.suggestions)) {
-    console.log(
-      "Sugerencia activa:",
-      analysis.suggestions[chosenSuggestionIndex]
-    );
-  }
 
   return (
     <div style={{ padding: 12, borderRadius: 6, background: "#222", color: "#fff" }}>
@@ -114,7 +95,6 @@ export default function ProcessDatasetPanel({ selectedItems }) {
 
       {selectedItems && selectedItems.length > 0 && (
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-          {/* Input numérico */}
           <input
             type="number"
             min="1"
@@ -131,7 +111,6 @@ export default function ProcessDatasetPanel({ selectedItems }) {
             }}
             aria-label="Número de filas a procesar"
           />
-          {/* Checkbox máximo */}
           <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.9rem", color: "#ccc" }}>
             <input
               type="checkbox"
@@ -141,7 +120,6 @@ export default function ProcessDatasetPanel({ selectedItems }) {
             />
             Usar máximo
           </label>
-          {/* Botón procesar */}
           <button
             onClick={handleProcess}
             disabled={isProcessing}
@@ -179,13 +157,12 @@ export default function ProcessDatasetPanel({ selectedItems }) {
             background: "#222",
             padding: "20px",
             borderRadius: "8px",
-            maxWidth: "90%",
-            maxHeight: "90%",
-            overflowY: "auto",
+            width: "95%",
+            height: "95%",
+            overflow: "auto",
             color: "#fff",
             position: "relative"
           }}>
-            {/* Botón cerrar */}
             <button
               onClick={() => setIsModalOpen(false)}
               style={{
@@ -203,7 +180,6 @@ export default function ProcessDatasetPanel({ selectedItems }) {
               &times;
             </button>
 
-            {/* Aquí va tu resultado */}
             <h4>Resumen</h4>
             <div>Formato detectado: <b>{analysis.format_detected || "desconocido"}</b></div>
             <div>Tamaño de muestra: <b>{analysis.sample_rows_count}</b></div>
@@ -230,17 +206,18 @@ export default function ProcessDatasetPanel({ selectedItems }) {
 
             <div style={{ marginTop: 18 }}>
               <h5>Vista</h5>
-              <div style={{ background: "#111", padding: 8, borderRadius: 6 }}>
+              <div style={{ background: "#111", padding: 8, borderRadius: 6, minHeight: 500 }}>
                 <SimpleChart
                   suggestion={(Array.isArray(analysis.suggestions) ? analysis.suggestions : [])[chosenSuggestionIndex]}
                   sampleRows={Array.isArray(analysis.sample_rows) ? analysis.sample_rows : []}
+                  labels={analysis.labels || []}
+                  series={analysis.series || []}
                 />
               </div>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
