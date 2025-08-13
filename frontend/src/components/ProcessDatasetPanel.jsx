@@ -13,6 +13,9 @@ export default function ProcessDatasetPanel({ selectedItems }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Nuevo estado para tipo de gráfico
+  const [chartType, setChartType] = useState("line"); // valores posibles: "line", "bar", "stackedBar", "horizontalBar", "pie"
+
   const pickBestDistribution = (distributionArray) => {
     const supportedPriority = ["json", "csv", "xml", "rdf+xml", "html", "pc-axis"];
     const normalizeFormat = (fmt) => {
@@ -77,6 +80,8 @@ export default function ProcessDatasetPanel({ selectedItems }) {
       }
       setAnalysis(res);
       setChosenSuggestionIndex(0);
+      // Reset tipo de gráfico al analizar nuevo dataset (opcional)
+      setChartType("line");
       setIsModalOpen(true);
     } catch (e) {
       console.error(e);
@@ -204,6 +209,30 @@ export default function ProcessDatasetPanel({ selectedItems }) {
               ))}
             </div>
 
+            {/* Botones para seleccionar tipo de gráfico */}
+            <div style={{ marginTop: 12, display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {["line", "bar", "stackedBar", "horizontalBar", "pie"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setChartType(type)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    border: chartType === type ? "2px solid #89da5c" : "2px solid transparent",
+                    backgroundColor: chartType === type ? "#b3f59c" : "#444",
+                    color: chartType === type ? "#072" : "#fff",
+                    cursor: "pointer"
+                  }}
+                >
+                  {type === "line" ? "Línea" :
+                   type === "bar" ? "Barra" :
+                   type === "stackedBar" ? "Barra Apilada" :
+                   type === "horizontalBar" ? "Barra Horizontal" :
+                   type === "pie" ? "Pie Chart" : type}
+                </button>
+              ))}
+            </div>
+
             <div style={{ marginTop: 18 }}>
               <h5>Vista</h5>
               <div style={{ background: "#111", padding: 8, borderRadius: 6, minHeight: 500 }}>
@@ -212,6 +241,7 @@ export default function ProcessDatasetPanel({ selectedItems }) {
                   sampleRows={Array.isArray(analysis.sample_rows) ? analysis.sample_rows : []}
                   labels={analysis.labels || []}
                   series={analysis.series || []}
+                  chartType={chartType}
                 />
               </div>
             </div>

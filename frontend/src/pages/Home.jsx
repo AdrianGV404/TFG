@@ -62,6 +62,8 @@ function Home() {
   const [searchError, setSearchError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [totalGeneral, setTotalGeneral] = useState(null);
+  const [chartType, setChartType] = useState("line");
+
 
 const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver datos en gráficos");
   // Cambiado: array de objetos completos seleccionados
@@ -610,7 +612,11 @@ const getAvailableFormats = (item) => {
             borderRadius: 6,
             marginBottom: "15px"
           }}>
-            <ProcessDatasetPanel selectedItems={selectedItems} />
+            <ProcessDatasetPanel
+              selectedItems={selectedItems}
+              chartType={chartType}
+              setChartType={setChartType}
+            />
           </div>
           <div
             style={{
