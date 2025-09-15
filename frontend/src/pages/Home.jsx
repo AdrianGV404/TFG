@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SearchComponent from "../components/SearchComponent";
 import FuncionalidadesPanel from "../components/FuncionalidadesPanel";
 import ProcessDatasetPanel from "../components/ProcessDatasetPanel";
+import { resolve_distribution } from "../api/backendService";
 
 const categorias = [
   "sector-publico",
@@ -50,7 +51,7 @@ function getSelectLimit(func) {
     case "Correlación de variables":
       return 2;
     case "Ver datos en gráficos":
-      return 2;
+      return 1;
     default:
       return 0;
   }
@@ -63,6 +64,7 @@ function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [totalGeneral, setTotalGeneral] = useState(null);
   const [chartType, setChartType] = useState("line");
+  const [availableFormatsMap, setAvailableFormatsMap] = useState({});
 
 
 const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver datos en gráficos");
@@ -79,36 +81,40 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
   const [conteosPorCategoria, setConteosPorCategoria] = useState([]);
 
   // Para obtener ID único de un item (asegura que coincida en todo el código)
-  const getItemId = (item) => {
-    return (
-      item.identifier ||
-      item.id ||
-      item["@id"] ||
-      item.processedLink ||
-      (
-        Array.isArray(item.distribution)
-          ? item.distribution[0]?.accessURL || item.distribution[0]?.downloadURL
-          : item.distribution?.accessURL || item.distribution?.downloadURL
-      ) ||
-      ""
-    );
-  };
+  const getItemId = (item, index = 0) => {
+    return (
+      item.identifier ||
+      item.id ||
+      item["@id"] ||
+      (Array.isArray(item.distribution)
+        ? item.distribution[0]?.accessURL || item.distribution[0]
+        : item.distribution?.accessURL || item.distribution) ||
+      `${item.title?.[0]?._value || item.processedTitle || "dataset"}-${index}`
+    );
+  };
 
 
-const handleResultCheck = (item) => {
-  const itemId = getItemId(item);
-  setSelectedItems(prevSelected => {
-    const exists = prevSelected.some(sel => getItemId(sel) === itemId);
 
-    if (exists) {
-      // Si ya está seleccionado, lo quitamos
-      return [];
-    } else {
-      // Siempre sustituimos por el nuevo
-      return [item];
-    }
-  });
-};
+  const handleResultCheck = (item) => {
+    const itemId = getItemId(item);
+    const limit = getSelectLimit(funcionalidadSeleccionada);
+
+    setSelectedItems((prevSelected) => {
+      const exists = prevSelected.some((sel) => getItemId(sel) === itemId);
+
+      if (exists) {
+        // Si ya estaba seleccionado, lo quitamos
+        return prevSelected.filter((sel) => getItemId(sel) !== itemId);
+      } else {
+        // Si hay espacio, lo añadimos
+        if (prevSelected.length < limit || limit === 0) {
+          return [...prevSelected, item];
+        } else {
+          return prevSelected; // no añadir si ya llegó al límite
+        }
+      }
+    });
+  };
 
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
@@ -162,6 +168,21 @@ const handleResultCheck = (item) => {
       }
     };
 
+    const getAvailableFormats = async (item) => {
+      if (!item.distribution) return [];
+      const distUrls = Array.isArray(item.distribution) ? item.distribution : [item.distribution];
+
+      let results = [];
+      for (const url of distUrls) {
+        try {
+          const data = await resolve_distribution(url);
+          results = results.concat(data.files);
+        } catch (e) {
+          console.error("Error resolviendo distribución", e);
+        }
+      }
+      return results;
+    };
 
     useEffect(() => {
     fetch("/api/stats/total-datasets/")
@@ -173,7 +194,7 @@ const handleResultCheck = (item) => {
         }
       })
       .catch(err => console.error("Error al obtener total general:", err));
-  }, []);
+    }, []);
 
     useEffect(() => {
       fetch("/api/stats/dataset-counts-by-theme/")
@@ -192,6 +213,22 @@ const handleResultCheck = (item) => {
         })
         .catch(err => console.error("Error al obtener conteos por categoría:", err));
     }, []);
+
+    useEffect(() => {
+      const fetchFormats = async () => {
+        const entries = await Promise.all(
+          searchResults.map(async (item, i) => {
+            const formats = await getAvailableFormats(item);
+            return [getItemId(item, i), formats];
+          })
+        );
+        setAvailableFormatsMap(Object.fromEntries(entries));
+      };
+      if (searchResults.length > 0) {
+        fetchFormats();
+      }
+    }, [searchResults]);
+
 
 
   const selectedIdsSet = new Set(selectedItems.map(item => getItemId(item)));
@@ -212,37 +249,6 @@ const handleResultCheck = (item) => {
     console.error('Error al descargar:', error);
     alert('Error al descargar el archivo');
   }
-};
-
-const getAvailableFormats = (item) => {
-  if (!item.distribution) return [];
-
-  const formats = [];
-  const distributions = Array.isArray(item.distribution)
-    ? item.distribution
-    : [item.distribution];
-
-  distributions.forEach(dist => {
-    try {
-      const format =
-        typeof dist.format === "string"
-          ? dist.format.toLowerCase().trim()
-          : dist.format?.value?.toLowerCase().trim() || dist.format?._value?.toLowerCase().trim() || "";
-
-      const accessUrl =
-        typeof dist.accessURL === "string"
-          ? dist.accessURL
-          : dist.accessURL?.value || dist.accessURL?._value || "";
-
-      if (format && accessUrl && !formats.some(f => f.format === format)) {
-        formats.push({ format, url: accessUrl });
-      }
-    } catch (e) {
-      console.error("Error procesando distribución:", e);
-    }
-  });
-
-  return formats;
 };
 
   return (
@@ -423,7 +429,7 @@ const getAvailableFormats = (item) => {
                     const limit = getSelectLimit(funcionalidadSeleccionada);
                     const isChecked = selectedIdsSet.has(itemId);
                     const isDisabled = !isChecked && selectedItems.length >= limit && limit !== Number.POSITIVE_INFINITY;
-                    const availableFormats = getAvailableFormats(item);
+                    const availableFormats = availableFormatsMap[itemId] || [];
 
                     return (
                       <li
@@ -510,52 +516,61 @@ const getAvailableFormats = (item) => {
                         </div>
 
                         {/* Botones de formato */}
-                        {availableFormats.length > 0 && (
-                          <div style={{ 
-                            display: "flex", 
-                            flexWrap: "wrap", 
-                            gap: "8px", 
-                            marginTop: "10px",
-                            width: "100%",
-                            paddingLeft: "44px"
-                          }}>
-                           {availableFormats.map(({format, url}) => {
-                              const fmtLabel = format && format.includes("/")
-                                ? format.split("/").pop().toUpperCase()
-                                : (format ? format.toUpperCase() : "");
+                        {availableFormats.length > 0 ? (
+                          <div style={{ 
+                            display: "flex", 
+                            flexWrap: "wrap", 
+                            gap: "8px", 
+                            marginTop: "10px",
+                            width: "100%",
+                            paddingLeft: "44px"
+                          }}>
+                            {availableFormats.map(({format, url}) => {
+                              const fmtLabel = format && format.includes("/")
+                                ? format.split("/").pop().toUpperCase()
+                                : (format ? format.toUpperCase() : "");
 
-                              return (
-                                <button
-                                  key={`${itemId}-${format}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    downloadFile(url, `${item.processedTitle || 'dataset'}.${fmtLabel.toLowerCase()}`);
-                                  }}
-                                  style={{
-                                    backgroundColor: 
-                                      fmtLabel === 'CSV' ? '#28a745' : 
-                                      fmtLabel === 'JSON' ? '#6f42c1' : 
-                                      fmtLabel === 'XML' ? '#fd7e14' : '#646cff',
-                                    color: "white",
-                                    border: "none",
-                                    padding: "4px 8px",
-                                    borderRadius: "4px",
-                                    fontSize: "0.8rem",
-                                    cursor: "pointer",
-                                    textTransform: "uppercase",
-                                    fontWeight: "bold",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px"
-                                  }}
-                                  title={`Descargar ${fmtLabel}`}
-                                >
-                                  {fmtLabel} <span style={{ fontSize: "0.7rem" }}>↓</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
+                              return (
+                                <button
+                                  key={`${itemId}-${format}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    downloadFile(url, `${item.processedTitle || 'dataset'}.${fmtLabel.toLowerCase()}`);
+                                  }}
+                                  style={{
+                                    backgroundColor: 
+                                      fmtLabel === 'CSV' ? '#28a745' : 
+                                      fmtLabel === 'JSON' ? '#6f42c1' : 
+                                      fmtLabel === 'XML' ? '#fd7e14' : '#646cff',
+                                    color: "white",
+                                    border: "none",
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    fontSize: "0.8rem",
+                                    cursor: "pointer",
+                                    textTransform: "uppercase",
+                                    fontWeight: "bold",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                  }}
+                                  title={`Descargar ${fmtLabel}`}
+                                >
+                                  {fmtLabel} <span style={{ fontSize: "0.7rem" }}>↓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span style={{ 
+                            fontSize: "0.85rem", 
+                            color: "#aaa", 
+                            paddingLeft: "44px",
+                            marginTop: "10px"
+                          }}>
+                            Sin formatos detectables
+                          </span>
+                        )}
                       </li>
                     );
                   })}

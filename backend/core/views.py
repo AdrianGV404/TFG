@@ -26,8 +26,15 @@ from core.services.ine_api_service import (
     INEApiError,
 )
 
-from core.utils.file_utils import handle_dataset_file
-from core.services.dataset_analyzer import analyze_distribution_url
+from core.utils.file_utils import (
+    handle_dataset_file
+)
+from core.services.dataset_analyzer import (
+    analyze_distribution_url
+)
+from core.services.distribution_parser import (
+    parse_distribution_page
+)
 
 logger = logging.getLogger(__name__)
 
@@ -258,3 +265,15 @@ def analyze_dataset_view(request):
     except Exception as e:
         logger.exception("Error analizando dataset")
         return JsonResponse({"success": False, "message": "Error interno del servidor"}, status=500)
+    
+@require_GET
+def resolve_distribution_view(request):
+    dist_url = request.GET.get("url")
+    if not dist_url:
+        return JsonResponse({"success": False, "message": "Falta parámetro 'url'"}, status=400)
+    try:
+        files = parse_distribution_page(dist_url)
+        return JsonResponse({"success": True, "files": files})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
+

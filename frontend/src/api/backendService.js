@@ -56,3 +56,7 @@ export async function analyze_dataset(datasetUrl, format = "", rows) {
   }
   return response.json();
 }
+
+export async function resolve_distribution(url) {
+  return apiGet(`/api/distribution/resolve/?url=${encodeURIComponent(url)}`);
+}
