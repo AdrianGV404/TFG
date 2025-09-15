@@ -18,5 +18,5 @@ urlpatterns = [
 
     # Procesar dataset (ahora GET en lugar de POST)
     path("dataset/analyze/", views.analyze_dataset_view, name="analyze_dataset_view"),
-    path("api/distribution/resolve/", views.resolve_distribution_view, name="resolve_distribution"),
+    path("distribution/resolve/", views.resolve_distribution_view, name="resolve_distribution"),
     ]
