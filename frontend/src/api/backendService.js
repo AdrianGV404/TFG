@@ -57,6 +57,14 @@ export async function analyze_dataset(datasetUrl, format = "", rows) {
   return response.json();
 }
 
-export async function resolve_distribution(url) {
-  return apiGet(`/api/distribution/resolve/?url=${encodeURIComponent(url)}`);
+export async function resolve_distribution(distUrl) {
+  const url = new URL(`/api/distribution/resolve/`, window.location.origin);
+  url.searchParams.set("url", distUrl);
+  const response = await fetch(url.toString(), { credentials: "include" });
+  if (!response.ok) {
+    let text = "";
+    try { text = await response.text(); } catch (e) {}
+    throw new Error(`Error ${response.status}${text ? ` - ${text}` : ""}`);
+  }
+  return response.json();
 }

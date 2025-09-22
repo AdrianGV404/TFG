@@ -95,26 +95,59 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
 
 
 
-  const handleResultCheck = (item) => {
-    const itemId = getItemId(item);
+  const handleResultCheck = async (item, i = 0) => {
+    const itemId = getItemId(item, i);
     const limit = getSelectLimit(funcionalidadSeleccionada);
 
-    setSelectedItems((prevSelected) => {
-      const exists = prevSelected.some((sel) => getItemId(sel) === itemId);
+    // ¿ya está seleccionado? -> quitar
+    const exists = selectedItems.some((sel) => getItemId(sel) === itemId);
+    if (exists) {
+      setSelectedItems(prev => prev.filter((sel) => getItemId(sel) !== itemId));
+      return;
+    }
 
-      if (exists) {
-        // Si ya estaba seleccionado, lo quitamos
-        return prevSelected.filter((sel) => getItemId(sel) !== itemId);
-      } else {
-        // Si hay espacio, lo añadimos
-        if (prevSelected.length < limit || limit === 0) {
-          return [...prevSelected, item];
-        } else {
-          return prevSelected; // no añadir si ya llegó al límite
+    // si superamos el límite, no hacemos nada
+    if (limit > 0 && selectedItems.length >= limit) return;
+
+    // marcar como "cargando" en el mapa
+    setAvailableFormatsMap(prev => ({ ...prev, [itemId]: null }));
+
+    try {
+      // obtener urls de distribución
+      const distUrls = Array.isArray(item.distribution) ? item.distribution : [item.distribution];
+      let results = [];
+      for (const url of distUrls) {
+        try {
+          const data = await resolve_distribution(url);
+          if (data && Array.isArray(data.files)) {
+            results = results.concat(
+              data.files.map(f => ({
+                format: (f.format || "").toLowerCase(),
+                url: f.url || f.access || f.link || ""
+              }))
+            );
+          }
+        } catch (err) {
+          console.error("Error resolviendo distribución", err);
         }
       }
-    });
+      // eliminar duplicados por URL
+      const unique = Array.from(new Map(results.map(f => [f.url, f])).values());
+      setAvailableFormatsMap(prev => ({ ...prev, [itemId]: unique }));
+
+      // elegir formato preferido (prioridad)
+      const prefOrder = ["pc-axis", "px", "csv", "json", "xml", "xls", "xlsx"];
+      const chosen = unique.find(f => prefOrder.some(p => f.format.includes(p) || f.url.endsWith(`.${p}`))) || unique[0] || {};
+      
+      setSelectedItems(prev => [...prev, { ...item, url: chosen?.url || null, format: chosen?.format || "" }]);
+    } catch (err) {
+      console.error("Error en handleResultCheck:", err);
+      setAvailableFormatsMap(prev => ({ ...prev, [itemId]: [] }));
+      setSelectedItems(prev => [...prev, { ...item, url: null, format: "" }]);
+    }
   };
+
+
 
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
@@ -213,23 +246,6 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
         })
         .catch(err => console.error("Error al obtener conteos por categoría:", err));
     }, []);
-
-    useEffect(() => {
-      const fetchFormats = async () => {
-        const entries = await Promise.all(
-          searchResults.map(async (item, i) => {
-            const formats = await getAvailableFormats(item);
-            return [getItemId(item, i), formats];
-          })
-        );
-        setAvailableFormatsMap(Object.fromEntries(entries));
-      };
-      if (searchResults.length > 0) {
-        fetchFormats();
-      }
-    }, [searchResults]);
-
-
 
   const selectedIdsSet = new Set(selectedItems.map(item => getItemId(item)));
 
@@ -515,56 +531,48 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
                           </div>
                         </div>
 
-                        {/* Botones de formato */}
-                        {availableFormats.length > 0 ? (
-                          <div style={{ 
-                            display: "flex", 
-                            flexWrap: "wrap", 
-                            gap: "8px", 
+                        {/* Mostrar formatos del JSON */}
+                        {Array.isArray(item.distribution) && item.distribution.length > 0 ? (
+                          <div style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "8px",
                             marginTop: "10px",
                             width: "100%",
                             paddingLeft: "44px"
                           }}>
-                            {availableFormats.map(({format, url}) => {
-                              const fmtLabel = format && format.includes("/")
-                                ? format.split("/").pop().toUpperCase()
-                                : (format ? format.toUpperCase() : "");
+                            {item.distribution.map((dist, idx) => {
+                              const rawFormat = dist.format?.value || "";
+                              // Normalizamos para mostrar bonito
+                              const fmtLabel = rawFormat.includes("/")
+                                ? rawFormat.split("/").pop().toUpperCase()
+                                : rawFormat.toUpperCase();
 
                               return (
-                                <button
-                                  key={`${itemId}-${format}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    downloadFile(url, `${item.processedTitle || 'dataset'}.${fmtLabel.toLowerCase()}`);
-                                  }}
+                                <span
+                                  key={`${itemId}-format-${idx}`}
                                   style={{
-                                    backgroundColor: 
-                                      fmtLabel === 'CSV' ? '#28a745' : 
-                                      fmtLabel === 'JSON' ? '#6f42c1' : 
-                                      fmtLabel === 'XML' ? '#fd7e14' : '#646cff',
+                                    backgroundColor:
+                                      fmtLabel === "CSV" ? "#28a745" :
+                                      fmtLabel === "JSON" ? "#6f42c1" :
+                                      fmtLabel === "XML" ? "#fd7e14" : "#646cff",
                                     color: "white",
-                                    border: "none",
                                     padding: "4px 8px",
                                     borderRadius: "4px",
                                     fontSize: "0.8rem",
-                                    cursor: "pointer",
                                     textTransform: "uppercase",
-                                    fontWeight: "bold",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px"
+                                    fontWeight: "bold"
                                   }}
-                                  title={`Descargar ${fmtLabel}`}
                                 >
-                                  {fmtLabel} <span style={{ fontSize: "0.7rem" }}>↓</span>
-                                </button>
+                                  {fmtLabel}
+                                </span>
                               );
                             })}
                           </div>
                         ) : (
-                          <span style={{ 
-                            fontSize: "0.85rem", 
-                            color: "#aaa", 
+                          <span style={{
+                            fontSize: "0.85rem",
+                            color: "#aaa",
                             paddingLeft: "44px",
                             marginTop: "10px"
                           }}>
@@ -677,6 +685,11 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
                         }}
                       >
                         {item.processedTitle || "Conjunto sin título"}
+                        {item.format && (
+                          <span style={{ fontSize: "0.9rem", marginLeft: "6px", color: "#eee" }}>
+                            ({item.format.toUpperCase()})
+                          </span>
+                        )}
                       </span>
                       <button
                         onClick={() => handleRemoveSelected(item)}

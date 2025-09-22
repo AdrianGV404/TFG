@@ -257,7 +257,7 @@ def analyze_dataset_view(request):
         # Flujo "normal" para CSV/JSON/XML/PC-AXIS ya implementado
         analysis_result = analyze_distribution_url(
             dataset_url,
-            format_override=(fmt if fmt else None),
+            format_override=fmt or None,  # usa el que venga del frontend si existe
             sample_rows=max_rows if max_rows is not None else 999999,
         )
         return JsonResponse({"success": True, **analysis_result}, status=200)
