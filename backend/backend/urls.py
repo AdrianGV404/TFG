@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.urls import include, path
-from django.http import JsonResponse
-from django.contrib.auth.models import User
-from core import views
+from django.http import HttpResponse
 
+def root_view(request):
+    return HttpResponse("Backend OK", content_type="text/plain")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('core.urls')),
-    
+    path("", root_view),  # raíz
+    path("admin/", admin.site.urls),
+    path("api/", include("core.urls")),
 ]

@@ -16,7 +16,5 @@ urlpatterns = [
     path("stats/themes/", views.all_themes_view, name="all_themes_view"),
     path("stats/dataset-counts-by-theme/", views.dataset_counts_by_theme_view, name="dataset_counts_by_theme_view"),
 
-    # Procesar dataset (ahora GET en lugar de POST)
     path("dataset/analyze/", views.analyze_dataset_view, name="analyze_dataset_view"),
-    path("distribution/resolve/", views.resolve_distribution_view, name="resolve_distribution"),
     ]

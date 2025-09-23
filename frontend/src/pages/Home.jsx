@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import SearchComponent from "../components/SearchComponent";
 import FuncionalidadesPanel from "../components/FuncionalidadesPanel";
 import ProcessDatasetPanel from "../components/ProcessDatasetPanel";
-import { resolve_distribution } from "../api/backendService";
 
 const categorias = [
   "sector-publico",
@@ -64,7 +63,6 @@ function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [totalGeneral, setTotalGeneral] = useState(null);
   const [chartType, setChartType] = useState("line");
-  const [availableFormatsMap, setAvailableFormatsMap] = useState({});
 
 
 const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver datos en gráficos");
@@ -95,57 +93,28 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
 
 
 
-  const handleResultCheck = async (item, i = 0) => {
+  const handleResultCheck = (item, i = 0) => {
     const itemId = getItemId(item, i);
     const limit = getSelectLimit(funcionalidadSeleccionada);
 
-    // ¿ya está seleccionado? -> quitar
     const exists = selectedItems.some((sel) => getItemId(sel) === itemId);
     if (exists) {
       setSelectedItems(prev => prev.filter((sel) => getItemId(sel) !== itemId));
       return;
     }
 
-    // si superamos el límite, no hacemos nada
     if (limit > 0 && selectedItems.length >= limit) return;
 
-    // marcar como "cargando" en el mapa
-    setAvailableFormatsMap(prev => ({ ...prev, [itemId]: null }));
-
-    try {
-      // obtener urls de distribución
-      const distUrls = Array.isArray(item.distribution) ? item.distribution : [item.distribution];
-      let results = [];
-      for (const url of distUrls) {
-        try {
-          const data = await resolve_distribution(url);
-          if (data && Array.isArray(data.files)) {
-            results = results.concat(
-              data.files.map(f => ({
-                format: (f.format || "").toLowerCase(),
-                url: f.url || f.access || f.link || ""
-              }))
-            );
-          }
-        } catch (err) {
-          console.error("Error resolviendo distribución", err);
-        }
-      }
-      // eliminar duplicados por URL
-      const unique = Array.from(new Map(results.map(f => [f.url, f])).values());
-      setAvailableFormatsMap(prev => ({ ...prev, [itemId]: unique }));
-
-      // elegir formato preferido (prioridad)
-      const prefOrder = ["pc-axis", "px", "csv", "json", "xml", "xls", "xlsx"];
-      const chosen = unique.find(f => prefOrder.some(p => f.format.includes(p) || f.url.endsWith(`.${p}`))) || unique[0] || {};
-      
-      setSelectedItems(prev => [...prev, { ...item, url: chosen?.url || null, format: chosen?.format || "" }]);
-    } catch (err) {
-      console.error("Error en handleResultCheck:", err);
-      setAvailableFormatsMap(prev => ({ ...prev, [itemId]: [] }));
-      setSelectedItems(prev => [...prev, { ...item, url: null, format: "" }]);
+    // elegir formato por defecto si hay varios
+    let defaultFormat = "";
+    if (Array.isArray(item.distribution) && item.distribution.length > 0) {
+      const uniqueFormats = [...new Set(item.distribution.map(d => d.format?.value).filter(Boolean))];
+      defaultFormat = uniqueFormats.length > 0 ? uniqueFormats[0] : "";
     }
+
+    setSelectedItems(prev => [...prev, { ...item, format: defaultFormat }]);
   };
+
 
 
 
@@ -445,7 +414,6 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
                     const limit = getSelectLimit(funcionalidadSeleccionada);
                     const isChecked = selectedIdsSet.has(itemId);
                     const isDisabled = !isChecked && selectedItems.length >= limit && limit !== Number.POSITIVE_INFINITY;
-                    const availableFormats = availableFormatsMap[itemId] || [];
 
                     return (
                       <li
@@ -530,55 +498,58 @@ const [funcionalidadSeleccionada, setFuncionalidadSeleccionada] = useState("Ver 
                             )}
                           </div>
                         </div>
+                        {/* Mostrar formatos del JSON (únicos) */}
+                        {(() => {
+                          if (!Array.isArray(item.distribution) || item.distribution.length === 0) {
+                            return (
+                              <span style={{
+                                fontSize: "0.85rem",
+                                color: "#aaa",
+                                paddingLeft: "44px",
+                                marginTop: "10px"
+                              }}>
+                                Sin formatos detectables
+                              </span>
+                            );
+                          }
 
-                        {/* Mostrar formatos del JSON */}
-                        {Array.isArray(item.distribution) && item.distribution.length > 0 ? (
-                          <div style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "8px",
-                            marginTop: "10px",
-                            width: "100%",
-                            paddingLeft: "44px"
-                          }}>
-                            {item.distribution.map((dist, idx) => {
-                              const rawFormat = dist.format?.value || "";
-                              // Normalizamos para mostrar bonito
-                              const fmtLabel = rawFormat.includes("/")
-                                ? rawFormat.split("/").pop().toUpperCase()
-                                : rawFormat.toUpperCase();
+                          const rawFormats = item.distribution.map(d => d.format?.value).filter(Boolean);
+                          const uniqueFormats = [...new Set(rawFormats)];
 
-                              return (
-                                <span
-                                  key={`${itemId}-format-${idx}`}
-                                  style={{
-                                    backgroundColor:
-                                      fmtLabel === "CSV" ? "#28a745" :
-                                      fmtLabel === "JSON" ? "#6f42c1" :
-                                      fmtLabel === "XML" ? "#fd7e14" : "#646cff",
-                                    color: "white",
-                                    padding: "4px 8px",
-                                    borderRadius: "4px",
-                                    fontSize: "0.8rem",
-                                    textTransform: "uppercase",
-                                    fontWeight: "bold"
-                                  }}
-                                >
-                                  {fmtLabel}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <span style={{
-                            fontSize: "0.85rem",
-                            color: "#aaa",
-                            paddingLeft: "44px",
-                            marginTop: "10px"
-                          }}>
-                            Sin formatos detectables
-                          </span>
-                        )}
+                          return (
+                            <div style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "8px",
+                              marginTop: "10px",
+                              width: "100%",
+                              paddingLeft: "44px"
+                            }}>
+                              {uniqueFormats.map((rawFormat, idx) => {
+                                const fmtLabel = rawFormat.includes("/") ? rawFormat.split("/").pop().toUpperCase() : rawFormat.toUpperCase();
+                                return (
+                                  <span
+                                    key={`${itemId}-format-${idx}`}
+                                    style={{
+                                      backgroundColor:
+                                        fmtLabel === "CSV" ? "#28a745" :
+                                        fmtLabel === "JSON" ? "#6f42c1" :
+                                        fmtLabel === "XML" ? "#fd7e14" : "#646cff",
+                                      color: "white",
+                                      padding: "4px 8px",
+                                      borderRadius: "4px",
+                                      fontSize: "0.8rem",
+                                      textTransform: "uppercase",
+                                      fontWeight: "bold"
+                                    }}
+                                  >
+                                    {fmtLabel}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </li>
                     );
                   })}
