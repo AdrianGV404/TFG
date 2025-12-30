@@ -40,13 +40,14 @@
         {{-- ORDEN Y PAGINACIÓN --}}
         <div style="display:flex; gap:10px;">
 
-            {{-- ORDEN --}}
+            {{-- ORDEN (ancho suficiente) --}}
             <select
-                class="form-select form-select-sm"
+                class="form-select"
+                style="min-width:190px;"
                 wire:model.live="orderBy"
             >
-                <option value="id_desc">ID ↓ (recientes)</option>
-                <option value="id_asc">ID ↑ (antiguos)</option>
+                <option value="id_desc">ID ↓ (más recientes)</option>
+                <option value="id_asc">ID ↑ (más antiguos)</option>
                 <option value="status">Estado</option>
             </select>
 
@@ -137,26 +138,21 @@
                                 "
                             ></span>
 
-                            asd
-                            as
-                            d
-                            asd
-
-
-                            
-                            {{-- SELECT --}}
+                            {{-- SELECT DE ESTADO --}}
                             <select
-                                class="form-select form-select-sm"
+                                class="form-select task-status-select"
                                 style="background:{{ $bg }}; border-color:{{ $color }};"
                                 wire:change="updateStatus({{ $task->id }}, $event.target.value)"
                             >
-                                <option value="pending" @selected($task->status === 'pending')>
+                                <option value="pending" class="status-pending" @selected($task->status === 'pending')>
                                     Pendiente
                                 </option>
-                                <option value="in_progress" @selected($task->status === 'in_progress')>
+
+                                <option value="in_progress" class="status-progress" @selected($task->status === 'in_progress')>
                                     En progreso
                                 </option>
-                                <option value="done" @selected($task->status === 'done')>
+
+                                <option value="done" class="status-done" @selected($task->status === 'done')>
                                     Hecha
                                 </option>
                             </select>

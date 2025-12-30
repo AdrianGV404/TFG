@@ -23,13 +23,13 @@
         </div>
 
         <div class="form-group">
-            <select wire:model.defer="status">
-                <option value="pending">Pendiente</option>
-                <option value="in_progress">En progreso</option>
-                <option value="done">Hecha</option>
+            <select wire:model.defer="status" class="task-status-select">
+                <option value="pending" class="status-pending">Pendiente</option>
+                <option value="in_progress" class="status-progress">En progreso</option>
+                <option value="done" class="status-done">Hecha</option>
             </select>
         </div>
-
+        <br>
         <button
             class="btn btn-primary"
             type="submit"

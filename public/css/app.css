@@ -272,3 +272,40 @@ td {
     font-size: 13px;
     padding: 4px 6px;
 }
+
+/* ===========================
+   SELECT ESTADO - COLORES
+=========================== */
+
+.task-status-select { color: #000; }
+
+/* Colored option backgrounds (note: styling of <option> is browser-dependent) */
+.task-status-select option.status-pending {
+    background: #fff8e1;
+    color: #000;
+}
+.task-status-select option.status-pending:hover,
+.task-status-select option.status-pending:active {
+    background: #ffd54f; /* darker yellow */
+    color: #000;
+}
+
+.task-status-select option.status-progress {
+    background: #e7f1ff;
+    color: #000;
+}
+.task-status-select option.status-progress:hover,
+.task-status-select option.status-progress:active {
+    background: #9fd0ff; /* darker blue */
+    color: #000;
+}
+
+.task-status-select option.status-done {
+    background: #eaf6ef;
+    color: #000;
+}
+.task-status-select option.status-done:hover,
+.task-status-select option.status-done:active {
+    background: #9fd6b0; /* darker green */
+    color: #000;
+}
