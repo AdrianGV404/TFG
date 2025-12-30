@@ -1,0 +1,274 @@
+/* =========================================================
+   RESET BÁSICO
+========================================================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #212529;
+}
+
+/* =========================================================
+   CONTENEDOR GENERAL
+========================================================= */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-header h1,
+.page-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+/* =========================================================
+   BOTONES
+========================================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: #e9ecef;
+    color: #212529;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Tamaños */
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 13px;
+}
+
+/* Variantes */
+.btn-primary {
+    background: #0d6efd;
+    color: #fff;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* =========================================================
+   BOTÓN LOADING (LIVEWIRE)
+========================================================= */
+.btn-loading {
+    position: relative;
+}
+
+.btn-spinner {
+    display: none;
+    font-size: 13px;
+}
+
+.btn-loading[disabled] .btn-text {
+    display: none;
+}
+
+.btn-loading[disabled] .btn-spinner {
+    display: inline-block;
+}
+
+/* =========================================================
+   FORMULARIOS
+========================================================= */
+.task-form {
+    margin-top: 15px;
+}
+
+input,
+select,
+textarea {
+    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #0d6efd;
+}
+
+/* =========================================================
+   TABLAS
+========================================================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+thead {
+    background: #f1f3f5;
+}
+
+th {
+    text-align: left;
+    padding: 10px;
+    font-size: 13px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: top;
+    border-bottom: 1px solid #eee;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+/* =========================================================
+   ACCIONES
+========================================================= */
+.actions-row {
+    display: flex;
+    gap: 6px;
+}
+
+/* =========================================================
+   PROYECTOS
+========================================================= */
+.project-title a {
+    font-weight: 600;
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.project-title a:hover {
+    text-decoration: underline;
+}
+
+.project-description {
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* =========================================================
+   BADGES (ESTADOS DE PROYECTO)
+========================================================= */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 12px;
+    text-transform: capitalize;
+}
+
+/* Estados */
+.badge.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge.in_progress {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.badge.done {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.archived {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/* =========================================================
+   TAREAS
+========================================================= */
+.tasks-wrapper {
+    margin-top: 20px;
+}
+
+.task-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.task-description {
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* =========================================================
+   ESTADO DE TAREA (CÍRCULO + SELECT)
+========================================================= */
+.task-status-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-status-dot {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.25);
+}
+
+.task-status-dot.pending {
+    background: #ffc107;
+}
+
+.task-status-dot.in_progress {
+    background: #0d6efd;
+}
+
+.task-status-dot.done {
+    background: #198754;
+}
+
+.task-status-select {
+    font-size: 13px;
+    padding: 4px 6px;
+}
