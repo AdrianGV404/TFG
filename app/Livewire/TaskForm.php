@@ -31,8 +31,15 @@ class TaskForm extends Component
             'status' => $this->status,
         ]);
 
+        $this->dispatch(
+            'notify',
+            message: "Tarea \"{$this->title}\" creada con éxito",
+            type: 'success'
+        );
+
         $this->reset(['title', 'description', 'status']);
         $this->status = 'pending';
+
         $this->dispatch('taskCreated');
     }
 

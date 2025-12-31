@@ -17,8 +17,6 @@
 
         {{-- BUSCADORES --}}
         <div style="display:flex; gap:8px;">
-
-            {{-- BUSCAR POR TÍTULO --}}
             <input
                 type="text"
                 class="form-control form-control-sm"
@@ -27,7 +25,6 @@
                 wire:model.live.debounce.400ms="searchTitle"
             >
 
-            {{-- BUSCAR POR ID --}}
             <input
                 type="text"
                 class="form-control form-control-sm"
@@ -39,8 +36,6 @@
 
         {{-- ORDEN Y PAGINACIÓN --}}
         <div style="display:flex; gap:10px;">
-
-            {{-- ORDEN (ancho suficiente) --}}
             <select
                 class="form-select"
                 style="min-width:190px;"
@@ -51,7 +46,6 @@
                 <option value="status">Estado</option>
             </select>
 
-            {{-- PER PAGE --}}
             <select
                 class="form-select form-select-sm"
                 wire:model.live="perPage"
@@ -60,7 +54,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
             </select>
-
         </div>
     </div>
 
@@ -68,7 +61,7 @@
     <table class="table">
         <thead>
             <tr>
-                <th style="width:140px;">Acciones</th>
+                <th style="width:180px;">Acciones</th>
                 <th style="width:80px;">ID</th>
                 <th>Tarea</th>
                 <th style="width:220px;">Estado</th>
@@ -92,24 +85,40 @@
                     };
                 @endphp
 
-                <tr wire:key="task-{{ $task->id }}">
+                <tr wire:key="task-{{ $task->id }}--{{ $editingTaskId === $task->id ? 'editing' : 'view' }}">
 
                     {{-- ACCIONES --}}
                     <td>
                         <div style="display:flex; gap:6px;">
-                            <button
-                                class="btn btn-danger btn-sm"
-                                wire:click="delete({{ $task->id }})"
-                            >
-                                Eliminar
-                            </button>
+                            @if ($editingTaskId === $task->id)
+                                <button
+                                    class="btn btn-success btn-sm"
+                                    wire:click="saveEdit"
+                                >
+                                    Guardar
+                                </button>
 
-                            <button
-                                class="btn btn-secondary btn-sm"
-                                wire:click="$emitTo('task-form', 'editTask', {{ $task->id }})"
-                            >
-                                Editar
-                            </button>
+                                <button
+                                    class="btn btn-secondary btn-sm"
+                                    wire:click="cancelEdit"
+                                >
+                                    Cancelar
+                                </button>
+                            @else
+                                <button
+                                    class="btn btn-secondary btn-sm"
+                                    wire:click="startEdit({{ $task->id }})"
+                                >
+                                    Editar
+                                </button>
+
+                                <button
+                                    class="btn btn-danger btn-sm"
+                                    wire:click="delete({{ $task->id }})"
+                                >
+                                    Eliminar
+                                </button>
+                            @endif
                         </div>
                     </td>
 
@@ -120,22 +129,35 @@
 
                     {{-- TAREA --}}
                     <td>
-                        <div class="task-title">
-                            {{ $task->title }}
-                        </div>
+                        @if ($editingTaskId === $task->id)
+                            <input
+                                type="text"
+                                class="form-control form-control-sm mb-1"
+                                wire:model.defer="editingTitle"
+                            >
 
-                        @if ($task->description)
-                            <div class="task-description">
-                                {{ $task->description }}
+                            <textarea
+                                class="form-control form-control-sm"
+                                rows="2"
+                                wire:model.defer="editingDescription"
+                                placeholder="Descripción"
+                            ></textarea>
+                        @else
+                            <div class="task-title">
+                                {{ $task->title }}
                             </div>
+
+                            @if ($task->description)
+                                <div class="task-description">
+                                    {{ $task->description }}
+                                </div>
+                            @endif
                         @endif
                     </td>
 
                     {{-- ESTADO --}}
                     <td>
                         <div style="display:flex; align-items:center; gap:10px;">
-
-                            {{-- CÍRCULO --}}
                             <span
                                 style="
                                     width:14px;
@@ -147,23 +169,14 @@
                                 "
                             ></span>
 
-                            {{-- SELECT DE ESTADO --}}
                             <select
                                 class="form-select task-status-select"
                                 style="background:{{ $bg }}; border-color:{{ $color }};"
                                 wire:change="updateStatus({{ $task->id }}, $event.target.value)"
                             >
-                                <option value="pending" class="status-pending" @selected($task->status === 'pending')>
-                                    Pendiente
-                                </option>
-
-                                <option value="in_progress" class="status-progress" @selected($task->status === 'in_progress')>
-                                    En progreso
-                                </option>
-
-                                <option value="done" class="status-done" @selected($task->status === 'done')>
-                                    Hecha
-                                </option>
+                                <option value="pending" @selected($task->status === 'pending')>Pendiente</option>
+                                <option value="in_progress" @selected($task->status === 'in_progress')>En progreso</option>
+                                <option value="done" @selected($task->status === 'done')>Hecha</option>
                             </select>
                         </div>
                     </td>

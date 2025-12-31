@@ -19,14 +19,10 @@ class Projects extends Component
     public string $editingStatus = 'active';
 
     protected $listeners = [
-        'projectCreated' => 'refreshProjects',
+        'projectCreated' => 'onProjectCreated',
         'projectDeleted' => 'refreshProjects',
         'closeForm' => 'closeForm',
     ];
-
-    /* =========================
-       FORMULARIO CREAR
-    ========================= */
 
     public function openForm()
     {
@@ -76,27 +72,40 @@ class Projects extends Component
             'status' => $this->editingStatus,
         ]);
 
+        $this->dispatch(
+            'notify',
+            message: "Proyecto \"{$this->editingName}\" actualizado con éxito",
+            type: 'success'
+        );
+
         $this->cancelEdit();
     }
 
-    /* =========================
-       ACCIONES
-    ========================= */
-
     public function delete(int $projectId)
     {
-        Project::findOrFail($projectId)->delete();
-        $this->dispatch('projectDeleted');
-    }
+        $project = Project::findOrFail($projectId);
+        $name = $project->name;
 
-    public function refreshProjects()
+        $project->delete();
+
+        $this->dispatch(
+            'notify',
+            message: "Proyecto \"$name\" eliminado con éxito",
+            type: 'danger'
+        );
+    }
+    public function onProjectCreated(?string $name = null)
     {
-        // fuerza re-render
+        $this->dispatch(
+            'notify',
+            message: $name
+                ? "Proyecto \"$name\" creado con éxito"
+                : "Proyecto creado con éxito",
+            type: 'success'
+        );
     }
 
-    /* =========================
-       RENDER
-    ========================= */
+    public function refreshProjects() {}
 
     public function render()
     {
