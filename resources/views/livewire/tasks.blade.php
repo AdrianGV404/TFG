@@ -96,12 +96,21 @@
 
                     {{-- ACCIONES --}}
                     <td>
-                        <button
-                            class="btn btn-danger btn-sm"
-                            wire:click="delete({{ $task->id }})"
-                        >
-                            Eliminar
-                        </button>
+                        <div style="display:flex; gap:6px;">
+                            <button
+                                class="btn btn-danger btn-sm"
+                                wire:click="delete({{ $task->id }})"
+                            >
+                                Eliminar
+                            </button>
+
+                            <button
+                                class="btn btn-secondary btn-sm"
+                                wire:click="$emitTo('task-form', 'editTask', {{ $task->id }})"
+                            >
+                                Editar
+                            </button>
+                        </div>
                     </td>
 
                     {{-- ID --}}
@@ -156,7 +165,6 @@
                                     Hecha
                                 </option>
                             </select>
-
                         </div>
                     </td>
                 </tr>
@@ -175,5 +183,4 @@
     <div class="mt-3">
         {{ $tasks->links() }}
     </div>
-
 </div>
