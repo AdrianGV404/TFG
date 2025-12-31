@@ -4,9 +4,11 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Project;
+use App\Livewire\Traits\WithSearchAndPagination;
 
 class Projects extends Component
 {
+    use WithSearchAndPagination;
     public bool $showForm = false;
 
     /* =========================
@@ -110,8 +112,16 @@ class Projects extends Component
 
     public function render()
     {
+        $query = Project::query();
+
+        $projects = $this->applyFilters(
+            $query,
+            'name',
+            "FIELD(status, 'active', 'archived')"
+        );
+
         return view('livewire.projects', [
-            'projects' => Project::latest()->get(),
+            'projects' => $projects,
         ]);
     }
 

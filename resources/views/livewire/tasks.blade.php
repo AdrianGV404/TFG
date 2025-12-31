@@ -25,7 +25,7 @@
                 class="form-control form-control-sm"
                 style="max-width:260px"
                 placeholder="Buscar por título..."
-                wire:model.live.debounce.400ms="searchTitle"
+                wire:model.live.debounce.400ms="searchText"
             >
 
             <input

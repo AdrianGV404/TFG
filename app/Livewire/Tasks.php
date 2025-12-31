@@ -6,19 +6,15 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Task;
 use App\Models\Project;
+use App\Livewire\Traits\WithSearchAndPagination;
 
 class Tasks extends Component
 {
-    use WithPagination;
+    use WithSearchAndPagination;
 
     protected $paginationTheme = 'bootstrap';
 
     public Project $project;
-
-    public string $searchTitle = '';
-    public string $searchId = '';
-    public string $orderBy = 'id_desc';
-    public int $perPage = 10;
 
     /* =========================
        EDICIÓN INLINE
@@ -112,24 +108,12 @@ class Tasks extends Component
     {
         $query = Task::where('project_id', $this->project->id);
 
-        if ($this->searchTitle !== '') {
-            $query->where('title', 'like', '%' . $this->searchTitle . '%');
-        }
-
-        if ($this->searchId !== '') {
-            $query->where('id', 'like', $this->searchId . '%');
-        }
-
-        match ($this->orderBy) {
-            'id_asc' => $query->orderBy('id', 'asc'),
-            'status' => $query->orderByRaw(
+        return view('livewire.tasks', [
+            'tasks' => $this->applyFilters(
+                $query,
+                'title',
                 "FIELD(status, 'pending', 'in_progress', 'done')"
             ),
-            default => $query->orderByDesc('id'),
-        };
-
-        return view('livewire.tasks', [
-            'tasks' => $query->paginate($this->perPage),
         ]);
     }
     public function confirmDelete(int $taskId)
