@@ -19,6 +19,7 @@ class Projects extends Component
     public string $editingStatus = 'active';
 
     protected $listeners = [
+        'delete-project' => 'deleteFromModal',
         'projectCreated' => 'onProjectCreated',
         'projectDeleted' => 'refreshProjects',
         'closeForm' => 'closeForm',
@@ -113,4 +114,23 @@ class Projects extends Component
             'projects' => Project::latest()->get(),
         ]);
     }
+
+    public function confirmDelete(int $projectId)
+    {
+        $project = Project::findOrFail($projectId);
+
+        $this->dispatch(
+            'confirm-delete',
+            title: 'Eliminar proyecto',
+            message: "¿Seguro que quieres eliminar el proyecto \"{$project->name}\"? Esta acción no se puede deshacer.",
+            action: 'delete-project',
+            id: $projectId
+        );
+    }
+
+    public function deleteFromModal(int $id)
+    {
+        $this->delete($id);
+    }
+
 }

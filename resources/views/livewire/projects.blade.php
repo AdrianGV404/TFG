@@ -76,7 +76,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-danger btn-sm btn-loading"
-                                    wire:click="delete({{ $project->id }})"
+                                    wire:click="confirmDelete({{ $project->id }})"
                                     wire:loading.attr="disabled"
                                     wire:target="delete({{ $project->id }})"
                                 >

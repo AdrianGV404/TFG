@@ -27,13 +27,16 @@ class Tasks extends Component
     public ?int $editingTaskId = null;
     public string $editingTitle = '';
     public string $editingDescription = '';
+    public int $taskFormKey = 0;
 
     protected $listeners = [
         'taskCreated' => 'onTaskCreated',
+        'delete-task' => 'deleteFromModal'
     ];
 
     public function onTaskCreated()
     {
+        $this->taskFormKey++;
         $this->resetPage();
     }
 
@@ -129,4 +132,24 @@ class Tasks extends Component
             'tasks' => $query->paginate($this->perPage),
         ]);
     }
+    public function confirmDelete(int $taskId)
+    {
+        $task = Task::where('project_id', $this->project->id)
+            ->where('id', $taskId)
+            ->firstOrFail();
+
+        $this->dispatch(
+            'confirm-delete',
+            title: 'Eliminar tarea',
+            message: "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción no se puede deshacer.",
+            action: 'delete-task',
+            id: $taskId
+        );
+    }
+
+    public function deleteFromModal(int $id)
+    {
+        $this->delete($id);
+    }
+
 }

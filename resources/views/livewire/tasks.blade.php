@@ -7,7 +7,10 @@
 
     {{-- FORMULARIO --}}
     <div class="task-form">
-        <livewire:task-form :project="$project" />
+        <livewire:task-form
+            :project="$project"
+            wire:key="task-form-{{ $taskFormKey }}"
+        />
     </div>
 
     <hr>
@@ -114,7 +117,7 @@
 
                                 <button
                                     class="btn btn-danger btn-sm"
-                                    wire:click="delete({{ $task->id }})"
+                                    wire:click="confirmDelete({{ $task->id }})"
                                 >
                                     Eliminar
                                 </button>
