@@ -9,11 +9,24 @@ class Projects extends Component
 {
     public bool $showForm = false;
 
+    /* =========================
+       EDICIÓN INLINE
+    ========================= */
+
+    public ?int $editingProjectId = null;
+    public string $editingName = '';
+    public string $editingDescription = '';
+    public string $editingStatus = 'active';
+
     protected $listeners = [
         'projectCreated' => 'refreshProjects',
         'projectDeleted' => 'refreshProjects',
         'closeForm' => 'closeForm',
     ];
+
+    /* =========================
+       FORMULARIO CREAR
+    ========================= */
 
     public function openForm()
     {
@@ -25,6 +38,51 @@ class Projects extends Component
         $this->showForm = false;
     }
 
+    /* =========================
+       EDICIÓN INLINE
+    ========================= */
+
+    public function startEdit(int $projectId)
+    {
+        $project = Project::findOrFail($projectId);
+
+        $this->editingProjectId = $project->id;
+        $this->editingName = $project->name;
+        $this->editingDescription = $project->description ?? '';
+        $this->editingStatus = $project->status;
+    }
+
+    public function cancelEdit()
+    {
+        $this->reset([
+            'editingProjectId',
+            'editingName',
+            'editingDescription',
+            'editingStatus',
+        ]);
+    }
+
+    public function saveEdit()
+    {
+        $this->validate([
+            'editingName' => 'required|string|max:255',
+            'editingDescription' => 'nullable|string',
+            'editingStatus' => 'required|in:active,archived',
+        ]);
+
+        Project::where('id', $this->editingProjectId)->update([
+            'name' => $this->editingName,
+            'description' => $this->editingDescription,
+            'status' => $this->editingStatus,
+        ]);
+
+        $this->cancelEdit();
+    }
+
+    /* =========================
+       ACCIONES
+    ========================= */
+
     public function delete(int $projectId)
     {
         Project::findOrFail($projectId)->delete();
@@ -33,8 +91,12 @@ class Projects extends Component
 
     public function refreshProjects()
     {
-        // solo fuerza el re-render (livewire re-renderiza cuando se ejecuta un metodo del componente)
+        // fuerza re-render
     }
+
+    /* =========================
+       RENDER
+    ========================= */
 
     public function render()
     {

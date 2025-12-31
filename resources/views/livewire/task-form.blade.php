@@ -3,7 +3,6 @@
     <h3>Nueva tarea</h3>
 
     <form wire:submit.prevent="save">
-
         <div class="form-group">
             <input
                 type="text"
@@ -43,7 +42,5 @@
                 Guardando…
             </span>
         </button>
-
     </form>
-
 </div>
