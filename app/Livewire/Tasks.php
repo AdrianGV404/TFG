@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Task;
 use App\Models\Project;
 use App\Livewire\Traits\WithSearchAndPagination;
