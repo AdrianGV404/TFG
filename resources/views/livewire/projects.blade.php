@@ -132,16 +132,26 @@
                             @if ($total > 0)
                                 <div style="margin-top:6px;">
                                     <div style="display:flex; height:6px; border-radius:4px; overflow:hidden;">
-                                        <div style="width: {{ $project->done_tasks * 100 / $total }}%; background:#198754;"></div>
-                                        <div style="width: {{ $project->in_progress_tasks * 100 / $total }}%; background:#0d6efd;"></div>
+                                        <div style="width: {{ $project->done_tasks * 100 / $total }}%; background:#4caf7a;"></div>
+                                        <div style="width: {{ $project->in_progress_tasks * 100 / $total }}%; background:#3399ff;"></div>
                                         <div style="width: {{ $project->pending_tasks * 100 / $total }}%; background:#ffc107;"></div>
                                     </div>
 
+                                    @php
+                                        $total = $project->total_tasks ?? 0;
+                                        $donePct = $total > 0 ? round($project->done_tasks * 100 / $total) : 0;
+                                        $inProgressPct = $total > 0 ? round($project->in_progress_tasks * 100 / $total) : 0;
+                                        $pendingPct = $total > 0 ? round($project->pending_tasks * 100 / $total) : 0;
+                                    @endphp
+
                                     <small class="text-muted">
-                                        ✔ {{ $project->done_tasks }}
-                                        ⏳ {{ $project->in_progress_tasks }}
-                                        ⏺ {{ $project->pending_tasks }}
+                                        ✔ {{ $project->done_tasks }} ({{ $donePct }}%)
+                                        &nbsp;&nbsp;
+                                        ⏳ {{ $project->in_progress_tasks }} ({{ $inProgressPct }}%)
+                                        &nbsp;&nbsp;
+                                        ⏺ {{ $project->pending_tasks }} ({{ $pendingPct }}%)
                                     </small>
+
                                 </div>
                             @endif
 

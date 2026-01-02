@@ -309,3 +309,11 @@ td {
     background: #9fd6b0; /* darker green */
     color: #000;
 }
+
+/* =========================================================
+   Alpine.js x-cloak
+   Oculta elementos hasta que Alpine los inicializa
+========================================================= */
+[x-cloak] {
+    display: none !important;
+}

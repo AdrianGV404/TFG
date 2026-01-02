@@ -80,6 +80,7 @@
     "
     x-show="show"
     x-transition.opacity
+    x-cloak
     style="
         position: fixed;
         inset: 0;

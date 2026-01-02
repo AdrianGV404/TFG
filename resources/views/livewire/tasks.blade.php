@@ -24,8 +24,8 @@
                         margin: 0 auto;
                     "
                 >
-                    <div style="width: {{ $done * 100 / $total }}%; background:#198754;"></div>
-                    <div style="width: {{ $inProgress * 100 / $total }}%; background:#0d6efd;"></div>
+                    <div style="width: {{ $done * 100 / $total }}%; background:#4caf7a;"></div>
+                    <div style="width: {{ $inProgress * 100 / $total }}%; background:#3399ff;"></div>
                     <div style="width: {{ $pending * 100 / $total }}%; background:#ffc107;"></div>
                 </div>
 
@@ -38,15 +38,15 @@
                         text-align:center;
                     "
                 >
-                    ✔ {{ $done }}
+                    ✔ {{ $done }} ({{ round($done * 100 / $total) }}%)
                     &nbsp;&nbsp;
-                    ⏳ {{ $inProgress }}
+                    ⏳ {{ $inProgress }} ({{ round($inProgress * 100 / $total) }}%)
                     &nbsp;&nbsp;
-                    ⏺ {{ $pending }}
+                    ⏺ {{ $pending }} ({{ round($pending * 100 / $total) }}%)
                 </small>
+
             </div>
         @endif
-
 
     </div>
 
@@ -81,16 +81,14 @@
             @forelse ($tasks as $task)
 
                 @php
-                    $color = match ($task->status) {
-                        'pending' => '#ffc107',
-                        'in_progress' => '#0d6efd',
-                        'done' => '#198754',
-                    };
+                    // Determinar estado actual
+                    $status = $taskStatuses[$task->id] ?? $task->status;
 
-                    $bg = match ($task->status) {
-                        'pending' => '#fff8e1',
-                        'in_progress' => '#e7f1ff',
-                        'done' => '#eaf6ef',
+                    // Color de la bola y fondo del select según el estado
+                    [$color, $bg, $optionClass] = match ($status) {
+                        'pending' => ['#ffc107', '#fff8e1', 'status-pending'],
+                        'in_progress' => ['#0d6efd', '#e7f1ff', 'status-progress'],
+                        'done' => ['#198754', '#eaf6ef', 'status-done'],
                     };
                 @endphp
 
@@ -166,29 +164,31 @@
 
                     {{-- ESTADO --}}
                     <td>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span
-                                style="
-                                    width:14px;
-                                    height:14px;
-                                    border-radius:50%;
-                                    background:{{ $color }};
-                                    border:1px solid rgba(0,0,0,.25);
-                                    display:inline-block;
-                                "
-                            ></span>
+                        <div class="task-status-wrapper">
+                            @php
+                                $status = $task->status;
+
+                                [$color, $bg] = match ($status) {
+                                    'pending' => ['#ffc107', '#fff8e1'],
+                                    'in_progress' => ['#0d6efd', '#e7f1ff'],
+                                    'done' => ['#198754', '#eaf6ef'],
+                                };
+                            @endphp
+
+                            <span class="task-status-dot {{ $status }}"></span>
 
                             <select
-                                class="form-select task-status-select"
-                                style="background:{{ $bg }}; border-color:{{ $color }};"
+                                class="task-status-select"
+                                style="background: {{ $bg }}; border-color: {{ $color }};"
                                 wire:change="updateStatus({{ $task->id }}, $event.target.value)"
                             >
-                                <option value="pending" @selected($task->status === 'pending')>Pendiente</option>
-                                <option value="in_progress" @selected($task->status === 'in_progress')>En progreso</option>
-                                <option value="done" @selected($task->status === 'done')>Hecha</option>
+                                <option value="pending" class="status-pending" @selected($status === 'pending')>Pendiente</option>
+                                <option value="in_progress" class="status-progress" @selected($status === 'in_progress')>En progreso</option>
+                                <option value="done" class="status-done" @selected($status === 'done')>Hecha</option>
                             </select>
                         </div>
                     </td>
+
                 </tr>
 
             @empty

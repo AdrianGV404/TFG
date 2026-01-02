@@ -134,5 +134,4 @@ class Tasks extends Component
     {
         $this->delete($id);
     }
-
 }
