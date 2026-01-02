@@ -112,7 +112,12 @@ class Projects extends Component
 
     public function render()
     {
-        $query = Project::query();
+        $query = Project::withCount([
+            'tasks as total_tasks',
+            'tasks as pending_tasks' => fn ($q) => $q->where('status', 'pending'),
+            'tasks as in_progress_tasks' => fn ($q) => $q->where('status', 'in_progress'),
+            'tasks as done_tasks' => fn ($q) => $q->where('status', 'done'),
+        ]);
 
         $projects = $this->applyFilters(
             $query,
@@ -124,6 +129,7 @@ class Projects extends Component
             'projects' => $projects,
         ]);
     }
+
 
     public function confirmDelete(int $projectId)
     {

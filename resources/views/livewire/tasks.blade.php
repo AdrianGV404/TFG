@@ -1,8 +1,53 @@
 <div class="container tasks-wrapper">
 
     {{-- HEADER --}}
-    <div class="page-header">
-        <h2>Tareas del proyecto</h2>
+    <div class="page-header" style="display:flex; align-items:center; gap:14px;">
+        <h2 class="mb-0">Tareas del proyecto</h2>
+
+        @php
+            $total = $project->tasks()->count();
+            $pending = $project->tasks()->where('status', 'pending')->count();
+            $inProgress = $project->tasks()->where('status', 'in_progress')->count();
+            $done = $project->tasks()->where('status', 'done')->count();
+        @endphp
+
+        @if ($total > 0)
+            <div style="margin-top:6px;">
+                <div
+                    style="
+                        display:flex;
+                        height:14px;
+                        width:260px;
+                        border-radius:8px;
+                        overflow:hidden;
+                        box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+                        margin: 0 auto;
+                    "
+                >
+                    <div style="width: {{ $done * 100 / $total }}%; background:#198754;"></div>
+                    <div style="width: {{ $inProgress * 100 / $total }}%; background:#0d6efd;"></div>
+                    <div style="width: {{ $pending * 100 / $total }}%; background:#ffc107;"></div>
+                </div>
+
+                <small
+                    class="text-muted"
+                    style="
+                        display:block;
+                        width:260px;
+                        margin:4px auto 0;
+                        text-align:center;
+                    "
+                >
+                    ✔ {{ $done }}
+                    &nbsp;&nbsp;
+                    ⏳ {{ $inProgress }}
+                    &nbsp;&nbsp;
+                    ⏺ {{ $pending }}
+                </small>
+            </div>
+        @endif
+
+
     </div>
 
     {{-- FORMULARIO --}}

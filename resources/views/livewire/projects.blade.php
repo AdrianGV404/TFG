@@ -125,6 +125,26 @@
                                 </a>
                             </div>
 
+                            @php
+                                $total = $project->total_tasks ?? 0;
+                            @endphp
+
+                            @if ($total > 0)
+                                <div style="margin-top:6px;">
+                                    <div style="display:flex; height:6px; border-radius:4px; overflow:hidden;">
+                                        <div style="width: {{ $project->done_tasks * 100 / $total }}%; background:#198754;"></div>
+                                        <div style="width: {{ $project->in_progress_tasks * 100 / $total }}%; background:#0d6efd;"></div>
+                                        <div style="width: {{ $project->pending_tasks * 100 / $total }}%; background:#ffc107;"></div>
+                                    </div>
+
+                                    <small class="text-muted">
+                                        ✔ {{ $project->done_tasks }}
+                                        ⏳ {{ $project->in_progress_tasks }}
+                                        ⏺ {{ $project->pending_tasks }}
+                                    </small>
+                                </div>
+                            @endif
+
                             @if ($project->description)
                                 <div class="project-description">
                                     {{ $project->description }}
