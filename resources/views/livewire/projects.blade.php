@@ -106,12 +106,14 @@
                                 class="form-control form-control-sm mb-1"
                                 wire:model.defer="editingName"
                             >
-
                             <textarea
-                                class="form-control form-control-sm"
-                                rows="2"
+                                class="form-control form-control-sm auto-resize-textarea"
+                                rows="1"
                                 wire:model.defer="editingDescription"
                                 placeholder="Descripción"
+                                x-data
+                                x-init="$el.style.height = $el.scrollHeight + 'px'"
+                                x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
                             ></textarea>
 
                         @else
@@ -157,7 +159,7 @@
 
                             @if ($project->description)
                                 <div class="project-description">
-                                    {{ $project->description }}
+                                    {!! nl2br(e($project->description)) !!}
                                 </div>
                             @endif
 

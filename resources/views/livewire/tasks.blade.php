@@ -143,12 +143,16 @@
                                 wire:model.defer="editingTitle"
                             >
 
-                            <textarea
-                                class="form-control form-control-sm"
-                                rows="2"
-                                wire:model.defer="editingDescription"
-                                placeholder="Descripción"
-                            ></textarea>
+                        <textarea
+                            class="form-control form-control-sm auto-resize-textarea"
+                            rows="1"
+                            wire:model.defer="editingDescription"
+                            placeholder="Descripción"
+                            x-data
+                            x-init="$el.style.height = $el.scrollHeight + 'px'"
+                            x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+                        ></textarea>
+
                         @else
                             <div class="task-title">
                                 {{ $task->title }}
@@ -156,7 +160,7 @@
 
                             @if ($task->description)
                                 <div class="task-description">
-                                    {{ $task->description }}
+                                    {!! nl2br(e($task->description)) !!}
                                 </div>
                             @endif
                         @endif
