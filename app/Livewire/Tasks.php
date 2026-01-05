@@ -10,10 +10,11 @@ use App\Livewire\Traits\Confirmable;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\ScopedByProject;
 use App\Livewire\Traits\Notifies;
+use App\Livewire\Traits\FormValidationRules;
 
 class Tasks extends Component
 {
-    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject;
+    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
 
     public Project $project;
 
@@ -58,10 +59,7 @@ class Tasks extends Component
 
     public function saveEdit()
     {
-        $this->validate([
-            'editingTitle' => 'required|string|max:255',
-            'editingDescription' => 'nullable|string',
-        ]);
+        $this->validate($this->taskRulesForEditing());
 
         $this->updateScoped(Task::class, $this->editingTaskId, [
             'title' => $this->editingTitle,

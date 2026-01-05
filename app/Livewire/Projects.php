@@ -8,10 +8,11 @@ use App\Livewire\Traits\WithSearchAndPagination;
 use App\Livewire\Traits\Confirmable;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\Notifies;
+use App\Livewire\Traits\FormValidationRules;
 
 class Projects extends Component
 {
-    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies;
+    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, FormValidationRules;
     public bool $showForm = false;
 
     /* =========================
@@ -67,11 +68,7 @@ class Projects extends Component
 
     public function saveEdit()
     {
-        $this->validate([
-            'editingName' => 'required|string|max:255',
-            'editingDescription' => 'nullable|string',
-            'editingStatus' => 'required|in:active,archived',
-        ]);
+        $this->validate($this->projectRulesForEditing());
 
         $this->applyModelUpdate(Project::class, $this->editingProjectId, [
             'name' => $this->editingName,

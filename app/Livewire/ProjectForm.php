@@ -4,22 +4,19 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Project;
+use App\Livewire\Traits\FormValidationRules;
 
 class ProjectForm extends Component
 {
+    use FormValidationRules;
     public string $name = '';
     public ?string $description = null;
     public string $status = 'active';
 
-    protected $rules = [
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'status' => 'required|in:active,archived',
-    ];
 
     public function save()
     {
-        $this->validate();
+        $this->validate($this->projectRules());
 
         Project::create([
             'name' => $this->name,

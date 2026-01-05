@@ -7,10 +7,11 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Livewire\Traits\Notifies;
 use App\Livewire\Traits\ScopedByProject;
+use App\Livewire\Traits\FormValidationRules;
 
 class TaskForm extends Component
 {
-    use Notifies, ScopedByProject;
+    use Notifies, ScopedByProject, FormValidationRules;
     public Project $project;
 
     public string $title = '';
@@ -25,7 +26,7 @@ class TaskForm extends Component
 
     public function save()
     {
-        $this->validate();
+        $this->validate($this->taskRules());
 
         $this->createScoped(Task::class, [
             'title' => $this->title,
