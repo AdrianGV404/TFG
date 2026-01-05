@@ -1,15 +1,15 @@
 <div class="container tasks-wrapper">
 
     {{-- HEADER --}}
-    <div class="page-header" style="display:flex; flex-direction:column; gap:12px;">
-        <h2 class="mb-0">Tareas del proyecto</h2>
+    <div class="page-header" style="display:flex; flex-direction:row; gap:12px; align-items:center; justify-content:flex-start;">
+        <h2 class="mb-0" style="margin:0;">Tareas del proyecto</h2>
     </div>
 
     {{-- FORMULARIO + PIECHART --}}
-    <div style="display:flex; gap:24px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap;">
+    <div style="display:flex; gap:24px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; justify-content:space-between;">
 
         {{-- FORMULARIO (columna izquierda, más estrecha) --}}
-        <div style="flex:1 1 400px; max-width:600px;">
+        <div style="flex:1 1 auto; min-width:280px;">
             <livewire:task-form
                 :project="$project"
                 wire:key="task-form-{{ $taskFormKey }}"
