@@ -21,11 +21,11 @@
     <table class="table table-projects">
         <thead>
             <tr>
-                <th style="width: 200px;">Acciones</th>
-                <th style="width: 80px;">ID</th>
-                <th style="width: 320px;">Proyecto</th>
-                <th style="width: 120px;">Estado</th>
-                <th style="width: 280px;">Tareas</th>
+                <th class="col-actions-200">Acciones</th>
+                <th class="col-id-80">ID</th>
+                <th class="col-project-320">Proyecto</th>
+                <th class="col-state-120">Estado</th>
+                <th class="col-tasks-280">Tareas</th>
             </tr>
         </thead>
         <tbody>

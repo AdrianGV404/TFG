@@ -5,10 +5,13 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Project;
 use App\Livewire\Traits\WithSearchAndPagination;
+use App\Livewire\Traits\Confirmable;
+use App\Livewire\Traits\HasInlineEditing;
+use App\Livewire\Traits\Notifies;
 
 class Projects extends Component
 {
-    use WithSearchAndPagination;
+    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies;
     public bool $showForm = false;
 
     /* =========================
@@ -45,15 +48,16 @@ class Projects extends Component
     {
         $project = Project::findOrFail($projectId);
 
-        $this->editingProjectId = $project->id;
-        $this->editingName = $project->name;
-        $this->editingDescription = $project->description ?? '';
-        $this->editingStatus = $project->status;
+        $this->startEditingModel($project, 'editingProjectId', [
+            'editingName' => 'name',
+            'editingDescription' => 'description',
+            'editingStatus' => 'status',
+        ]);
     }
 
     public function cancelEdit()
     {
-        $this->reset([
+        $this->cancelEditing([
             'editingProjectId',
             'editingName',
             'editingDescription',
@@ -69,17 +73,13 @@ class Projects extends Component
             'editingStatus' => 'required|in:active,archived',
         ]);
 
-        Project::where('id', $this->editingProjectId)->update([
+        $this->applyModelUpdate(Project::class, $this->editingProjectId, [
             'name' => $this->editingName,
             'description' => $this->editingDescription,
             'status' => $this->editingStatus,
         ]);
 
-        $this->dispatch(
-            'notify',
-            message: "Proyecto \"{$this->editingName}\" actualizado con éxito",
-            type: 'success'
-        );
+        $this->notify("Proyecto \"{$this->editingName}\" actualizado con éxito", 'success');
 
         $this->cancelEdit();
     }
@@ -91,21 +91,11 @@ class Projects extends Component
 
         $project->delete();
 
-        $this->dispatch(
-            'notify',
-            message: "Proyecto \"$name\" eliminado con éxito",
-            type: 'danger'
-        );
+        $this->notify("Proyecto \"$name\" eliminado con éxito", 'danger');
     }
     public function onProjectCreated(?string $name = null)
     {
-        $this->dispatch(
-            'notify',
-            message: $name
-                ? "Proyecto \"$name\" creado con éxito"
-                : "Proyecto creado con éxito",
-            type: 'success'
-        );
+        $this->notify($name ? "Proyecto \"$name\" creado con éxito" : "Proyecto creado con éxito", 'success');
     }
 
     public function refreshProjects() {}
@@ -135,12 +125,11 @@ class Projects extends Component
     {
         $project = Project::findOrFail($projectId);
 
-        $this->dispatch(
-            'confirm-delete',
-            title: 'Eliminar proyecto',
-            message: "¿Seguro que quieres eliminar el proyecto \"{$project->name}\"? Esta acción no se puede deshacer.",
-            action: 'delete-project',
-            id: $projectId
+        $this->dispatchConfirmDelete(
+            'Eliminar proyecto',
+            "¿Seguro que quieres eliminar el proyecto \"{$project->name}\"? Esta acción no se puede deshacer.",
+            'delete-project',
+            $projectId
         );
     }
 

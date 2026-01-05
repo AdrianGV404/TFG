@@ -1,29 +1,26 @@
-<div style="display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+<div class="search-controls">
 
     {{-- BUSCADORES --}}
-    <div style="display:flex; gap:8px;">
+    <div class="search-left">
         <input
             type="text"
-            class="form-control form-control-sm"
-            style="max-width:260px"
+            class="form-control form-control-sm search-input-small"
             placeholder="{{ $textPlaceholder }}"
             wire:model.live.debounce.400ms="searchText"
         >
 
         <input
             type="text"
-            class="form-control form-control-sm"
-            style="width:100px"
+            class="form-control form-control-sm search-input-id"
             placeholder="ID"
             wire:model.live="searchId"
         >
     </div>
 
     {{-- ORDEN Y PAGINACIÓN --}}
-    <div style="display:flex; gap:10px;">
+    <div class="search-right">
         <select
-            class="form-select"
-            style="min-width:190px;"
+            class="form-select search-select-wide"
             wire:model.live="orderBy"
         >
             <option value="id_desc">ID ↓ (más recientes)</option>

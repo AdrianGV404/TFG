@@ -22,7 +22,16 @@ class TaskController extends Controller
 
     public function index()
     {
-        return TaskResource::collection(Task::all());
+        $projectId = request()->query('project_id');
+
+        if ($projectId) {
+            $project = \App\Models\Project::findOrFail($projectId);
+            $tasks = $this->taskService->listForProject($project);
+        } else {
+            $tasks = $this->taskService->listAll();
+        }
+
+        return TaskResource::collection($tasks);
     }
 
     /**

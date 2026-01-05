@@ -34,10 +34,10 @@
     <table class="table">
         <thead>
             <tr>
-                <th style="width:180px;">Acciones</th>
-                <th style="width:80px;">ID</th>
+                <th class="col-actions">Acciones</th>
+                <th class="col-id">ID</th>
                 <th>Proyecto</th>
-                <th style="width:140px;">Estado</th>
+                <th class="col-status-140">Estado</th>
             </tr>
         </thead>
 
@@ -47,51 +47,7 @@
 
                     {{-- ACCIONES --}}
                     <td>
-                        <div style="display:flex; gap:6px;">
-                            @if ($editingProjectId == $project->id)
-
-                                <button
-                                    type="button"
-                                    class="btn btn-success btn-sm btn-loading"
-                                    wire:click="saveEdit"
-                                    wire:loading.attr="disabled"
-                                    wire:target="saveEdit"
-                                >
-                                    <span class="btn-text">Guardar</span>
-                                    <span class="btn-spinner" wire:loading.delay wire:target="saveEdit">⏳</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary btn-sm"
-                                    wire:click="cancelEdit"
-                                >
-                                    Cancelar
-                                </button>
-
-                            @else
-
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary btn-sm"
-                                    wire:click="startEdit({{ $project->id }})"
-                                >
-                                    Editar
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-danger btn-sm btn-loading"
-                                    wire:click="confirmDelete({{ $project->id }})"
-                                    wire:loading.attr="disabled"
-                                    wire:target="delete({{ $project->id }})"
-                                >
-                                    <span class="btn-text">Eliminar</span>
-                                    <span class="btn-spinner" wire:loading.delay wire:target="delete({{ $project->id }})">⏳</span>
-                                </button>
-
-                            @endif
-                        </div>
+                        @include('livewire.partials.action-buttons', ['editingId' => $editingProjectId, 'id' => $project->id])
                     </td>
 
                     {{-- ID --}}
@@ -132,29 +88,12 @@
                             @endphp
 
                             @if ($total > 0)
-                                <div style="margin-top:6px;">
-                                    <div style="display:flex; height:6px; border-radius:4px; overflow:hidden;">
-                                        <div style="width: {{ $project->done_tasks * 100 / $total }}%; background:#4caf7a;"></div>
-                                        <div style="width: {{ $project->in_progress_tasks * 100 / $total }}%; background:#3399ff;"></div>
-                                        <div style="width: {{ $project->pending_tasks * 100 / $total }}%; background:#ffc107;"></div>
-                                    </div>
-
-                                    @php
-                                        $total = $project->total_tasks ?? 0;
-                                        $donePct = $total > 0 ? round($project->done_tasks * 100 / $total) : 0;
-                                        $inProgressPct = $total > 0 ? round($project->in_progress_tasks * 100 / $total) : 0;
-                                        $pendingPct = $total > 0 ? round($project->pending_tasks * 100 / $total) : 0;
-                                    @endphp
-
-                                    <small class="text-muted">
-                                        ✔ {{ $project->done_tasks }} ({{ $donePct }}%)
-                                        &nbsp;&nbsp;
-                                        ⏳ {{ $project->in_progress_tasks }} ({{ $inProgressPct }}%)
-                                        &nbsp;&nbsp;
-                                        ⏺ {{ $project->pending_tasks }} ({{ $pendingPct }}%)
-                                    </small>
-
-                                </div>
+                                @include('livewire.partials.project-progress', [
+                                    'total' => $total,
+                                    'done' => $project->done_tasks,
+                                    'inProgress' => $project->in_progress_tasks,
+                                    'pending' => $project->pending_tasks,
+                                ])
                             @endif
 
                             @if ($project->description)

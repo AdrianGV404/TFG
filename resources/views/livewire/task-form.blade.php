@@ -10,7 +10,7 @@
                 placeholder="Título"
             >
             @error('title')
-                <small style="color:red">{{ $message }}</small>
+                <small class="text-error">{{ $message }}</small>
             @enderror
         </div>
 

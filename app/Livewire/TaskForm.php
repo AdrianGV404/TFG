@@ -5,9 +5,12 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Project;
 use App\Models\Task;
+use App\Livewire\Traits\Notifies;
+use App\Livewire\Traits\ScopedByProject;
 
 class TaskForm extends Component
 {
+    use Notifies, ScopedByProject;
     public Project $project;
 
     public string $title = '';
@@ -24,18 +27,13 @@ class TaskForm extends Component
     {
         $this->validate();
 
-        Task::create([
-            'project_id' => $this->project->id,
+        $this->createScoped(Task::class, [
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
         ]);
 
-        $this->dispatch(
-            'notify',
-            message: "Tarea \"{$this->title}\" creada con éxito",
-            type: 'success'
-        );
+        $this->notify("Tarea \"{$this->title}\" creada con éxito", 'success');
 
         $this->reset(['title', 'description', 'status']);
         $this->status = 'pending';

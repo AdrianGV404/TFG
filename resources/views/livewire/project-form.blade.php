@@ -4,8 +4,7 @@
     <div
         wire:loading.delay
         wire:target="save"
-        class="text-muted"
-        style="margin-bottom:10px;"
+        class="text-muted loading-msg"
     >
         Guardando proyecto…
     </div>
@@ -18,7 +17,7 @@
             placeholder="Nombre del proyecto"
         >
         @error('name')
-            <small style="color:red">{{ $message }}</small>
+            <small class="text-error">{{ $message }}</small>
         @enderror
     </div>
 
@@ -38,7 +37,7 @@
         </select>
 
         @error('status')
-            <small style="color:red">{{ $message }}</small>
+            <small class="text-error">{{ $message }}</small>
         @enderror
     </div>
 

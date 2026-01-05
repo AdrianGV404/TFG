@@ -63,7 +63,7 @@
                         <form
                             action="{{ route('projects.tasks.destroy', [$project, $task]) }}"
                             method="POST"
-                            style="display:inline"
+                            class="inline-form"
                         >
                             @csrf
                             @method('DELETE')
@@ -79,8 +79,7 @@
                     id="edit-task-{{ $task->id }}"
                     action="{{ route('projects.tasks.update', [$project, $task]) }}"
                     method="POST"
-                    class="task-form"
-                    style="display:none;"
+                    class="task-form hidden"
                 >
                     @csrf
                     @method('PATCH')

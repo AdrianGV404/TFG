@@ -37,6 +37,27 @@ class TaskService
         return Task::create($data);
     }
 
+    /**
+     * Lista todas las tareas.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|array
+     */
+    public function listAll()
+    {
+        return Task::all();
+    }
+
+    /**
+     * Lista tareas de un proyecto concreto.
+     *
+     * @param Project $project
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function listForProject(Project $project)
+    {
+        return $project->tasks()->get();
+    }
+
         /**
      * Actualiza una tarea existente.
      *

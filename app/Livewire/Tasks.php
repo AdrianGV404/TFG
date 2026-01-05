@@ -6,12 +6,14 @@ use Livewire\Component;
 use App\Models\Task;
 use App\Models\Project;
 use App\Livewire\Traits\WithSearchAndPagination;
+use App\Livewire\Traits\Confirmable;
+use App\Livewire\Traits\HasInlineEditing;
+use App\Livewire\Traits\ScopedByProject;
+use App\Livewire\Traits\Notifies;
 
 class Tasks extends Component
 {
-    use WithSearchAndPagination;
-
-    protected $paginationTheme = 'bootstrap';
+    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject;
 
     public Project $project;
 
@@ -37,18 +39,17 @@ class Tasks extends Component
 
     public function startEdit(int $taskId)
     {
-        $task = Task::where('project_id', $this->project->id)
-            ->where('id', $taskId)
-            ->firstOrFail();
+        $task = $this->findScoped(Task::class, $taskId);
 
-        $this->editingTaskId = $task->id;
-        $this->editingTitle = $task->title;
-        $this->editingDescription = $task->description ?? '';
+        $this->startEditingModel($task, 'editingTaskId', [
+            'editingTitle' => 'title',
+            'editingDescription' => 'description',
+        ]);
     }
 
     public function cancelEdit()
     {
-        $this->reset([
+        $this->cancelEditing([
             'editingTaskId',
             'editingTitle',
             'editingDescription',
@@ -62,50 +63,35 @@ class Tasks extends Component
             'editingDescription' => 'nullable|string',
         ]);
 
-        Task::where('project_id', $this->project->id)
-            ->where('id', $this->editingTaskId)
-            ->update([
-                'title' => $this->editingTitle,
-                'description' => $this->editingDescription,
-            ]);
+        $this->updateScoped(Task::class, $this->editingTaskId, [
+            'title' => $this->editingTitle,
+            'description' => $this->editingDescription,
+        ]);
 
-        $this->dispatch(
-            'notify',
-            message: "Tarea \"{$this->editingTitle}\" actualizada con éxito",
-            type: 'success'
-        );
+        $this->notify("Tarea \"{$this->editingTitle}\" actualizada con éxito", 'success');
 
         $this->cancelEdit();
     }
 
     public function delete(int $taskId)
     {
-        Task::where('project_id', $this->project->id)
-            ->where('id', $taskId)
-            ->delete();
+        $this->deleteScoped(Task::class, $taskId);
 
-        $this->dispatch(
-            'notify',
-            message: 'Tarea eliminada con éxito',
-            type: 'danger'
-        );
+        $this->notify('Tarea eliminada con éxito', 'danger');
 
         $this->resetPage();
     }
 
     public function updateStatus(int $taskId, string $status)
     {
-        $task = Task::where('project_id', $this->project->id)
-            ->where('id', $taskId)
-            ->firstOrFail();
-
-        $task->status = $status;
-        $task->save();
+        $this->updateScoped(Task::class, $taskId, [
+            'status' => $status,
+        ]);
     }
 
     public function render()
     {
-        $query = Task::where('project_id', $this->project->id);
+        $query = $this->scopedQuery(Task::class);
 
         return view('livewire.tasks', [
             'tasks' => $this->applyFilters(
@@ -117,16 +103,13 @@ class Tasks extends Component
     }
     public function confirmDelete(int $taskId)
     {
-        $task = Task::where('project_id', $this->project->id)
-            ->where('id', $taskId)
-            ->firstOrFail();
+        $task = $this->findScoped(Task::class, $taskId);
 
-        $this->dispatch(
-            'confirm-delete',
-            title: 'Eliminar tarea',
-            message: "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción no se puede deshacer.",
-            action: 'delete-task',
-            id: $taskId
+        $this->dispatchConfirmDelete(
+            'Eliminar tarea',
+            "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción no se puede deshacer.",
+            'delete-task',
+            $taskId
         );
     }
 

@@ -166,7 +166,9 @@ td {
 
 /* =========================================================
    ACCIONES
+   Consolidated: use `.actions` or `.actions-row` interchangeably
 ========================================================= */
+.actions,
 .actions-row {
     display: flex;
     gap: 6px;
@@ -276,16 +278,21 @@ td {
     background: #198754;
 }
 
+
 .task-status-select {
     font-size: 13px;
     padding: 4px 6px;
+    color: #000;
 }
+
+/* Select background per status */
+.task-status-select.pending { background: #fff8e1; border-color: #ffc107; }
+.task-status-select.in_progress { background: #e7f1ff; border-color: #0d6efd; }
+.task-status-select.done { background: #eaf6ef; border-color: #198754; }
 
 /* ===========================
    SELECT ESTADO - COLORES
 =========================== */
-
-.task-status-select { color: #000; }
 
 /* Colored option backgrounds (note: styling of <option> is browser-dependent) */
 .task-status-select option.status-pending {
@@ -325,3 +332,53 @@ td {
 [x-cloak] {
     display: none !important;
 }
+
+/* =========================================================
+   REUSABLE CLASSES FOR LIVEWIRE VIEWS
+   (moved from inline styles to classes)
+========================================================= */
+
+.col-actions { width:180px; }
+.col-id { width:80px; }
+.col-status { width:220px; }
+.col-status-140 { width:140px; }
+
+.actions, .actions-row { display:flex; gap:6px; }
+
+.tasks-legend { font-size:13px; display:flex; flex-direction:column; gap:4px; margin-top:8px; text-align:center; }
+
+.project-stats { margin-top:6px; }
+.project-progress { display:flex; height:6px; border-radius:4px; overflow:hidden; }
+.project-progress-bar { height:100%; }
+.project-progress-bar.done { background:#4caf7a; }
+.project-progress-bar.in_progress { background:#3399ff; }
+.project-progress-bar.pending { background:#ffc107; }
+
+.text-error { color: #dc3545; }
+.loading-msg { margin-bottom: 10px; }
+
+.auto-resize-textarea { overflow:hidden; resize:none; }
+
+.piecol { flex:0 0 160px; display:flex; flex-direction:column; align-items:center; }
+
+/* Search controls layout */
+.search-controls { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.search-left { display:flex; gap:8px; }
+.search-right { display:flex; gap:10px; }
+.search-input-small { max-width:260px; }
+.search-input-id { width:100px; }
+.search-select-wide { min-width:190px; }
+
+/* Generic form column used in list pages */
+.form-col { flex:1 1 auto; min-width:280px; }
+
+/* Project index specific column widths (replace inline widths) */
+.col-actions-200 { width: 200px; }
+.col-id-80 { width: 80px; }
+.col-project-320 { width: 320px; }
+.col-state-120 { width: 120px; }
+.col-tasks-280 { width: 280px; }
+
+/* Inline form helper and hidden state */
+.inline-form { display: inline; }
+.hidden { display: none; }
