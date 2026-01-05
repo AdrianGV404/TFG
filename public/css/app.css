@@ -73,6 +73,7 @@ body {
 /* Variantes */
 .btn-primary {
     background: #0d6efd;
+    min-width: 120px;
     color: #fff;
 }
 
@@ -86,19 +87,26 @@ body {
 ========================================================= */
 .btn-loading {
     position: relative;
+    min-width: 120px; /* evita cambios de ancho */
+    justify-content: center;
 }
 
-.btn-spinner {
-    display: none;
-    font-size: 13px;
+.btn-loading .btn-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .btn-loading[disabled] .btn-text {
-    display: none;
+    visibility: hidden; /* sigue ocupando espacio */
 }
 
 .btn-loading[disabled] .btn-spinner {
-    display: inline-block;
+    opacity: 1;
 }
 
 /* =========================================================

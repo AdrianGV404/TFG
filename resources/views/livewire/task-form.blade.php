@@ -30,15 +30,13 @@
         </div>
         <br>
         <button
-            class="btn btn-primary"
+            class="btn btn-primary btn-loading"
             type="submit"
             wire:loading.attr="disabled"
             wire:target="save"
         >
-            <span wire:loading.remove wire:target="save">
-                Crear tarea
-            </span>
-            <span wire:loading.delay wire:target="save">
+            <span class="btn-text">Crear tarea</span>
+            <span class="btn-spinner" wire:loading.delay wire:target="save">
                 Guardando…
             </span>
         </button>
