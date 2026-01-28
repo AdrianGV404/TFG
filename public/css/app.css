@@ -353,7 +353,16 @@ td {
 .text-error { color: #dc3545; }
 .loading-msg { margin-bottom: 10px; }
 
-.auto-resize-textarea { overflow:hidden; resize:none; }
+.auto-resize-textarea {
+    overflow: hidden;  /* oculta la barra de scroll */
+    resize: none;      /* evita redimensionar manualmente */
+    min-height: 40px;  /* altura inicial */
+    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    width: 100%;
+}
 
 .piecol { flex:0 0 160px; display:flex; flex-direction:column; align-items:center; }
 

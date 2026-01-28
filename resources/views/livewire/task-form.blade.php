@@ -18,6 +18,10 @@
             <textarea
                 wire:model.defer="description"
                 placeholder="Descripción"
+                x-data
+                x-ref="textarea"
+                x-on:input="$refs.textarea.style.height = 'auto'; $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px';"
+                class="auto-resize-textarea"
             ></textarea>
         </div>
 
