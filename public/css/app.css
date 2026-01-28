@@ -140,6 +140,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
+    table-layout: fixed;
 }
 
 thead {
@@ -154,15 +155,16 @@ th {
 }
 
 td {
-    padding: 10px;
-    font-size: 14px;
-    vertical-align: top;
+    padding: 10px;          /* ya lo tienes */
+    vertical-align: middle; /* hace que todo se alinee al centro verticalmente */
     border-bottom: 1px solid #eee;
 }
 
+/* Centrar IDs en la columna ID */
 .text-muted {
-    color: #6c757d;
+    text-align: center;  /* centrado horizontal */
 }
+
 
 /* =========================================================
    ACCIONES
@@ -241,12 +243,22 @@ td {
 .task-title {
     font-weight: 600;
     font-size: 14px;
+    display: block;           /* ocupa todo el ancho de la celda */
+    max-width: 100%;          /* no excede la celda */
+    word-wrap: break-word;    /* rompe palabras largas */
+    overflow-wrap: break-word;
+    white-space: normal;      /* permite saltos de línea */
 }
 
 .task-description {
     font-size: 13px;
     color: #555;
     margin-top: 4px;
+    display: block;
+    max-width: 100%;          /* no excede la celda */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 /* =========================================================
@@ -257,27 +269,6 @@ td {
     align-items: center;
     gap: 10px;
 }
-
-.task-status-dot {
-    width: 14px;
-    height: 14px;
-    min-width: 14px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.25);
-}
-
-.task-status-dot.pending {
-    background: #ffc107;
-}
-
-.task-status-dot.in_progress {
-    background: #0d6efd;
-}
-
-.task-status-dot.done {
-    background: #198754;
-}
-
 
 .task-status-select {
     font-size: 13px;
@@ -339,7 +330,12 @@ td {
 ========================================================= */
 
 .col-actions { width:180px; }
-.col-id { width:80px; }
+/* Centrar contenido de la columna ID */
+.col-id, 
+.col-id td {
+    text-align: center;
+    vertical-align: middle;
+}
 .col-status { width:150px; }
 .col-status-140 { width:140px; }
 
@@ -382,19 +378,6 @@ td {
 /* Inline form helper and hidden state */
 .inline-form { display: inline; }
 .hidden { display: none; }
-
-/* PRIORIDAD DE TAREA */
-.task-priority-dot {
-    width: 14px;
-    height: 14px;
-    min-width: 14px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.25);
-}
-
-.task-priority-dot.high { background: #dc3545; }  /* rojo */
-.task-priority-dot.mid  { background: #fd7e14; }  /* naranja */
-.task-priority-dot.low  { background: #ffc107; }  /* amarillo */
 
 .task-priority {
     font-size: 13px;
@@ -444,3 +427,77 @@ td {
 .task-priority-select option.priority-low { background: #ffeeb4; color: #000; }
 .task-priority-select option.priority-low:hover,
 .task-priority-select option.priority-low:active { background: #ffc107; color: #000; }
+
+/* ==============================
+   TABLA
+============================== */
+table {
+    width: 100%;
+    border-collapse: collapse; /* importante para que los bordes se alineen */
+    background: #fff;
+    table-layout: fixed;       /* ancho de columnas fijo relativo al porcentaje */
+}
+
+th, td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+/* ID centrado y ancho mínimo */
+.col-id {
+    width: 5%;           /* mínimo ancho necesario */
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Título de tarea con wrap sin romper bordes */
+.task-title,
+.task-description {
+    display: block;       /* ocupa todo el ancho del td */
+    margin: 0;            /* elimina margen que rompe el borde */
+    padding: 0;           /* si quieres espacio, usa padding del td */
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Aseguramos que el contenido de TD no rompa el borde inferior */
+td {
+    padding: 10px;          /* ya lo tienes */
+    vertical-align: middle; /* hace que todo se alinee al centro verticalmente */
+}
+
+/* Eliminamos márgenes de hijos dentro del TD */
+td > div,
+td > input,
+td > textarea,
+td > select {
+    margin: 0;
+    padding: 0; /* deja que el padding del td maneje el espacio */
+}
+
+/* Para IDs centrados */
+td.col-id, td.col-id .text-muted {
+    text-align: center;
+    vertical-align: middle;
+    padding: 10px 5px; /* opcional: menos ancho lateral */
+}
+
+/* Inputs y textarea en edición */
+td input.form-control,
+td textarea.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    display: block;
+}
+
+/* Selects */
+td select {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    display: block;
+}

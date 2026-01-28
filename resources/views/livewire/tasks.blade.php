@@ -131,7 +131,6 @@
                     {{-- ESTADO --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <span class="task-status-dot {{ $status }}"></span>
                             <select class="task-status-select {{ $status }}"
                                 wire:change="updateStatus({{ $task->id }}, $event.target.value)">
                                 <option value="pending" class="status-pending" @selected($status === 'pending')>Pendiente</option>
@@ -144,7 +143,6 @@
                     {{-- PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <span class="task-priority-dot {{ $task->priority }}"></span>
                             <select class="task-priority {{ $task->priority }}"
                                 wire:change="updatePriority({{ $task->id }}, $event.target.value)">
                                 <option value="high" class="priority-high" @selected($task->priority === 'high')>Alta</option>
