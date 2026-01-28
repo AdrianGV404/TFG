@@ -10,18 +10,20 @@ class TaskCard extends Component
     public Task $task;
 
     public string $status;
+    public string $priority;
 
     public function mount()
     {
         $this->status = $this->task->status;
+        $this->priority = $this->task->priority;
     }
 
     public function updatedStatus()
     {
         $this->task->update([
             'status' => $this->status,
+            'priority' => $this->priority,
         ]);
-
         $this->dispatch('taskUpdated');
     }
 

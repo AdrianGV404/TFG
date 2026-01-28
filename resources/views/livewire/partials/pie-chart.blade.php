@@ -1,25 +1,25 @@
 @php
-    $total = $total ?? 0;
-    $done = $done ?? 0;
-    $inProgress = $inProgress ?? 0;
-    $pending = $pending ?? 0;
+    /**
+     * Variables que deben pasarse al incluir el partial:
+     * - $labels: array con los nombres de las secciones ['Pendiente','En progreso','Hecha']
+     * - $values: array con los valores numéricos [10,5,2]
+     * - $colors: array con los colores ['#ffc107','#0d6efd','#198754']
+     */
 
-    $donePct = $total > 0 ? ($done / $total) * 100 : 0;
-    $inProgressPct = $total > 0 ? ($inProgress / $total) * 100 : 0;
-    $pendingPct = $total > 0 ? max(0, 100 - $donePct - $inProgressPct) : 0;
+    $total = array_sum($values);
+    $angles = [];
+    $startAngle = 0;
 
-    // Convert percentages a grados (360°)
-    $doneDeg = ($donePct / 100) * 360;
-    $inProgressDeg = ($inProgressPct / 100) * 360;
-    $pendingDeg = ($pendingPct / 100) * 360;
+    foreach ($values as $val) {
+        $pct = $total > 0 ? ($val / $total) * 100 : 0;
+        $angles[] = ($pct / 100) * 360;
+    }
 
     $radius = 50;
     $center = 50;
 
-    // Use closures to avoid global function redeclaration when the partial is included multiple times.
     $polarToCartesian = function ($centerX, $centerY, $radius, $angleInDegrees) {
         $angleInRadians = ($angleInDegrees - 90) * pi() / 180.0;
-
         return [
             'x' => $centerX + ($radius * cos($angleInRadians)),
             'y' => $centerY + ($radius * sin($angleInRadians)),
@@ -30,54 +30,36 @@
         $start = $polarToCartesian($x, $y, $radius, $endAngle);
         $end = $polarToCartesian($x, $y, $radius, $startAngle);
         $largeArcFlag = (($endAngle - $startAngle) <= 180) ? "0" : "1";
-
         return "M{$x},{$y} L{$start['x']},{$start['y']} A{$radius},{$radius} 0 $largeArcFlag,0 {$end['x']},{$end['y']} Z";
     };
-
-    // Prepare paths or flags to draw full circles when a segment represents 100%
-    $epsilon = 0.0001;
-    $doneIsFull = ($doneDeg >= 360 - $epsilon);
-    $inProgressIsFull = ($inProgressDeg >= 360 - $epsilon);
-    $pendingIsFull = ($pendingDeg >= 360 - $epsilon);
-
-    $donePath = !$doneIsFull && ($doneDeg > $epsilon) ? $describeArc($center, $center, $radius, 0, $doneDeg) : null;
-    $inProgressPath = !$inProgressIsFull && ($inProgressDeg > $epsilon) ? $describeArc($center, $center, $radius, $doneDeg, $doneDeg + $inProgressDeg) : null;
-    $pendingPath = !$pendingIsFull && ($pendingDeg > $epsilon) ? $describeArc($center, $center, $radius, $doneDeg + $inProgressDeg, 360) : null;
 @endphp
 
 <div class="piecol">
     <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
-        {{-- Done --}}
-        @if($done > 0)
-            @if($doneIsFull)
-                <circle cx="{{ $center }}" cy="{{ $center }}" r="{{ $radius }}" fill="#4caf7a" />
-            @elseif($donePath)
-                <path d="{{ $donePath }}" fill="#4caf7a"/>
-            @endif
-        @endif
+        @php $currentAngle = 0; @endphp
+        @foreach($values as $i => $val)
+            @php
+                $deg = $angles[$i];
+                $isFull = $deg >= 360 - 0.0001;
+                $path = !$isFull && $deg > 0 ? $describeArc($center, $center, $radius, $currentAngle, $currentAngle + $deg) : null;
+            @endphp
 
-        {{-- In Progress --}}
-        @if($inProgress > 0)
-            @if($inProgressIsFull)
-                <circle cx="{{ $center }}" cy="{{ $center }}" r="{{ $radius }}" fill="#3399ff" />
-            @elseif($inProgressPath)
-                <path d="{{ $inProgressPath }}" fill="#3399ff"/>
+            @if($val > 0)
+                @if($isFull)
+                    <circle cx="{{ $center }}" cy="{{ $center }}" r="{{ $radius }}" fill="{{ $colors[$i] }}" />
+                @elseif($path)
+                    <path d="{{ $path }}" fill="{{ $colors[$i] }}" />
+                @endif
             @endif
-        @endif
 
-        {{-- Pending --}}
-        @if($pending > 0)
-            @if($pendingIsFull)
-                <circle cx="{{ $center }}" cy="{{ $center }}" r="{{ $radius }}" fill="#ffc107" />
-            @elseif($pendingPath)
-                <path d="{{ $pendingPath }}" fill="#ffc107"/>
-            @endif
-        @endif
+            @php $currentAngle += $deg; @endphp
+        @endforeach
     </svg>
 
     <div class="tasks-legend">
-        <div>✔ <strong style="color:#2e7d32">{{ $done }} ({{ round($donePct) }}%)</strong></div>
-        <div>⏳ <strong style="color:#3399ff">{{ $inProgress }} ({{ round($inProgressPct) }}%)</strong></div>
-        <div>⏺ <strong style="color:#ffc107">{{ $pending }} ({{ round(max(0, $pendingPct)) }}%)</strong></div>
+        @foreach($values as $i => $val)
+            @php $pct = $total > 0 ? ($val / $total) * 100 : 0; @endphp
+            <div><strong style="color:{{ $colors[$i] }}">{{ $labels[$i] }}: {{ $val }} ({{ round($pct) }}%)</strong></div>
+        @endforeach
     </div>
 </div>

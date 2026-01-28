@@ -28,6 +28,14 @@
             </select>
         </div>
 
+        <div>
+            <select name="priority">
+                <option value="high">Alta</option>
+                <option value="mid">Media</option>
+                <option value="low">Baja</option>
+            </select>
+        </div>   
+
         <button class="btn btn-primary" type="submit">
             Crear tarea
         </button>
@@ -48,6 +56,9 @@
                         </div>
                         <div class="task-status">
                             Estado: {{ ucfirst($task->status) }}
+                        </div>
+                        <div class="task-priority">
+                            Prioridad: {{ ucfirst($task->priority) }}
                         </div>
                     </div>
 
@@ -110,6 +121,20 @@
                             </option>
                             <option value="done" @selected($task->status === 'done')>
                                 Hecha
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <select name="priority">
+                            <option value="high" @selected($task->priority === 'high')>
+                                Alta
+                            </option>
+                            <option value="mid" @selected($task->priority === 'mid')>
+                                Media
+                            </option>
+                            <option value="low" @selected($task->priority === 'low')>
+                                Baja
                             </option>
                         </select>
                     </div>

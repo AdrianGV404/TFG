@@ -17,11 +17,13 @@ class TaskForm extends Component
     public string $title = '';
     public ?string $description = null;
     public string $status = 'pending';
+    public string $priority = 'mid';
 
     protected $rules = [
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
         'status' => 'required|in:pending,in_progress,done',
+        'priority' => 'required|in:high,mid,low',
     ];
 
     public function save()
@@ -32,12 +34,14 @@ class TaskForm extends Component
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
+            'priority' => $this->priority,
         ]);
 
         $this->notify("Tarea \"{$this->title}\" creada con éxito", 'success');
 
-        $this->reset(['title', 'description', 'status']);
+        $this->reset(['title', 'description', 'status', 'priority']);
         $this->status = 'pending';
+        $this->priority = 'mid';
 
         $this->dispatch('taskCreated');
     }

@@ -12,6 +12,16 @@
             <option value="done">Hecha</option>
         </select>
 
+        {{-- DESPLEGABLE DE PRIORIDAD --}}
+        <select
+            class="task-priority {{ $priority }}"
+            wire:model="priority"
+        >
+            <option value="high">Alta</option>
+            <option value="mid">Media</option>
+            <option value="low">Baja</option>
+        </select>
+
         {{-- ELIMINAR --}}
         <button
             class="btn btn-danger btn-sm"

@@ -12,6 +12,7 @@ class TaskSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('es_ES');
         $statuses = ['pending', 'in_progress', 'done'];
+        $priorityuses = ['high', 'mid', 'low'];
 
         $projects = Project::all();
 
@@ -24,6 +25,7 @@ class TaskSeeder extends Seeder
                 ->create([
                     'project_id' => $project->id,
                     'status' => $faker->randomElement($statuses),
+                    'priority' => $faker->randomElement($priorityuses),
                 ]);
 
             // Add at least one task with special characters to test edge cases
@@ -32,6 +34,7 @@ class TaskSeeder extends Seeder
                 'title' => 'Tarea con caracteres: ñáéíóú, 漢字, emoji 🙂',
                 'description' => "Descripción con \"comillas\", \n saltos de línea, tabs\t y símbolos #$%&*()",
                 'status' => $faker->randomElement($statuses),
+                'priority' => $faker->randomElement($priorityuses),
             ]);
         }
     }

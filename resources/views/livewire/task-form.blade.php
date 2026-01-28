@@ -28,6 +28,13 @@
                 <option value="done" class="status-done">Hecha</option>
             </select>
         </div>
+        <div class="form-group">
+            <select wire:model.defer="priority" class="task-priority-select">
+                <option value="mid" class="priority-progress">Media</option>
+                <option value="high" class="priority-pending">Alta</option>
+                <option value="low" class="priority-low">Baja</option>
+            </select>
+        </div>
         <br>
         <button
             class="btn btn-primary btn-loading"

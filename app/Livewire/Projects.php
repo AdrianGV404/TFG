@@ -23,7 +23,7 @@ class Projects extends Component
     public string $editingName = '';
     public string $editingDescription = '';
     public string $editingStatus = 'active';
-
+    
     protected $listeners = [
         'delete-project' => 'deleteFromModal',
         'projectCreated' => 'onProjectCreated',
@@ -104,6 +104,9 @@ class Projects extends Component
             'tasks as pending_tasks' => fn ($q) => $q->where('status', 'pending'),
             'tasks as in_progress_tasks' => fn ($q) => $q->where('status', 'in_progress'),
             'tasks as done_tasks' => fn ($q) => $q->where('status', 'done'),
+            'tasks as high_tasks' => fn ($q) => $q->where('priority', 'high'),
+            'tasks as mid_tasks' => fn ($q) => $q->where('priority', 'mid'),
+            'tasks as low_tasks' => fn ($q) => $q->where('priority', 'low'),
         ]);
 
         $projects = $this->applyFilters(

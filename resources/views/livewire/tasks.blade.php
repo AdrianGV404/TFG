@@ -16,17 +16,64 @@
             />
         </div>
 
-        {{-- PIECHART (columna derecha) --}}
+        {{-- PIECHART POR ESTADO --}}
         @php
-            $total = $project->tasks()->count();
-            $pending = $project->tasks()->where('status', 'pending')->count();
-            $inProgress = $project->tasks()->where('status', 'in_progress')->count();
             $done = $project->tasks()->where('status', 'done')->count();
+            $inProgress = $project->tasks()->where('status', 'in_progress')->count();
+            $pending = $project->tasks()->where('status', 'pending')->count();
+            $total = $done + $inProgress + $pending;
+
+            $stateValues = [$done, $inProgress, $pending];
+            $stateLabels = ['Hecha', 'En progreso', 'Pendiente'];
+            $stateColors = ['#4caf7a','#3399ff','#ffc107'];
         @endphp
 
-        @if ($total > 0)
-            @include('livewire.partials.pie-chart', ['total' => $total, 'done' => $done, 'inProgress' => $inProgress, 'pending' => $pending])
+        @if($total > 0)
+            <div class="piecol">
+                <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
+                @include('livewire.partials.pie-chart', [
+                    'values' => $stateValues,
+                    'labels' => $stateLabels,
+                    'colors' => $stateColors
+                ])
+            </div>
         @endif
+
+        {{-- PIECHART POR PRIORIDAD SOLO PARA PENDIENTES O EN PROGRESO --}}
+        @php
+            $high = $project->tasks()
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('priority', 'high')
+                ->count();
+
+            $mid  = $project->tasks()
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('priority', 'mid')
+                ->count();
+
+            $low  = $project->tasks()
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('priority', 'low')
+                ->count();
+
+            $totalPriority = $high + $mid + $low;
+
+            $priorityValues = [$high, $mid, $low];
+            $priorityLabels = ['Alta','Media','Baja'];
+            $priorityColors = ['#dc3545','#fd7e14','#ffc107'];
+        @endphp
+
+        @if($totalPriority > 0)
+            <div class="piecol">
+                <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
+                    @include('livewire.partials.pie-chart', [
+                        'values' => $priorityValues,
+                        'labels' => $priorityLabels,
+                        'colors' => $priorityColors
+                    ])
+            </div>
+        @endif
+
 
     </div>
 
@@ -46,6 +93,7 @@
                 <th class="col-id">ID</th>
                 <th>Tarea</th>
                 <th class="col-status">Estado</th>
+                <th class="col-priority">Prioridad</th>
             </tr>
         </thead>
 
@@ -53,11 +101,6 @@
             @forelse ($tasks as $task)
                 @php
                     $status = $taskStatuses[$task->id] ?? $task->status;
-                    [$color, $bg, $optionClass] = match ($status) {
-                        'pending' => ['#ffc107', '#fff8e1', 'status-pending'],
-                        'in_progress' => ['#0d6efd', '#e7f1ff', 'status-progress'],
-                        'done' => ['#198754', '#eaf6ef', 'status-done'],
-                    };
                 @endphp
 
                 <tr wire:key="task-{{ $task->id }}--{{ $editingTaskId === $task->id ? 'editing' : 'view' }}">
@@ -88,13 +131,6 @@
                     {{-- ESTADO --}}
                     <td>
                         <div class="task-status-wrapper">
-                            @php
-                                [$color, $bg] = match ($status) {
-                                    'pending' => ['#ffc107', '#fff8e1'],
-                                    'in_progress' => ['#0d6efd', '#e7f1ff'],
-                                    'done' => ['#198754', '#eaf6ef'],
-                                };
-                            @endphp
                             <span class="task-status-dot {{ $status }}"></span>
                             <select class="task-status-select {{ $status }}"
                                 wire:change="updateStatus({{ $task->id }}, $event.target.value)">
@@ -105,10 +141,23 @@
                         </div>
                     </td>
 
+                    {{-- PRIORIDAD --}}
+                    <td>
+                        <div class="task-status-wrapper">
+                            <span class="task-priority-dot {{ $task->priority }}"></span>
+                            <select class="task-priority {{ $task->priority }}"
+                                wire:change="updatePriority({{ $task->id }}, $event.target.value)">
+                                <option value="high" class="priority-high" @selected($task->priority === 'high')>Alta</option>
+                                <option value="mid"  class="priority-mid" @selected($task->priority === 'mid')>Media</option>
+                                <option value="low"  class="priority-low" @selected($task->priority === 'low')>Baja</option>
+                            </select>
+                        </div>
+                    </td>
+
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="text-muted">No hay tareas que coincidan.</td>
+                    <td colspan="5" class="text-muted">No hay tareas que coincidan.</td>
                 </tr>
             @endforelse
         </tbody>

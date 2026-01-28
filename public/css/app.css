@@ -340,7 +340,7 @@ td {
 
 .col-actions { width:180px; }
 .col-id { width:80px; }
-.col-status { width:220px; }
+.col-status { width:150px; }
 .col-status-140 { width:140px; }
 
 .actions, .actions-row { display:flex; gap:6px; }
@@ -382,3 +382,65 @@ td {
 /* Inline form helper and hidden state */
 .inline-form { display: inline; }
 .hidden { display: none; }
+
+/* PRIORIDAD DE TAREA */
+.task-priority-dot {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.25);
+}
+
+.task-priority-dot.high { background: #dc3545; }  /* rojo */
+.task-priority-dot.mid  { background: #fd7e14; }  /* naranja */
+.task-priority-dot.low  { background: #ffc107; }  /* amarillo */
+
+.task-priority {
+    font-size: 13px;
+    padding: 4px 6px;
+    color: #000;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+/* Fondo del select según prioridad */
+.task-priority.high { background: #ffc0c5; border-color: #dc3545; }
+.task-priority.mid  { background: #ffc79a; border-color: #fd7e14; }
+.task-priority.low  { background: #ffeeb4; border-color: #ffc107; }
+
+/* Options */
+.task-priority option.priority-high { background: #ffc0c5; color: #000; }
+.task-priority option.priority-high:hover,
+.task-priority option.priority-high:active { background: #dc3545; color: #fff; }
+
+.task-priority option.priority-mid { background: #ffc79a; color: #000; }
+.task-priority option.priority-mid:hover,
+.task-priority option.priority-mid:active { background: #fd7e14; color: #fff; }
+
+.task-priority option.priority-low { background: #ffeeb4; color: #000; }
+.task-priority option.priority-low:hover,
+.task-priority option.priority-low:active { background: #ffc107; color: #000; }
+
+.col-priority { 
+    width: 150px; /* más ancha que estado, empieza más a la derecha */
+}
+
+.task-priority-select {
+    font-size: 13px;
+    padding: 4px 6px;
+    color: #000;
+}
+
+/* Options */
+.task-priority-select option.priority-high { background: #ffc0c5; color: #000; }
+.task-priority-select option.priority-high:hover,
+.task-priority-select option.priority-high:active { background: #dc3545; color: #fff; }
+
+.task-priority-select option.priority-mid { background: #ffc79a; color: #000; }
+.task-priority-select option.priority-mid:hover,
+.task-priority-select option.priority-mid:active { background: #fd7e14; color: #fff; }
+
+.task-priority-select option.priority-low { background: #ffeeb4; color: #000; }
+.task-priority-select option.priority-low:hover,
+.task-priority-select option.priority-low:active { background: #ffc107; color: #000; }

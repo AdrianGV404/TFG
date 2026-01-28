@@ -87,6 +87,13 @@ class Tasks extends Component
         ]);
     }
 
+    public function updatePriority(int $taskId, string $priority)
+    {
+        $this->updateScoped(Task::class, $taskId, [
+            'priority' => $priority,
+        ]);
+    }
+
     public function render()
     {
         $query = $this->scopedQuery(Task::class);
@@ -95,7 +102,8 @@ class Tasks extends Component
             'tasks' => $this->applyFilters(
                 $query,
                 'title',
-                "FIELD(status, 'pending', 'in_progress', 'done')"
+                "FIELD(status, 'pending', 'in_progress', 'done')",
+                "FIELD(priority, 'high', 'mid', 'low')"
             ),
         ]);
     }

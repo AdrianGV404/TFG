@@ -39,6 +39,12 @@
             <option value="done">Hecha</option>
         </select>
 
+        <select wire:model.defer="editPriority">
+            <option value="high">Alta</option>
+            <option value="mid">Media</option>
+            <option value="low">Baja</option>
+        </select>
+
         <div class="actions actions-row">
             <button class="btn btn-primary btn-sm" wire:click="update({{ $task->id }})">
                 Guardar
