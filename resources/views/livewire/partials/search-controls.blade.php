@@ -23,12 +23,12 @@
             class="form-select search-select-wide"
             wire:model.live="orderBy"
         >
-            <option value="id_desc">ID ↓ (más recientes)</option>
-            <option value="id_asc">ID ↑ (más antiguos)</option>
-
+            <option value="priority">Prioridad</option>
             @if ($allowStatusOrder)
                 <option value="status">Estado</option>
             @endif
+            <option value="id_desc">ID ↓ (más recientes)</option>
+            <option value="id_asc">ID ↑ (más antiguos)</option>
         </select>
 
         <select

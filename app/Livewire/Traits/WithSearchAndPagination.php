@@ -25,7 +25,7 @@ trait WithSearchAndPagination
     /**
      * Order by option. Supported: 'id_asc', 'status', 'id_desc' (default)
      */
-    public string $orderBy = 'id_desc';
+    public string $orderBy = 'status';
 
     /**
      * Items per page for pagination. Must be positive.
@@ -60,20 +60,39 @@ trait WithSearchAndPagination
      * @param string|null $statusOrder optional raw SQL used to order by status
      * @return LengthAwarePaginator
      */
-    protected function applyFilters(Builder $query, string $textColumn, ?string $statusOrder = null): LengthAwarePaginator
+    protected function applyFilters(Builder $query, string $textColumn, ?string $statusOrder = null, ?string $priorityOrder = null): LengthAwarePaginator
     {
         $searchText = trim((string) $this->searchText);
         $searchId = trim((string) $this->searchId);
 
+        // Filtros de búsqueda
         $query->when($searchText !== '', fn (Builder $q) => $q->where($textColumn, 'like', "%{$searchText}%"));
-
         $query->when($searchId !== '', fn (Builder $q) => $q->where('id', 'like', "{$searchId}%"));
 
+        // Ordenamiento
         match ($this->orderBy) {
             'id_asc' => $query->orderBy('id', 'asc'),
-            'status' => ($statusOrder)
-                ? $query->orderByRaw($statusOrder)
-                : $query->orderBy('status'),
+
+            'status' => $query->orderByRaw(
+                "CASE
+                    WHEN status = 'pending' THEN 1
+                    WHEN status = 'in_progress' THEN 2
+                    ELSE 3
+                END"
+            ),
+
+            'priority' => $query->orderByRaw(
+                "CASE
+                    WHEN status = 'pending' AND priority = 'high' THEN 1
+                    WHEN status = 'in_progress' AND priority = 'high' THEN 2
+                    WHEN status = 'pending' AND priority = 'mid' THEN 3
+                    WHEN status = 'in_progress' AND priority = 'mid' THEN 4
+                    WHEN status = 'pending' AND priority = 'low' THEN 5
+                    WHEN status = 'in_progress' AND priority = 'low' THEN 6
+                    ELSE 7
+                END"
+            ),
+
             default => $query->orderByDesc('id'),
         };
 

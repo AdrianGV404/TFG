@@ -32,6 +32,11 @@ class Tasks extends Component
         'delete-task' => 'deleteFromModal'
     ];
 
+    public function mount()
+    {
+        $this->orderBy = 'priority';
+    }
+
     public function onTaskCreated()
     {
         $this->taskFormKey++;
