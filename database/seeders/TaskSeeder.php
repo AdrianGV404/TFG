@@ -12,7 +12,7 @@ class TaskSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('es_ES');
         $statuses = ['pending', 'in_progress', 'done'];
-        $priorityuses = ['high', 'mid', 'low'];
+        $priorityuses = ['very_high','high', 'mid', 'low', 'very_low'];
 
         $projects = Project::all();
 

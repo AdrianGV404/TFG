@@ -83,13 +83,17 @@ trait WithSearchAndPagination
 
             'priority' => $query->orderByRaw(
                 "CASE
-                    WHEN status = 'pending' AND priority = 'high' THEN 1
-                    WHEN status = 'in_progress' AND priority = 'high' THEN 2
-                    WHEN status = 'pending' AND priority = 'mid' THEN 3
-                    WHEN status = 'in_progress' AND priority = 'mid' THEN 4
-                    WHEN status = 'pending' AND priority = 'low' THEN 5
-                    WHEN status = 'in_progress' AND priority = 'low' THEN 6
-                    ELSE 7
+                    WHEN status = 'pending' AND priority = 'very_high' THEN 1
+                    WHEN status = 'in_progress' AND priority = 'very_high' THEN 2
+                    WHEN status = 'pending' AND priority = 'high' THEN 3
+                    WHEN status = 'in_progress' AND priority = 'high' THEN 4
+                    WHEN status = 'pending' AND priority = 'mid' THEN 5
+                    WHEN status = 'in_progress' AND priority = 'mid' THEN 6
+                    WHEN status = 'pending' AND priority = 'low' THEN 7
+                    WHEN status = 'in_progress' AND priority = 'low' THEN 8
+                    WHEN status = 'pending' AND priority = 'very_low' THEN 9
+                    WHEN status = 'in_progress' AND priority = 'very_low' THEN 10
+                    ELSE 11
                 END"
             ),
 

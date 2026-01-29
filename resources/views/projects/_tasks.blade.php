@@ -29,12 +29,17 @@
         </div>
 
         <div>
-            <select name="priority">
-                <option value="high">Alta</option>
-                <option value="mid">Media</option>
-                <option value="low">Baja</option>
+            <select
+                name="priority"
+                class="task-priority-select {{ old('priority', 'mid') }}"
+            >
+                <option value="very_high" @selected(old('priority')==='very_high')>Muy Alta</option>
+                <option value="high"      @selected(old('priority')==='high')>Alta</option>
+                <option value="mid"       @selected(old('priority')==='mid')>Media</option>
+                <option value="low"       @selected(old('priority')==='low')>Baja</option>
+                <option value="very_low"  @selected(old('priority')==='very_low')>Muy Baja</option>
             </select>
-        </div>   
+        </div>
 
         <button class="btn btn-primary" type="submit">
             Crear tarea
@@ -127,6 +132,8 @@
 
                     <div>
                         <select name="priority">
+                            <option value="very_high" @selected($task->priority === 'very_high')>
+                                Muy Alta
                             <option value="high" @selected($task->priority === 'high')>
                                 Alta
                             </option>
@@ -135,6 +142,9 @@
                             </option>
                             <option value="low" @selected($task->priority === 'low')>
                                 Baja
+                            </option>
+                            <option value="very_low" @selected($task->priority === 'very_low')>
+                                Muy Baja
                             </option>
                         </select>
                     </div>

@@ -108,10 +108,11 @@ class Tasks extends Component
                 $query,
                 'title',
                 "FIELD(status, 'pending', 'in_progress', 'done')",
-                "FIELD(priority, 'high', 'mid', 'low')"
+                "FIELD(priority, 'very_high'. 'high', 'mid', 'low', 'very_low')"
             ),
         ]);
     }
+    
     public function confirmDelete(int $taskId)
     {
         $task = $this->findScoped(Task::class, $taskId);

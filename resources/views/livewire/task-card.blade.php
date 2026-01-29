@@ -17,9 +17,11 @@
             class="task-priority {{ $priority }}"
             wire:model="priority"
         >
+            <option value="very_high">Muy Alta</option>
             <option value="high">Alta</option>
             <option value="mid">Media</option>
             <option value="low">Baja</option>
+            <option value="very_low">Muy Baja</option>
         </select>
 
         {{-- ELIMINAR --}}

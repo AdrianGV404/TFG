@@ -155,20 +155,18 @@ th {
 }
 
 td {
-    padding: 10px;          /* ya lo tienes */
-    vertical-align: middle; /* hace que todo se alinee al centro verticalmente */
+    padding: 10px;          
+    vertical-align: middle; 
     border-bottom: 1px solid #eee;
 }
 
 /* Centrar IDs en la columna ID */
 .text-muted {
-    text-align: center;  /* centrado horizontal */
+    text-align: center;  
 }
-
 
 /* =========================================================
    ACCIONES
-   Consolidated: use `.actions` or `.actions-row` interchangeably
 ========================================================= */
 .actions,
 .actions-row {
@@ -209,22 +207,22 @@ td {
 
 /* Estados */
 .badge.pending {
-    background: #fff3cd;
+    background: #fff9db; /* amarillo suave */
     color: #856404;
 }
 
 .badge.in_progress {
-    background: #cce5ff;
+    background: #d6eaff; /* azul claro */
     color: #004085;
 }
 
 .badge.done {
-    background: #d4edda;
+    background: #d8f6d8; /* verde claro */
     color: #155724;
 }
 
 .badge.active {
-    background: #d4edda;
+    background: #d8f6d8;
     color: #155724;
 }
 
@@ -243,11 +241,11 @@ td {
 .task-title {
     font-weight: 600;
     font-size: 14px;
-    display: block;           /* ocupa todo el ancho de la celda */
-    max-width: 100%;          /* no excede la celda */
-    word-wrap: break-word;    /* rompe palabras largas */
+    display: block;           
+    max-width: 100%;          
+    word-wrap: break-word;    
     overflow-wrap: break-word;
-    white-space: normal;      /* permite saltos de línea */
+    white-space: normal;      
 }
 
 .task-description {
@@ -255,7 +253,7 @@ td {
     color: #555;
     margin-top: 4px;
     display: block;
-    max-width: 100%;          /* no excede la celda */
+    max-width: 100%;          
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: normal;
@@ -270,55 +268,126 @@ td {
     gap: 10px;
 }
 
-.task-status-select {
+/* =========================================================
+   SELECT STATUS Y PRIORIDAD
+========================================================= */
+.task-status-select,
+.task-priority-select {
     font-size: 13px;
     padding: 4px 6px;
     color: #000;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
 }
 
-/* Select background per status */
-.task-status-select.pending { background: #fff8e1; border-color: #ffc107; }
-.task-status-select.in_progress { background: #e7f1ff; border-color: #0d6efd; }
-.task-status-select.done { background: #eaf6ef; border-color: #198754; }
-
-/* ===========================
-   SELECT ESTADO - COLORES
-=========================== */
-
-/* Colored option backgrounds (note: styling of <option> is browser-dependent) */
-.task-status-select option.status-pending {
-    background: #fff8e1;
-    color: #000;
-}
-.task-status-select option.status-pending:hover,
-.task-status-select option.status-pending:active {
-    background: #ffd54f; /* darker yellow */
-    color: #000;
+/* ---------------------------------------------------------
+   STATUS - Select cerrado según value
+--------------------------------------------------------- */
+.task-status-select:has(option[value="pending"]:checked) {
+    background: #fff9db;
+    border-color: #ffec99;
+    color: #856404;
 }
 
-.task-status-select option.status-progress {
-    background: #e7f1ff;
-    color: #000;
-}
-.task-status-select option.status-progress:hover,
-.task-status-select option.status-progress:active {
-    background: #9fd0ff; /* darker blue */
-    color: #000;
+.task-status-select:has(option[value="in_progress"]:checked) {
+    background: #d6eaff;
+    border-color: #74b9ff;
+    color: #004085;
 }
 
-.task-status-select option.status-done {
-    background: #eaf6ef;
-    color: #000;
+.task-status-select:has(option[value="done"]:checked) {
+    background: #d8f6d8;
+    border-color: #81c784;
+    color: #155724;
 }
-.task-status-select option.status-done:hover,
-.task-status-select option.status-done:active {
-    background: #9fd6b0; /* darker green */
-    color: #000;
+
+/* Opciones del desplegable */
+.task-status-select option[value="pending"] { background: #fff9db; color: #856404; }
+.task-status-select option[value="in_progress"] { background: #d6eaff; color: #004085; }
+.task-status-select option[value="done"] { background: #d8f6d8; color: #155724; }
+
+/* Hover y active para opciones */
+.task-status-select option[value="pending"]:hover,
+.task-status-select option[value="pending"]:active {
+    background: #ffe066;
+    color: #856404;
 }
+
+.task-status-select option[value="in_progress"]:hover,
+.task-status-select option[value="in_progress"]:active {
+    background: #a0d2ff;
+    color: #004085;
+}
+
+.task-status-select option[value="done"]:hover,
+.task-status-select option[value="done"]:active {
+    background: #a5d6a7;
+    color: #155724;
+}
+
+/* ---------------------------------------------------------
+   PRIORIDAD - Select cerrado según value
+--------------------------------------------------------- */
+.task-priority-select:has(option[value="very_high"]:checked) {
+    background: #ffb3b3; /* rojo suave */
+    border-color: #ff6b6b;
+    color: #800000;
+}
+
+.task-priority-select:has(option[value="high"]:checked) {
+    background: #ffd8a8; /* naranja claro */
+    border-color: #ffa500;
+    color: #663300;
+}
+
+.task-priority-select:has(option[value="mid"]:checked) {
+    background: #fff8b3; /* amarillo claro */
+    border-color: #ffd700;
+    color: #665500;
+}
+
+.task-priority-select:has(option[value="low"]:checked) {
+    background: #b3e5ff; /* azul claro */
+    border-color: #4da6ff;
+    color: #004466;
+}
+
+.task-priority-select:has(option[value="very_low"]:checked) {
+    background: #e0e0e0; /* gris claro */
+    border-color: #a0a0a0;
+    color: #555555;
+}
+
+/* Opciones del desplegable */
+.task-priority-select option[value="very_high"] { background: #ffb3b3; color: #800000; }
+.task-priority-select option[value="high"]      { background: #ffd8a8; color: #663300; }
+.task-priority-select option[value="mid"]       { background: #fff8b3; color: #665500; }
+.task-priority-select option[value="low"]       { background: #b3e5ff; color: #004466; }
+.task-priority-select option[value="very_low"]  { background: #e0e0e0; color: #555555; }
+
+/* Hover y active para opciones */
+.task-priority-select option.priority-very_high,
+.task-priority-select option.priority-very_high:hover,
+.task-priority-select option.priority-very_high:active { background: #ff8080; color: #800000; }
+
+.task-priority-select option.priority-high,
+.task-priority-select option.priority-high:hover,
+.task-priority-select option.priority-high:active { background: #ffbf66; color: #663300; }
+
+.task-priority-select option.priority-mid,
+.task-priority-select option.priority-mid:hover,
+.task-priority-select option.priority-mid:active { background: #fff27f; color: #665500; }
+
+.task-priority-select option.priority-low,
+.task-priority-select option.priority-low:hover,
+.task-priority-select option.priority-low:active { background: #80d4ff; color: #004466; }
+
+.task-priority-select option.priority-very_low,
+.task-priority-select option.priority-very_low:hover,
+.task-priority-select option.priority-very_low:active { background: #cfcfcf; color: #555555; }
 
 /* =========================================================
    Alpine.js x-cloak
-   Oculta elementos hasta que Alpine los inicializa
 ========================================================= */
 [x-cloak] {
     display: none !important;
@@ -326,11 +395,8 @@ td {
 
 /* =========================================================
    REUSABLE CLASSES FOR LIVEWIRE VIEWS
-   (moved from inline styles to classes)
 ========================================================= */
-
 .col-actions { width:180px; }
-/* Centrar contenido de la columna ID */
 .col-id, 
 .col-id td {
     text-align: center;
@@ -354,9 +420,9 @@ td {
 .loading-msg { margin-bottom: 10px; }
 
 .auto-resize-textarea {
-    overflow: hidden;  /* oculta la barra de scroll */
-    resize: none;      /* evita redimensionar manualmente */
-    min-height: 40px;  /* altura inicial */
+    overflow: hidden;
+    resize: none;
+    min-height: 40px;
     font-size: 14px;
     padding: 6px 8px;
     border-radius: 4px;
@@ -377,7 +443,7 @@ td {
 /* Generic form column used in list pages */
 .form-col { flex:1 1 auto; min-width:280px; }
 
-/* Project index specific column widths (replace inline widths) */
+/* Project index specific column widths */
 .col-actions-200 { width: 200px; }
 .col-id-80 { width: 80px; }
 .col-project-320 { width: 320px; }
@@ -388,63 +454,14 @@ td {
 .inline-form { display: inline; }
 .hidden { display: none; }
 
-.task-priority {
-    font-size: 13px;
-    padding: 4px 6px;
-    color: #000;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-}
-
-/* Fondo del select según prioridad */
-.task-priority.high { background: #ffc0c5; border-color: #dc3545; }
-.task-priority.mid  { background: #ffc79a; border-color: #fd7e14; }
-.task-priority.low  { background: #ffeeb4; border-color: #ffc107; }
-
-/* Options */
-.task-priority option.priority-high { background: #ffc0c5; color: #000; }
-.task-priority option.priority-high:hover,
-.task-priority option.priority-high:active { background: #dc3545; color: #fff; }
-
-.task-priority option.priority-mid { background: #ffc79a; color: #000; }
-.task-priority option.priority-mid:hover,
-.task-priority option.priority-mid:active { background: #fd7e14; color: #fff; }
-
-.task-priority option.priority-low { background: #ffeeb4; color: #000; }
-.task-priority option.priority-low:hover,
-.task-priority option.priority-low:active { background: #ffc107; color: #000; }
-
-.col-priority { 
-    width: 150px; /* más ancha que estado, empieza más a la derecha */
-}
-
-.task-priority-select {
-    font-size: 13px;
-    padding: 4px 6px;
-    color: #000;
-}
-
-/* Options */
-.task-priority-select option.priority-high { background: #ffc0c5; color: #000; }
-.task-priority-select option.priority-high:hover,
-.task-priority-select option.priority-high:active { background: #dc3545; color: #fff; }
-
-.task-priority-select option.priority-mid { background: #ffc79a; color: #000; }
-.task-priority-select option.priority-mid:hover,
-.task-priority-select option.priority-mid:active { background: #fd7e14; color: #fff; }
-
-.task-priority-select option.priority-low { background: #ffeeb4; color: #000; }
-.task-priority-select option.priority-low:hover,
-.task-priority-select option.priority-low:active { background: #ffc107; color: #000; }
-
 /* ==============================
    TABLA
 ============================== */
 table {
     width: 100%;
-    border-collapse: collapse; /* importante para que los bordes se alineen */
+    border-collapse: collapse;
     background: #fff;
-    table-layout: fixed;       /* ancho de columnas fijo relativo al porcentaje */
+    table-layout: fixed;
 }
 
 th, td {
@@ -455,7 +472,7 @@ th, td {
 
 /* ID centrado y ancho mínimo */
 .col-id {
-    width: 5%;           /* mínimo ancho necesario */
+    width: 5%;
     white-space: nowrap;
     text-align: center;
 }
@@ -463,9 +480,9 @@ th, td {
 /* Título de tarea con wrap sin romper bordes */
 .task-title,
 .task-description {
-    display: block;       /* ocupa todo el ancho del td */
-    margin: 0;            /* elimina margen que rompe el borde */
-    padding: 0;           /* si quieres espacio, usa padding del td */
+    display: block;
+    margin: 0;
+    padding: 0;
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -474,8 +491,8 @@ th, td {
 
 /* Aseguramos que el contenido de TD no rompa el borde inferior */
 td {
-    padding: 10px;          /* ya lo tienes */
-    vertical-align: middle; /* hace que todo se alinee al centro verticalmente */
+    padding: 10px;
+    vertical-align: middle;
 }
 
 /* Eliminamos márgenes de hijos dentro del TD */
@@ -484,14 +501,14 @@ td > input,
 td > textarea,
 td > select {
     margin: 0;
-    padding: 0; /* deja que el padding del td maneje el espacio */
+    padding: 0;
 }
 
 /* Para IDs centrados */
 td.col-id, td.col-id .text-muted {
     text-align: center;
     vertical-align: middle;
-    padding: 10px 5px; /* opcional: menos ancho lateral */
+    padding: 10px 5px;
 }
 
 /* Inputs y textarea en edición */
@@ -509,4 +526,19 @@ td select {
     box-sizing: border-box;
     margin: 0;
     display: block;
+}
+
+.task-priority {
+    font-size: 13px;
+    padding: 4px 6px;
+    color: #000;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+/* =========================================================
+   COLUMNA PRIORIDAD
+========================================================= */
+.col-priority {
+    width: 150px;
 }

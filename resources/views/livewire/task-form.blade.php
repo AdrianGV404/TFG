@@ -34,9 +34,11 @@
         </div>
         <div class="form-group">
             <select wire:model.defer="priority" class="task-priority-select">
-                <option value="mid" class="priority-progress">Media</option>
-                <option value="high" class="priority-pending">Alta</option>
+                <option value="mid" class="priority-mid">Media</option>
+                <option value="very_high" class="priority-very_high">Muy Alta</option>
+                <option value="high" class="priority-high">Alta</option>
                 <option value="low" class="priority-low">Baja</option>
+                <option value="very_low" class="priority-very_low">Muy Baja</option>
             </select>
         </div>
         <br>

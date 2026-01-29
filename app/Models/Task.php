@@ -32,4 +32,3 @@ class Task extends Model
         return $this->status === 'done';
     }
 }
-

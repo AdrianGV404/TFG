@@ -37,6 +37,7 @@ trait FormValidationRules
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,done',
+            'priority' => 'required|in:very_high,high,mid,low,very_low',
         ];
     }
 

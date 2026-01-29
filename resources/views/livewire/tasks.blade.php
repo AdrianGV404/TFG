@@ -41,6 +41,10 @@
 
         {{-- PIECHART POR PRIORIDAD SOLO PARA PENDIENTES O EN PROGRESO --}}
         @php
+            $very_high = $project->tasks()
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('priority', 'very_high')
+                ->count();
             $high = $project->tasks()
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->where('priority', 'high')
@@ -55,12 +59,15 @@
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->where('priority', 'low')
                 ->count();
+            $very_low  = $project->tasks()
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('priority', 'very_low')
+                ->count();
+            $totalPriority = $very_high + $high + $mid + $low + $very_low;
 
-            $totalPriority = $high + $mid + $low;
-
-            $priorityValues = [$high, $mid, $low];
-            $priorityLabels = ['Alta','Media','Baja'];
-            $priorityColors = ['#dc3545','#fd7e14','#ffc107'];
+            $priorityValues = [$very_high, $high, $mid, $low, $very_low];
+            $priorityLabels = ['Muy Alta','Alta','Media','Baja','Muy Baja'];
+            $priorityColors = ['#dc3545','#fd7e14 ','#ffc107 ','#0dcaf0','#6c757d'];
         @endphp
 
         @if($totalPriority > 0)
@@ -139,15 +146,17 @@
                             </select>
                         </div>
                     </td>
-
+                    
                     {{-- PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <select class="task-priority {{ $task->priority }}"
-                                wire:change="updatePriority({{ $task->id }}, $event.target.value)">
+                            <select class="task-priority-select {{ $task->priority }}"
+                                    wire:change="updatePriority({{ $task->id }}, $event.target.value)">
+                                <option value="very_high" class="priority-very_high" @selected($task->priority === 'very_high')>Muy Alta</option>
                                 <option value="high" class="priority-high" @selected($task->priority === 'high')>Alta</option>
-                                <option value="mid"  class="priority-mid" @selected($task->priority === 'mid')>Media</option>
-                                <option value="low"  class="priority-low" @selected($task->priority === 'low')>Baja</option>
+                                <option value="mid" class="priority-mid" @selected($task->priority === 'mid')>Media</option>
+                                <option value="low" class="priority-low" @selected($task->priority === 'low')>Baja</option>
+                                <option value="very_low" class="priority-very_low" @selected($task->priority === 'very_low')>Muy Baja</option>
                             </select>
                         </div>
                     </td>
