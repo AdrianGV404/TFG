@@ -43,6 +43,7 @@ body {
 .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: 6px 12px;
     font-size: 14px;
@@ -53,6 +54,7 @@ body {
     background: #e9ecef;
     color: #212529;
     transition: background 0.15s ease, opacity 0.15s ease;
+    min-width: 80px; /* Evita cambios de tamaño al cambiar el texto */
 }
 
 .btn:hover {
@@ -155,14 +157,14 @@ th {
 }
 
 td {
-    padding: 10px;          
-    vertical-align: middle; 
+    padding: 10px;
+    vertical-align: middle;
     border-bottom: 1px solid #eee;
 }
 
 /* Centrar IDs en la columna ID */
 .text-muted {
-    text-align: center;  
+    text-align: center;
 }
 
 /* =========================================================
@@ -172,6 +174,16 @@ td {
 .actions-row {
     display: flex;
     gap: 6px;
+}
+
+.actions button,
+.actions-row button {
+    min-width: 80px; /* ancho mínimo para que no cambie con el texto */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    box-sizing: border-box;
 }
 
 /* =========================================================
@@ -205,19 +217,18 @@ td {
     text-transform: capitalize;
 }
 
-/* Estados */
 .badge.pending {
-    background: #fff9db; /* amarillo suave */
+    background: #fff9db; 
     color: #856404;
 }
 
 .badge.in_progress {
-    background: #d6eaff; /* azul claro */
+    background: #d6eaff; 
     color: #004085;
 }
 
 .badge.done {
-    background: #d8f6d8; /* verde claro */
+    background: #d8f6d8; 
     color: #155724;
 }
 
@@ -329,31 +340,31 @@ td {
    PRIORIDAD - Select cerrado según value
 --------------------------------------------------------- */
 .task-priority-select:has(option[value="very_high"]:checked) {
-    background: #ffb3b3; /* rojo suave */
+    background: #ffb3b3;
     border-color: #ff6b6b;
     color: #800000;
 }
 
 .task-priority-select:has(option[value="high"]:checked) {
-    background: #ffd8a8; /* naranja claro */
+    background: #ffd8a8;
     border-color: #ffa500;
     color: #663300;
 }
 
 .task-priority-select:has(option[value="mid"]:checked) {
-    background: #fff8b3; /* amarillo claro */
+    background: #fff8b3;
     border-color: #ffd700;
     color: #665500;
 }
 
 .task-priority-select:has(option[value="low"]:checked) {
-    background: #b3e5ff; /* azul claro */
+    background: #b3e5ff;
     border-color: #4da6ff;
     color: #004466;
 }
 
 .task-priority-select:has(option[value="very_low"]:checked) {
-    background: #e0e0e0; /* gris claro */
+    background: #e0e0e0;
     border-color: #a0a0a0;
     color: #555555;
 }
@@ -448,7 +459,8 @@ td {
 .col-id-80 { width: 80px; }
 .col-project-320 { width: 320px; }
 .col-state-120 { width: 120px; }
-.col-tasks-280 { width: 280px; }
+.col-tasks-280 { width: auto; } /* La columna Tarea ahora es la más grande */
+.col-priority { width: 120px; } /* Menor ancho que tarea */
 
 /* Inline form helper and hidden state */
 .inline-form { display: inline; }
@@ -489,84 +501,31 @@ th, td {
     white-space: normal;
 }
 
-/* Aseguramos que el contenido de TD no rompa el borde inferior */
-td {
-    padding: 10px;
-    vertical-align: middle;
-}
-
-/* Eliminamos márgenes de hijos dentro del TD */
-td > div,
-td > input,
-td > textarea,
-td > select {
-    margin: 0;
-    padding: 0;
-}
-
-/* Para IDs centrados */
-td.col-id, td.col-id .text-muted {
-    text-align: center;
-    vertical-align: middle;
-    padding: 10px 5px;
-}
-
-/* Inputs y textarea en edición */
-td input.form-control,
-td textarea.form-control {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    display: block;
-}
-
-/* Selects */
-td select {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    display: block;
-}
-
-.task-priority {
-    font-size: 13px;
-    padding: 4px 6px;
-    color: #000;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-}
-
-/* =========================================================
-   COLUMNA PRIORIDAD
-========================================================= */
-.col-priority {
-    width: 150px;
-}
-/* Contenedor flexible para varios selects */
+/* Contenedor flexible para varios selects en fila */
 .form-group-row {
-    display: flex;            /* coloca los hijos en fila */
-    gap: 12px;                /* espacio entre selects */
-    flex-wrap: wrap;          /* si no caben, pasan a la siguiente línea */
-    margin-bottom: 15px;      /* espacio debajo de la fila */
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
 }
 
-/* Cada select ocupa el espacio disponible de manera proporcional */
+/* Cada select ocupa el espacio proporcional */
 .form-group-row .form-group {
-    flex: 1 1 150px;          /* crece, se encoge, mínimo 150px */
+    flex: 1 1 150px;
     display: flex;
-    flex-direction: column;    /* label encima del select */
+    flex-direction: column;
 }
 
 /* Label encima del select */
 .form-label {
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 4px;       /* espacio entre label y select */
+    margin-bottom: 4px;
     color: #212529;
 }
 
 /* Ajuste visual interno de los selects */
 .form-group-row select {
-    width: 100%;              /* ocupa todo el ancho del contenedor */
+    width: 100%;
     box-sizing: border-box;
 }
