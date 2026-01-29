@@ -542,3 +542,31 @@ td select {
 .col-priority {
     width: 150px;
 }
+/* Contenedor flexible para varios selects */
+.form-group-row {
+    display: flex;            /* coloca los hijos en fila */
+    gap: 12px;                /* espacio entre selects */
+    flex-wrap: wrap;          /* si no caben, pasan a la siguiente línea */
+    margin-bottom: 15px;      /* espacio debajo de la fila */
+}
+
+/* Cada select ocupa el espacio disponible de manera proporcional */
+.form-group-row .form-group {
+    flex: 1 1 150px;          /* crece, se encoge, mínimo 150px */
+    display: flex;
+    flex-direction: column;    /* label encima del select */
+}
+
+/* Label encima del select */
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;       /* espacio entre label y select */
+    color: #212529;
+}
+
+/* Ajuste visual interno de los selects */
+.form-group-row select {
+    width: 100%;              /* ocupa todo el ancho del contenedor */
+    box-sizing: border-box;
+}
