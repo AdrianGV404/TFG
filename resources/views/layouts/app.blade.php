@@ -11,6 +11,13 @@
     />
 
     @livewireStyles
+
+    <style>
+        /* Ajusta el body para que el contenido quede debajo del navbar fijo */
+        body {
+            padding-top: 56px; /* Altura del navbar (ajusta si cambias padding) */
+        }
+    </style>
 </head>
 
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -18,15 +25,10 @@
 <script>
     document.addEventListener('livewire:init', () => {
         Livewire.on('notify', ({ message, type }) => {
-
-            // Elimina notificaciones anteriores
             document.querySelectorAll('.lw-notification').forEach(n => n.remove());
-
             const alert = document.createElement('div');
-
             alert.className = `lw-notification alert alert-${type}`;
             alert.innerText = message;
-
             Object.assign(alert.style, {
                 position: 'fixed',
                 top: '20px',
@@ -43,16 +45,11 @@
                 transform: 'translateY(-10px)',
                 transition: 'all .25s ease'
             });
-
             document.body.appendChild(alert);
-
-            // Animación de entrada
             requestAnimationFrame(() => {
                 alert.style.opacity = '1';
                 alert.style.transform = 'translateY(0)';
             });
-
-            // Auto-cierre (5 segundos)
             setTimeout(() => {
                 alert.style.opacity = '0';
                 alert.style.transform = 'translateY(-10px)';
@@ -126,8 +123,11 @@
 </div>
 
 <body>
+    @include('livewire.partials.navbar')
 
-    @yield('content')
+    <div class="main-content">
+        @yield('content')
+    </div>
 
     @livewireScripts
 </body>
