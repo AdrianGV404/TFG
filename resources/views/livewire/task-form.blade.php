@@ -45,6 +45,7 @@
                     <option value="low" class="priority-low" @selected($priority === 'low')>Baja</option>
                     <option value="very_low" class="priority-very_low" @selected($priority === 'very_low')>Muy Baja</option>
                 </select>
+
             </div>
         </div>
         <br>

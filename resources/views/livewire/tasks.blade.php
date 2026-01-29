@@ -49,12 +49,10 @@
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->where('priority', 'high')
                 ->count();
-
             $mid  = $project->tasks()
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->where('priority', 'mid')
                 ->count();
-
             $low  = $project->tasks()
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->where('priority', 'low')
@@ -73,14 +71,13 @@
         @if($totalPriority > 0)
             <div class="piecol">
                 <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
-                    @include('livewire.partials.pie-chart', [
-                        'values' => $priorityValues,
-                        'labels' => $priorityLabels,
-                        'colors' => $priorityColors
-                    ])
+                @include('livewire.partials.pie-chart', [
+                    'values' => $priorityValues,
+                    'labels' => $priorityLabels,
+                    'colors' => $priorityColors
+                ])
             </div>
         @endif
-
 
     </div>
 
@@ -108,9 +105,10 @@
             @forelse ($tasks as $task)
                 @php
                     $status = $taskStatuses[$task->id] ?? $task->status;
+                    $isEditing = $editingTaskId === $task->id;
                 @endphp
 
-                <tr wire:key="task-{{ $task->id }}--{{ $editingTaskId === $task->id ? 'editing' : 'view' }}">
+                <tr wire:key="task-{{ $task->id }}--{{ $isEditing ? 'editing' : 'view' }}">
                     {{-- ACCIONES --}}
                     <td>
                         @include('livewire.partials.action-buttons', ['editingId' => $editingTaskId, 'id' => $task->id])
@@ -121,7 +119,7 @@
 
                     {{-- TAREA --}}
                     <td>
-                        @if ($editingTaskId === $task->id)
+                        @if ($isEditing)
                             <input type="text" class="form-control form-control-sm mb-1" wire:model.defer="editingTitle">
                             <textarea class="form-control form-control-sm auto-resize-textarea" rows="1"
                                 wire:model.defer="editingDescription" placeholder="Descripción"
@@ -138,8 +136,9 @@
                     {{-- ESTADO --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <select class="task-status-select {{ $status }}"
-                                wire:change="updateStatus({{ $task->id }}, $event.target.value)">
+                            <select class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
+                                wire:change="updateStatus({{ $task->id }}, $event.target.value)"
+                                @if(!$isEditing) disabled @endif>
                                 <option value="pending" class="status-pending" @selected($status === 'pending')>Pendiente</option>
                                 <option value="in_progress" class="status-progress" @selected($status === 'in_progress')>En progreso</option>
                                 <option value="done" class="status-done" @selected($status === 'done')>Hecha</option>
@@ -150,8 +149,9 @@
                     {{-- PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <select class="task-priority-select {{ $task->priority }}"
-                                    wire:change="updatePriority({{ $task->id }}, $event.target.value)">
+                            <select class="task-priority-select {{ $task->priority }} {{ $isEditing ? 'editable' : 'readonly' }}"
+                                    wire:change="updatePriority({{ $task->id }}, $event.target.value)"
+                                    @if(!$isEditing) disabled @endif>
                                 <option value="very_high" class="priority-very_high" @selected($task->priority === 'very_high')>Muy Alta</option>
                                 <option value="high" class="priority-high" @selected($task->priority === 'high')>Alta</option>
                                 <option value="mid" class="priority-mid" @selected($task->priority === 'mid')>Media</option>

@@ -529,3 +529,23 @@ th, td {
     width: 100%;
     box-sizing: border-box;
 }
+
+/* =========================================================
+   SELECTS EDITABLE / NO EDITABLE
+========================================================= */
+
+/* Si es readonly, ocultamos la flecha del select */
+select.readonly {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: default;
+}
+
+/* Si es editable, mostramos la flecha normal */
+select.editable {
+    -webkit-appearance: menulist-button;
+    -moz-appearance: menulist-button;
+    appearance: menulist-button;
+    cursor: pointer;
+}
