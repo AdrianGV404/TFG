@@ -111,17 +111,16 @@ class Projects extends Component
             'tasks as very_low_tasks' => fn ($q) => $q->where('priority', 'very_low'),
         ]);
 
-        $projects = $this->applyFilters(
-            $query,
-            'name',
-            "FIELD(status, 'active', 'archived')"
-        );
+        // Ordenar: primero activos, luego archivados
+        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
+
+        // Aplicar filtros de búsqueda/paginación
+        $projects = $this->applyFilters($query, 'name');
 
         return view('livewire.projects', [
             'projects' => $projects,
         ]);
     }
-
 
     public function confirmDelete(int $projectId)
     {
