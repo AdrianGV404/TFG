@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'Gestión de proyectos')</title>
+    <title>@yield('title', 'ProMaTi')</title>
+
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link
