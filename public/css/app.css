@@ -549,3 +549,44 @@ select.editable {
     appearance: menulist-button;
     cursor: pointer;
 }
+
+.project-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+
+    padding: 8px 10px;
+    border-radius: 10px;
+
+    transition: background-color 0.15s ease;
+}
+
+.project-card-link:hover {
+    background-color: rgba(13,110,253,0.06);
+}
+
+.project-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #212529;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.project-open-icon {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all 0.15s ease;
+    font-weight: 500;
+}
+
+.project-card-link:hover .project-title {
+    color: #0d6efd;
+}
+
+.project-card-link:hover .project-open-icon {
+    opacity: 1;
+    transform: translateX(0);
+}

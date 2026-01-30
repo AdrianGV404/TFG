@@ -4,13 +4,8 @@
     <div class="page-header">
         <h1>Proyectos</h1>
 
-        <button
-            type="button"
-            class="btn btn-primary btn-loading"
-            wire:click="openForm"
-            wire:loading.attr="disabled"
-            wire:target="openForm"
-        >
+        <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
+            wire:target="openForm">
             <span class="btn-text">+ Nuevo proyecto</span>
             <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
         </button>
@@ -27,7 +22,7 @@
     {{-- CONTROLES --}}
     @include('livewire.partials.search-controls', [
         'textPlaceholder' => 'Buscar por nombre...',
-        'allowStatusOrder' => true
+        'allowStatusOrder' => true,
     ])
 
     {{-- TABLA --}}
@@ -47,7 +42,10 @@
 
                     {{-- ACCIONES --}}
                     <td>
-                        @include('livewire.partials.action-buttons', ['editingId' => $editingProjectId, 'id' => $project->id])
+                        @include('livewire.partials.action-buttons', [
+                            'editingId' => $editingProjectId,
+                            'id' => $project->id,
+                        ])
                     </td>
 
                     {{-- ID --}}
@@ -56,67 +54,50 @@
                     {{-- PROYECTO --}}
                     <td>
                         @if ($editingProjectId == $project->id)
-
-                            <input
-                                type="text"
-                                class="form-control form-control-sm mb-1"
-                                wire:model.defer="editingName"
-                            >
-                            <textarea
-                                class="form-control form-control-sm auto-resize-textarea"
-                                rows="1"
-                                wire:model.defer="editingDescription"
-                                placeholder="Descripción"
-                                x-data
-                                x-init="$el.style.height = $el.scrollHeight + 'px'"
-                                x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
-                            ></textarea>
-
+                            <input type="text" class="form-control form-control-sm mb-1"
+                                wire:model.defer="editingName">
+                            <textarea class="form-control form-control-sm auto-resize-textarea" rows="1" wire:model.defer="editingDescription"
+                                placeholder="Descripción" x-data x-init="$el.style.height = $el.scrollHeight + 'px'"
+                                x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                         @else
-
-                            <div class="project-name">
-                                <a
-                                    href="{{ route('livewire.projects.show', $project) }}"
-                                    class="project-title"
-                                >
-                                    {{ $project->name }}
-                                </a>
-                            </div>
-
-                            @php
-                                $total = $project->total_tasks ?? 0;
-                            @endphp
-
-                            @if ($total > 0)
-                                @include('livewire.partials.project-progress', [
-                                    'total' => $total,
-                                    'done' => $project->done_tasks,
-                                    'inProgress' => $project->in_progress_tasks,
-                                    'pending' => $project->pending_tasks,
-                                ])
-                            @endif
-
-                            @if ($project->description)
-                                <div class="project-description">
-                                    {!! nl2br(e($project->description)) !!}
+                            <a href="{{ route('livewire.projects.show', $project) }}" class="project-card-link"
+                                title="Abrir proyecto">
+                                <div class="project-name">
+                                    <div class="project-title">
+                                        {{ $project->name }}
+                                        <span class="project-open-icon">→</span>
+                                    </div>
                                 </div>
-                            @endif
 
+                                @php
+                                    $total = $project->total_tasks ?? 0;
+                                @endphp
+
+                                @if ($total > 0)
+                                    @include('livewire.partials.project-progress', [
+                                        'total' => $total,
+                                        'done' => $project->done_tasks,
+                                        'inProgress' => $project->in_progress_tasks,
+                                        'pending' => $project->pending_tasks,
+                                    ])
+                                @endif
+
+                                @if ($project->description)
+                                    <div class="project-description">
+                                        {!! nl2br(e($project->description)) !!}
+                                    </div>
+                                @endif
+                            </a>
                         @endif
                     </td>
 
                     {{-- ESTADO --}}
                     <td>
                         @if ($editingProjectId == $project->id)
-
-                            <select
-                                class="form-select form-select-sm"
-                                wire:model.defer="editingStatus"
-                            >
+                            <select class="form-select form-select-sm" wire:model.defer="editingStatus">
                                 <option value="active">Activo</option>
                                 <option value="archived">Archivado</option>
                             </select>
-
                         @else
                             <span class="badge {{ $project->status }}">
                                 {{ ucfirst($project->status) }}
@@ -140,4 +121,3 @@
     </div>
 
 </div>
-
