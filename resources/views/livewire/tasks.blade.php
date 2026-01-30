@@ -119,9 +119,9 @@
                             <select class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                     wire:model.defer="editingStatus.{{ $task->id }}"
                                     @if(!$isEditing) disabled @endif>
-                                <option value="pending">Pendiente</option>
-                                <option value="in_progress">En progreso</option>
-                                <option value="done">Hecha</option>
+                                <option value="pending" @selected($status === 'pending')>Pendiente</option>
+                                <option value="in_progress" @selected($status === 'in_progress')>En progreso</option>
+                                <option value="done" @selected($status === 'done')>Hecha</option>
                             </select>
                         </div>
                     </td>
@@ -132,15 +132,14 @@
                             <select class="task-priority-select {{ $priority }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                     wire:model.defer="editingPriority.{{ $task->id }}"
                                     @if(!$isEditing) disabled @endif>
-                                <option value="very_high">Muy Alta</option>
-                                <option value="high">Alta</option>
-                                <option value="mid">Media</option>
-                                <option value="low">Baja</option>
-                                <option value="very_low">Muy Baja</option>
+                                <option value="very_high" @selected($priority === 'very_high')>Muy Alta</option>
+                                <option value="high" @selected($priority === 'high')>Alta</option>
+                                <option value="mid" @selected($priority === 'mid')>Media</option>
+                                <option value="low" @selected($priority === 'low')>Baja</option>
+                                <option value="very_low" @selected($priority === 'very_low')>Muy Baja</option>
                             </select>
                         </div>
                     </td>
-
                 </tr>
             @empty
                 <tr>
@@ -154,5 +153,4 @@
     <div class="mt-3">
         {{ $tasks->links() }}
     </div>
-
 </div>
