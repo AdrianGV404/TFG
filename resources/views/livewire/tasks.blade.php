@@ -8,7 +8,7 @@
     {{-- FORMULARIO + PIECHART --}}
     <div class="d-flex" style="gap:24px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; justify-content:space-between;">
 
-        {{-- FORMULARIO (columna izquierda, más estrecha) --}}
+        {{-- FORMULARIO --}}
         <div class="form-col">
             <livewire:task-form
                 :project="$project"
@@ -22,59 +22,38 @@
             $inProgress = $project->tasks()->where('status', 'in_progress')->count();
             $pending = $project->tasks()->where('status', 'pending')->count();
             $total = $done + $inProgress + $pending;
-
-            $stateValues = [$done, $inProgress, $pending];
-            $stateLabels = ['Hecha', 'En progreso', 'Pendiente'];
-            $stateColors = ['#4caf7a','#3399ff','#ffc107'];
         @endphp
 
         @if($total > 0)
             <div class="piecol">
                 <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
                 @include('livewire.partials.pie-chart', [
-                    'values' => $stateValues,
-                    'labels' => $stateLabels,
-                    'colors' => $stateColors
+                    'values' => [$done, $inProgress, $pending],
+                    'labels' => ['Hecha','En progreso','Pendiente'],
+                    'colors' => ['#4caf7a','#3399ff','#ffc107']
                 ])
             </div>
         @endif
 
-        {{-- PIECHART POR PRIORIDAD SOLO PARA PENDIENTES O EN PROGRESO --}}
+        {{-- PIECHART POR PRIORIDAD --}}
         @php
-            $very_high = $project->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->where('priority', 'very_high')
-                ->count();
-            $high = $project->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->where('priority', 'high')
-                ->count();
-            $mid  = $project->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->where('priority', 'mid')
-                ->count();
-            $low  = $project->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->where('priority', 'low')
-                ->count();
-            $very_low  = $project->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->where('priority', 'very_low')
-                ->count();
-            $totalPriority = $very_high + $high + $mid + $low + $very_low;
-
-            $priorityValues = [$very_high, $high, $mid, $low, $very_low];
-            $priorityLabels = ['Muy Alta','Alta','Media','Baja','Muy Baja'];
-            $priorityColors = ['#dc3545','#fd7e14 ','#ffc107 ','#0dcaf0','#6c757d'];
+            $priorities = ['very_high','high','mid','low','very_low'];
+            $priorityCounts = [];
+            foreach ($priorities as $p) {
+                $priorityCounts[$p] = $project->tasks()
+                    ->whereIn('status',['pending','in_progress'])
+                    ->where('priority',$p)->count();
+            }
+            $totalPriority = array_sum($priorityCounts);
         @endphp
 
         @if($totalPriority > 0)
             <div class="piecol">
                 <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
                 @include('livewire.partials.pie-chart', [
-                    'values' => $priorityValues,
-                    'labels' => $priorityLabels,
-                    'colors' => $priorityColors
+                    'values' => array_values($priorityCounts),
+                    'labels' => ['Muy Alta','Alta','Media','Baja','Muy Baja'],
+                    'colors' => ['#dc3545','#fd7e14','#ffc107','#0dcaf0','#6c757d']
                 ])
             </div>
         @endif
@@ -104,8 +83,9 @@
         <tbody>
             @forelse ($tasks as $task)
                 @php
-                    $status = $taskStatuses[$task->id] ?? $task->status;
                     $isEditing = $editingTaskId === $task->id;
+                    $status = $editingStatus[$task->id] ?? $task->status;
+                    $priority = $editingPriority[$task->id] ?? $task->priority;
                 @endphp
 
                 <tr wire:key="task-{{ $task->id }}--{{ $isEditing ? 'editing' : 'view' }}">
@@ -122,7 +102,7 @@
                         @if ($isEditing)
                             <input type="text" class="form-control form-control-sm mb-1" wire:model.defer="editingTitle">
                             <textarea class="form-control form-control-sm auto-resize-textarea" rows="1"
-                                wire:model.defer="editingDescription" placeholder="Descripción"
+                                wire:model.defer="editingDescription"
                                 x-data x-init="$el.style.height = $el.scrollHeight + 'px'"
                                 x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                         @else
@@ -137,26 +117,26 @@
                     <td>
                         <div class="task-status-wrapper">
                             <select class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
-                                wire:change="updateStatus({{ $task->id }}, $event.target.value)"
-                                @if(!$isEditing) disabled @endif>
-                                <option value="pending" class="status-pending" @selected($status === 'pending')>Pendiente</option>
-                                <option value="in_progress" class="status-progress" @selected($status === 'in_progress')>En progreso</option>
-                                <option value="done" class="status-done" @selected($status === 'done')>Hecha</option>
+                                    wire:model.defer="editingStatus.{{ $task->id }}"
+                                    @if(!$isEditing) disabled @endif>
+                                <option value="pending">Pendiente</option>
+                                <option value="in_progress">En progreso</option>
+                                <option value="done">Hecha</option>
                             </select>
                         </div>
                     </td>
-                    
+
                     {{-- PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <select class="task-priority-select {{ $task->priority }} {{ $isEditing ? 'editable' : 'readonly' }}"
-                                    wire:change="updatePriority({{ $task->id }}, $event.target.value)"
+                            <select class="task-priority-select {{ $priority }} {{ $isEditing ? 'editable' : 'readonly' }}"
+                                    wire:model.defer="editingPriority.{{ $task->id }}"
                                     @if(!$isEditing) disabled @endif>
-                                <option value="very_high" class="priority-very_high" @selected($task->priority === 'very_high')>Muy Alta</option>
-                                <option value="high" class="priority-high" @selected($task->priority === 'high')>Alta</option>
-                                <option value="mid" class="priority-mid" @selected($task->priority === 'mid')>Media</option>
-                                <option value="low" class="priority-low" @selected($task->priority === 'low')>Baja</option>
-                                <option value="very_low" class="priority-very_low" @selected($task->priority === 'very_low')>Muy Baja</option>
+                                <option value="very_high">Muy Alta</option>
+                                <option value="high">Alta</option>
+                                <option value="mid">Media</option>
+                                <option value="low">Baja</option>
+                                <option value="very_low">Muy Baja</option>
                             </select>
                         </div>
                     </td>

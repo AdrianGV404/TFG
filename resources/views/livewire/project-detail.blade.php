@@ -3,13 +3,6 @@
     {{-- HEADER --}}
     <div class="page-header">
         <h1>{{ $project->name }}</h1>
-
-        <a
-            href="{{ route('livewire.projects') }}"
-            class="btn btn-secondary"
-        >
-            ← Volver a proyectos
-        </a>
     </div>
 
     {{-- DESCRIPCIÓN --}}
