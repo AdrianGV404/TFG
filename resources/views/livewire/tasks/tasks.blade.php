@@ -55,39 +55,39 @@
         ];
         $totalPriority = array_sum($priorityCounts);
     @endphp
+    <div class="piecharts-fixed">
+        @if ($total > 0 || $totalPriority > 0)
+            <div class="piecharts-wrapper" style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
+                @if ($total > 0)
+                    <div class="piecol" style="flex:1; min-width:200px;">
+                        <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
+                        @include('livewire.partials.pie-chart', [
+                            'values' => [$done, $inProgress, $pending],
+                            'labels' => ['Hecha', 'En progreso', 'Pendiente'],
+                            'colors' => ['#4caf7a', '#3399ff', '#ffc107'],
+                        ])
+                    </div>
+                @endif
 
-    @if ($total > 0 || $totalPriority > 0)
-        <div class="piecharts-wrapper" style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
-            @if ($total > 0)
-                <div class="piecol" style="flex:1; min-width:200px;">
-                    <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
-                    @include('livewire.partials.pie-chart', [
-                        'values' => [$done, $inProgress, $pending],
-                        'labels' => ['Hecha', 'En progreso', 'Pendiente'],
-                        'colors' => ['#4caf7a', '#3399ff', '#ffc107'],
-                    ])
-                </div>
-            @endif
-
-            @if ($totalPriority > 0)
-                <div class="piecol" style="flex:1; min-width:200px;">
-                    <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
-                    @include('livewire.partials.pie-chart', [
-                        'values' => array_values($priorityCounts),
-                        'labels' => [
-                            'Muy Alta (0)',
-                            'Alta (1, 2, 3)',
-                            'Media (4, 5, 6)',
-                            'Baja (7, 8)',
-                            'Muy Baja (9, 10)',
-                        ],
-                        'colors' => ['#dc3545', '#fd7e14', '#ffc107', '#0dcaf0', '#6c757d'],
-                    ])
-                </div>
-            @endif
-        </div>
-    @endif
-
+                @if ($totalPriority > 0)
+                    <div class="piecol" style="flex:1; min-width:200px;">
+                        <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
+                        @include('livewire.partials.pie-chart', [
+                            'values' => array_values($priorityCounts),
+                            'labels' => [
+                                'Muy Alta (0)',
+                                'Alta (1, 2, 3)',
+                                'Media (4, 5, 6)',
+                                'Baja (7, 8)',
+                                'Muy Baja (9, 10)',
+                            ],
+                            'colors' => ['#dc3545', '#fd7e14', '#ffc107', '#0dcaf0', '#6c757d'],
+                        ])
+                    </div>
+                @endif
+            </div>
+        @endif
+    </div>
     <hr>
 
     {{-- CONTROLES --}}
