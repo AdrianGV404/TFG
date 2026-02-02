@@ -4,11 +4,13 @@
     <div class="page-header">
         <h1>Proyectos</h1>
 
+    @if (!$showForm)
         <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
             wire:target="openForm">
             <span class="btn-text">+ Nuevo proyecto</span>
             <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
         </button>
+    @endif
     </div>
 
     {{-- FORMULARIO --}}

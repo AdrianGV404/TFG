@@ -5,79 +5,88 @@
         <h2 class="mb-0">Tareas del proyecto</h2>
     </div>
 
-    {{-- FORMULARIO + PIECHART --}}
+    {{-- FORMULARIO --}}
     <div class="d-flex"
         style="gap:24px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; justify-content:space-between;">
+        @if (!$showForm)
+            <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
+                wire:target="openForm">
+                <span class="btn-text">+ Nueva Tarea</span>
+                <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
+            </button>
+        @endif
 
         {{-- FORMULARIO --}}
-        <div class="form-col">
-            <livewire:task-form :project="$project" wire:key="task-form-{{ $taskFormKey }}" />
-        </div>
-
-        {{-- PIECHART POR ESTADO --}}
-        @php
-            $done = $project->tasks()->where('status', 'done')->count();
-            $inProgress = $project->tasks()->where('status', 'in_progress')->count();
-            $pending = $project->tasks()->where('status', 'pending')->count();
-            $total = $done + $inProgress + $pending;
-        @endphp
-
-        @if ($total > 0)
-            <div class="piecol">
-                <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
-                @include('livewire.partials.pie-chart', [
-                    'values' => [$done, $inProgress, $pending],
-                    'labels' => ['Hecha', 'En progreso', 'Pendiente'],
-                    'colors' => ['#4caf7a', '#3399ff', '#ffc107'],
-                ])
+        @if ($showForm)
+            <div class="form-col">
+                <livewire:task-form :project="$project" wire:key="task-form-{{ $taskFormKey }}" />
             </div>
         @endif
-
-        {{-- PIECHART POR PRIORIDAD --}}
-        @php
-            $priorityCounts = [
-                'very_high' => $project
-                    ->tasks()
-                    ->whereIn('priority', [0])
-                    ->count(),
-                'high' => $project
-                    ->tasks()
-                    ->whereIn('priority', [1, 2, 3])
-                    ->count(),
-                'mid' => $project
-                    ->tasks()
-                    ->whereIn('priority', [4, 5, 6])
-                    ->count(),
-                'low' => $project
-                    ->tasks()
-                    ->whereIn('priority', [7, 8])
-                    ->count(),
-                'very_low' => $project
-                    ->tasks()
-                    ->whereIn('priority', [9, 10])
-                    ->count(),
-            ];
-            $totalPriority = array_sum($priorityCounts);
-        @endphp
-
-        @if ($totalPriority > 0)
-            <div class="piecol">
-                <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
-                @include('livewire.partials.pie-chart', [
-                    'values' => array_values($priorityCounts),
-                    'labels' => [
-                        'Muy Alta (0) ',
-                        'Alta (1, 2, 3) ',
-                        'Media (4, 5, 6)',
-                        'Baja (7, 8)',
-                        'Muy Baja (9, 10)',
-                    ],
-                    'colors' => ['#dc3545', '#fd7e14', '#ffc107', '#0dcaf0', '#6c757d'],
-                ])
-            </div>
-        @endif
-
     </div>
+
+    {{-- PIECHARTS --}}
+    @php
+        $done = $project->tasks()->where('status', 'done')->count();
+        $inProgress = $project->tasks()->where('status', 'in_progress')->count();
+        $pending = $project->tasks()->where('status', 'pending')->count();
+        $total = $done + $inProgress + $pending;
+
+        $priorityCounts = [
+            'very_high' => $project
+                ->tasks()
+                ->whereIn('priority', [0])
+                ->count(),
+            'high' => $project
+                ->tasks()
+                ->whereIn('priority', [1, 2, 3])
+                ->count(),
+            'mid' => $project
+                ->tasks()
+                ->whereIn('priority', [4, 5, 6])
+                ->count(),
+            'low' => $project
+                ->tasks()
+                ->whereIn('priority', [7, 8])
+                ->count(),
+            'very_low' => $project
+                ->tasks()
+                ->whereIn('priority', [9, 10])
+                ->count(),
+        ];
+        $totalPriority = array_sum($priorityCounts);
+    @endphp
+
+    @if ($total > 0 || $totalPriority > 0)
+        <div class="piecharts-wrapper" style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
+            @if ($total > 0)
+                <div class="piecol" style="flex:1; min-width:200px;">
+                    <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
+                    @include('livewire.partials.pie-chart', [
+                        'values' => [$done, $inProgress, $pending],
+                        'labels' => ['Hecha', 'En progreso', 'Pendiente'],
+                        'colors' => ['#4caf7a', '#3399ff', '#ffc107'],
+                    ])
+                </div>
+            @endif
+
+            @if ($totalPriority > 0)
+                <div class="piecol" style="flex:1; min-width:200px;">
+                    <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
+                    @include('livewire.partials.pie-chart', [
+                        'values' => array_values($priorityCounts),
+                        'labels' => [
+                            'Muy Alta (0)',
+                            'Alta (1, 2, 3)',
+                            'Media (4, 5, 6)',
+                            'Baja (7, 8)',
+                            'Muy Baja (9, 10)',
+                        ],
+                        'colors' => ['#dc3545', '#fd7e14', '#ffc107', '#0dcaf0', '#6c757d'],
+                    ])
+                </div>
+            @endif
+        </div>
+    @endif
 
     <hr>
 

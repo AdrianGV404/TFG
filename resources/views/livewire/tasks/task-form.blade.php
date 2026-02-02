@@ -44,19 +44,17 @@
                     @endfor
                 </select>
             </div>
-
-
-
-
         </div>
-
         <br>
-
         <button class="btn btn-primary btn-loading" type="submit" wire:loading.attr="disabled" wire:target="save">
             <span class="btn-text">Crear tarea</span>
             <span class="btn-spinner" wire:loading.delay wire:target="save">
                 Guardando…
             </span>
+        </button>
+        <button type="button" class="btn btn-secondary" wire:click="$dispatch('closeForm')"
+            wire:loading.attr="disabled">
+            Cancelar
         </button>
     </form>
 </div>

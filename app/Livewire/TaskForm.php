@@ -50,8 +50,8 @@ class TaskForm extends Component
         $this->priority = 5;
 
         $this->dispatch('taskCreated');
+        $this->dispatch('closeForm');
     }
-
 
     public function render()
     {

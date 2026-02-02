@@ -15,7 +15,7 @@ use App\Livewire\Traits\FormValidationRules;
 class Tasks extends Component
 {
     use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
-
+    public bool $showForm = false;
     public Project $project;
 
     /* =========================
@@ -32,7 +32,8 @@ class Tasks extends Component
 
     protected $listeners = [
         'taskCreated' => 'onTaskCreated',
-        'delete-task' => 'deleteFromModal'
+        'delete-task' => 'deleteFromModal',
+        'closeForm' => 'closeForm',
     ];
 
     public function mount()
@@ -151,5 +152,15 @@ class Tasks extends Component
     public function deleteFromModal(int $id)
     {
         $this->delete($id);
+    }
+
+    public function openForm()
+    {
+        $this->showForm = true;
+    }
+
+    public function closeForm()
+    {
+        $this->showForm = false;
     }
 }
