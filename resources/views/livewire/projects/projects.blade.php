@@ -20,11 +20,13 @@
     @endif
 
     {{-- CONTROLES --}}
-    @include('livewire.partials.search-controls', [
-        'textPlaceholder' => 'Buscar por nombre...',
-        'allowStatusOrder' => true,
-        'isProjectList' => true,
-    ])
+    <div class="search-controls-wrapper">
+        @include('livewire.partials.search-controls', [
+            'textPlaceholder' => 'Buscar por nombre...',
+            'allowStatusOrder' => true,
+            'isProjectList' => true,
+        ])
+    </div>
 
     {{-- TABLA --}}
     <table class="table">

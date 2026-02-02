@@ -82,11 +82,12 @@
     <hr>
 
     {{-- CONTROLES --}}
-    @include('livewire.partials.search-controls', [
-        'textPlaceholder' => 'Buscar por título...',
-        'allowStatusOrder' => true,
-    ])
-
+    <div class="search-controls-wrapper">
+        @include('livewire.partials.search-controls', [
+            'textPlaceholder' => 'Buscar por título...',
+            'allowStatusOrder' => true,
+        ])
+    </div>
     {{-- TABLA DE TAREAS --}}
     <table class="table">
         <thead>
