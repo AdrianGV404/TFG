@@ -105,11 +105,6 @@ class Projects extends Component
             'tasks as pending_tasks' => fn($q) => $q->where('status', 'pending'),
             'tasks as in_progress_tasks' => fn($q) => $q->where('status', 'in_progress'),
             'tasks as done_tasks' => fn($q) => $q->where('status', 'done'),
-            'tasks as very_high_tasks' => fn($q) => $q->where('priority', 'very_high'),
-            'tasks as high_tasks' => fn($q) => $q->where('priority', 'high'),
-            'tasks as mid_tasks' => fn($q) => $q->where('priority', 'mid'),
-            'tasks as low_tasks' => fn($q) => $q->where('priority', 'low'),
-            'tasks as very_low_tasks' => fn($q) => $q->where('priority', 'very_low'),
         ]);
 
         // Ordenar: primero activos, luego archivados

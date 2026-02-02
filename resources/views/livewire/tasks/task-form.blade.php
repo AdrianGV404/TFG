@@ -24,6 +24,7 @@
                 class="auto-resize-textarea"
             ></textarea>
         </div>
+
         <div class="form-group-row">
             <!-- ESTADO -->
             <div class="form-group">
@@ -39,16 +40,21 @@
             <div class="form-group">
                 <label class="form-label">Prioridad</label>
                 <select wire:model.defer="priority" class="task-priority-select">
-                    <option value="very_high" class="priority-very_high" @selected($priority === 'very_high')>Muy Alta</option>
-                    <option value="high" class="priority-high" @selected($priority === 'high')>Alta</option>
-                    <option value="mid" class="priority-mid" @selected($priority === 'mid')>Media</option>
-                    <option value="low" class="priority-low" @selected($priority === 'low')>Baja</option>
-                    <option value="very_low" class="priority-very_low" @selected($priority === 'very_low')>Muy Baja</option>
+                    @for ($i = 0; $i <= 10; $i++)
+                        <option 
+                            value="{{ $i }}" 
+                            class="priority-{{ \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown' }}"
+                            @selected($priority == $i)
+                        >
+                            {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }} ({{ $i }})
+                        </option>
+                    @endfor
                 </select>
-
             </div>
         </div>
+
         <br>
+
         <button
             class="btn btn-primary btn-loading"
             type="submit"

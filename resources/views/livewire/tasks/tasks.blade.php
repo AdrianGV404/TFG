@@ -37,13 +37,13 @@
 
         {{-- PIECHART POR PRIORIDAD --}}
         @php
-            $priorities = ['very_high','high','mid','low','very_low'];
-            $priorityCounts = [];
-            foreach ($priorities as $p) {
-                $priorityCounts[$p] = $project->tasks()
-                    ->whereIn('status',['pending','in_progress'])
-                    ->where('priority',$p)->count();
-            }
+            $priorityCounts = [
+                'very_high' => $project->tasks()->whereIn('priority', [0])->count(),
+                'high'      => $project->tasks()->whereIn('priority', [1,2,3])->count(),
+                'mid'       => $project->tasks()->whereIn('priority', [4,5,6])->count(),
+                'low'       => $project->tasks()->whereIn('priority', [7,8])->count(),
+                'very_low'  => $project->tasks()->whereIn('priority', [9,10])->count(),
+            ];
             $totalPriority = array_sum($priorityCounts);
         @endphp
 
@@ -52,7 +52,7 @@
                 <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
                 @include('livewire.partials.pie-chart', [
                     'values' => array_values($priorityCounts),
-                    'labels' => ['Muy Alta','Alta','Media','Baja','Muy Baja'],
+                    'labels' => ['Muy Alta (0) ','Alta (1, 2, 3) ','Media (4, 5, 6)','Baja (7, 8)','Muy Baja (9, 10)'],
                     'colors' => ['#dc3545','#fd7e14','#ffc107','#0dcaf0','#6c757d']
                 ])
             </div>
@@ -129,14 +129,19 @@
                     {{-- PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper">
-                            <select class="task-priority-select {{ $priority }} {{ $isEditing ? 'editable' : 'readonly' }}"
+                            <select class="task-priority-select {{ $task->priority_class }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                     wire:model.defer="editingPriority.{{ $task->id }}"
                                     @if(!$isEditing) disabled @endif>
-                                <option value="very_high" @selected($priority === 'very_high')>Muy Alta</option>
-                                <option value="high" @selected($priority === 'high')>Alta</option>
-                                <option value="mid" @selected($priority === 'mid')>Media</option>
-                                <option value="low" @selected($priority === 'low')>Baja</option>
-                                <option value="very_low" @selected($priority === 'very_low')>Muy Baja</option>
+                                @for ($i = 0; $i <= 10; $i++)
+                                    @php
+                                        $tempTask = new \App\Models\Task();
+                                        $tempTask->priority = $i;
+                                    @endphp
+                                    <option value="{{ $i }}" class="priority-{{ $tempTask->priority_class }}"
+                                        @selected($priority == $i)>
+                                        {{ $tempTask->priority_label }} ({{ $i }})
+                                    </option>
+                                @endfor
                             </select>
                         </div>
                     </td>

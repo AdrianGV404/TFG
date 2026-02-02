@@ -17,20 +17,20 @@ class TaskForm extends Component
     public string $title = '';
     public ?string $description = null;
     public string $status = 'pending';
-    public string $priority = 'mid';
+    public int $priority = 5;
 
     protected $rules = [
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
         'status' => 'required|in:pending,in_progress,done',
-        'priority' => 'required|in:very_high,high,mid,low,very_low',
+        'priority' => 'required|integer|min:0|max:10',
     ];
 
     public function save()
     {
-        $this->validate($this->taskRules());
+        $this->validate($this->rules);
 
-        $this->createScoped(Task::class, [
+        $this->project->tasks()->create([
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
@@ -41,10 +41,11 @@ class TaskForm extends Component
 
         $this->reset(['title', 'description', 'status', 'priority']);
         $this->status = 'pending';
-        $this->priority = 'mid';
+        $this->priority = 5;
 
         $this->dispatch('taskCreated');
     }
+
 
     public function render()
     {

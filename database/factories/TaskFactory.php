@@ -19,8 +19,8 @@ class TaskFactory extends Factory
             'project_id' => Project::factory(),
             'title' => $this->faker->sentence(4),
             'description' => $this->faker->paragraph(),
-            'status' => 'pending',
-            'status' => 'mid',
+            'status' => $this->faker->randomElement(['pending', 'in_progress', 'done']),
+            'priority' => $this->faker->numberBetween(0, 10),
             'processed_at' => null,
         ];
     }

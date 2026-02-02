@@ -418,7 +418,7 @@ td {
 
 .actions, .actions-row { display:flex; gap:6px; }
 
-.tasks-legend { font-size:13px; display:flex; flex-direction:column; gap:4px; margin-top:8px; text-align:center; }
+.tasks-legend { font-size:13px; display:flex; flex-direction:column; gap:4px; margin-top:8px; text-align:right; }
 
 .project-stats { margin-top:6px; }
 .project-progress { display:flex; height:6px; border-radius:4px; overflow:hidden; }
@@ -590,4 +590,3 @@ select.editable {
     opacity: 1;
     transform: translateX(0);
 }
-

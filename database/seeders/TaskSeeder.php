@@ -11,30 +11,24 @@ class TaskSeeder extends Seeder
     public function run(): void
     {
         $faker = \Faker\Factory::create('es_ES');
-        $statuses = ['pending', 'in_progress', 'done'];
-        $priorityuses = ['very_high','high', 'mid', 'low', 'very_low'];
 
         $projects = Project::all();
 
         foreach ($projects as $project) {
-            // Create between 1 and 6 random tasks per project using factories
+            // Crear entre 1 y 6 tareas aleatorias por proyecto
             $count = rand(1, 6);
 
             Task::factory()
                 ->count($count)
                 ->create([
                     'project_id' => $project->id,
-                    'status' => $faker->randomElement($statuses),
-                    'priority' => $faker->randomElement($priorityuses),
                 ]);
 
-            // Add at least one task with special characters to test edge cases
+            // Crear una tarea con caracteres especiales para pruebas
             Task::factory()->create([
                 'project_id' => $project->id,
                 'title' => 'Tarea con caracteres: ñáéíóú, 漢字, emoji 🙂',
                 'description' => "Descripción con \"comillas\", \n saltos de línea, tabs\t y símbolos #$%&*()",
-                'status' => $faker->randomElement($statuses),
-                'priority' => $faker->randomElement($priorityuses),
             ]);
         }
     }

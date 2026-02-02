@@ -39,7 +39,6 @@ class Tasks extends Component
     {
         $this->orderBy = 'priority';
 
-        // Inicializa arrays con los valores reales de cada tarea
         foreach ($this->project->tasks as $task) {
             $this->editingStatus[$task->id] = $task->status;
             $this->editingPriority[$task->id] = $task->priority;
@@ -53,7 +52,6 @@ class Tasks extends Component
         $this->taskFormKey++;
         $this->resetPage();
 
-        // Inicializar los valores del nuevo task en los arrays
         foreach ($this->project->tasks as $task) {
             if (!isset($this->editingStatus[$task->id])) {
                 $this->editingStatus[$task->id] = $task->status;
@@ -133,7 +131,7 @@ class Tasks extends Component
                 $query,
                 'title',
                 "FIELD(status, 'pending', 'in_progress', 'done')",
-                "FIELD(priority, 'very_high', 'high', 'mid', 'low', 'very_low')"
+                'priority'
             ),
         ]);
     }
