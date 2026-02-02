@@ -4,25 +4,16 @@
 
     <form wire:submit.prevent="save">
         <div class="form-group">
-            <input
-                type="text"
-                wire:model.defer="title"
-                placeholder="Título"
-            >
+            <input type="text" wire:model.defer="title" placeholder="Título">
             @error('title')
                 <small class="text-error">{{ $message }}</small>
             @enderror
         </div>
 
         <div class="form-group">
-            <textarea
-                wire:model.defer="description"
-                placeholder="Descripción"
-                x-data
-                x-ref="textarea"
+            <textarea wire:model.defer="description" placeholder="Descripción" x-data x-ref="textarea"
                 x-on:input="$refs.textarea.style.height = 'auto'; $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px';"
-                class="auto-resize-textarea"
-            ></textarea>
+                class="auto-resize-textarea"></textarea>
         </div>
 
         <div class="form-group-row">
@@ -39,28 +30,29 @@
             <!-- PRIORIDAD -->
             <div class="form-group">
                 <label class="form-label">Prioridad</label>
-                <select wire:model.defer="priority" class="task-priority-select">
+
+                <select wire:model.defer="priority"
+                    class="task-priority-select priority-{{ \App\Models\Task::PRIORITY_CLASSES[$priority] ?? 'mid' }}">
                     @for ($i = 0; $i <= 10; $i++)
-                        <option 
-                            value="{{ $i }}" 
-                            class="priority-{{ \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown' }}"
-                            @selected($priority == $i)
-                        >
+                        @php
+                            $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
+                        @endphp
+                        <option value="{{ $i }}" class="priority-{{ $class }}"
+                            @selected($priority == $i)>
                             {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }} ({{ $i }})
                         </option>
                     @endfor
                 </select>
             </div>
+
+
+
+
         </div>
 
         <br>
 
-        <button
-            class="btn btn-primary btn-loading"
-            type="submit"
-            wire:loading.attr="disabled"
-            wire:target="save"
-        >
+        <button class="btn btn-primary btn-loading" type="submit" wire:loading.attr="disabled" wire:target="save">
             <span class="btn-text">Crear tarea</span>
             <span class="btn-spinner" wire:loading.delay wire:target="save">
                 Guardando…

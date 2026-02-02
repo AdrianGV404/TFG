@@ -339,63 +339,89 @@ td {
 /* ---------------------------------------------------------
    PRIORIDAD - Select cerrado según value
 --------------------------------------------------------- */
-.task-priority-select:has(option[value="very_high"]:checked) {
+/* =============================
+   PRIORIDAD - Select cerrado según value numérico
+============================= */
+.task-priority-select:has(option[value="0"]:checked) {
     background: #ffb3b3;
     border-color: #ff6b6b;
     color: #800000;
 }
 
-.task-priority-select:has(option[value="high"]:checked) {
+.task-priority-select:has(option[value="1"]:checked),
+.task-priority-select:has(option[value="2"]:checked),
+.task-priority-select:has(option[value="3"]:checked) {
     background: #ffd8a8;
     border-color: #ffa500;
     color: #663300;
 }
 
-.task-priority-select:has(option[value="mid"]:checked) {
+.task-priority-select:has(option[value="4"]:checked),
+.task-priority-select:has(option[value="5"]:checked),
+.task-priority-select:has(option[value="6"]:checked) {
     background: #fff8b3;
     border-color: #ffd700;
     color: #665500;
 }
 
-.task-priority-select:has(option[value="low"]:checked) {
+.task-priority-select:has(option[value="7"]:checked),
+.task-priority-select:has(option[value="8"]:checked) {
     background: #b3e5ff;
     border-color: #4da6ff;
     color: #004466;
 }
 
-.task-priority-select:has(option[value="very_low"]:checked) {
+.task-priority-select:has(option[value="9"]:checked),
+.task-priority-select:has(option[value="10"]:checked) {
     background: #e0e0e0;
     border-color: #a0a0a0;
     color: #555555;
 }
 
-/* Opciones del desplegable */
-.task-priority-select option[value="very_high"] { background: #ffb3b3; color: #800000; }
-.task-priority-select option[value="high"]      { background: #ffd8a8; color: #663300; }
-.task-priority-select option[value="mid"]       { background: #fff8b3; color: #665500; }
-.task-priority-select option[value="low"]       { background: #b3e5ff; color: #004466; }
-.task-priority-select option[value="very_low"]  { background: #e0e0e0; color: #555555; }
+/* =============================
+   Opciones del desplegable
+============================= */
+.task-priority-select option[value="0"] { background: #ffb3b3; color: #800000; }
+.task-priority-select option[value="1"],
+.task-priority-select option[value="2"],
+.task-priority-select option[value="3"] { background: #ffd8a8; color: #663300; }
+.task-priority-select option[value="4"],
+.task-priority-select option[value="5"],
+.task-priority-select option[value="6"] { background: #fff8b3; color: #665500; }
+.task-priority-select option[value="7"],
+.task-priority-select option[value="8"] { background: #b3e5ff; color: #004466; }
+.task-priority-select option[value="9"],
+.task-priority-select option[value="10"] { background: #e0e0e0; color: #555555; }
 
-/* Hover y active para opciones */
-.task-priority-select option.priority-very_high,
-.task-priority-select option.priority-very_high:hover,
-.task-priority-select option.priority-very_high:active { background: #ff8080; color: #800000; }
+/* =============================
+   Hover y active para opciones
+============================= */
+.task-priority-select option[value="0"]:hover,
+.task-priority-select option[value="0"]:active { background: #ff8080; color: #800000; }
 
-.task-priority-select option.priority-high,
-.task-priority-select option.priority-high:hover,
-.task-priority-select option.priority-high:active { background: #ffbf66; color: #663300; }
+.task-priority-select option[value="1"]:hover,
+.task-priority-select option[value="1"]:active,
+.task-priority-select option[value="2"]:hover,
+.task-priority-select option[value="2"]:active,
+.task-priority-select option[value="3"]:hover,
+.task-priority-select option[value="3"]:active { background: #ffbf66; color: #663300; }
 
-.task-priority-select option.priority-mid,
-.task-priority-select option.priority-mid:hover,
-.task-priority-select option.priority-mid:active { background: #fff27f; color: #665500; }
+.task-priority-select option[value="4"]:hover,
+.task-priority-select option[value="4"]:active,
+.task-priority-select option[value="5"]:hover,
+.task-priority-select option[value="5"]:active,
+.task-priority-select option[value="6"]:hover,
+.task-priority-select option[value="6"]:active { background: #fff27f; color: #665500; }
 
-.task-priority-select option.priority-low,
-.task-priority-select option.priority-low:hover,
-.task-priority-select option.priority-low:active { background: #80d4ff; color: #004466; }
+.task-priority-select option[value="7"]:hover,
+.task-priority-select option[value="7"]:active,
+.task-priority-select option[value="8"]:hover,
+.task-priority-select option[value="8"]:active { background: #80d4ff; color: #004466; }
 
-.task-priority-select option.priority-very_low,
-.task-priority-select option.priority-very_low:hover,
-.task-priority-select option.priority-very_low:active { background: #cfcfcf; color: #555555; }
+.task-priority-select option[value="9"]:hover,
+.task-priority-select option[value="9"]:active,
+.task-priority-select option[value="10"]:hover,
+.task-priority-select option[value="10"]:active { background: #cfcfcf; color: #555555; }
 
 /* =========================================================
    Alpine.js x-cloak

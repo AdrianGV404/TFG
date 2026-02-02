@@ -26,6 +26,12 @@ class TaskForm extends Component
         'priority' => 'required|integer|min:0|max:10',
     ];
 
+    public function mount()
+    {
+        $this->priority = $this->priority ?? 5;
+        $this->status = $this->status ?? 'pending';
+    }
+
     public function save()
     {
         $this->validate($this->rules);
