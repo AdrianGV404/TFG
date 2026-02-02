@@ -1,3 +1,10 @@
+@php
+    // Asegurarse de que las variables existan
+    $isProjectList = $isProjectList ?? false;
+    $allowStatusOrder = $allowStatusOrder ?? false;
+    $textPlaceholder = $textPlaceholder ?? '';
+@endphp
+
 <div class="search-controls">
 
     {{-- BUSCADORES --}}
@@ -23,10 +30,16 @@
             class="form-select search-select-wide"
             wire:model.live="orderBy"
         >
-            <option value="priority">Prioridad</option>
+            {{-- Mostrar prioridad SOLO si NO es lista de proyectos --}}
+            @if (!$isProjectList)
+                <option value="priority">Prioridad</option>
+            @endif
+
+            {{-- Mostrar estado si se permite --}}
             @if ($allowStatusOrder)
                 <option value="status">Estado</option>
             @endif
+
             <option value="id_desc">ID ↓ (más recientes)</option>
             <option value="id_asc">ID ↑ (más antiguos)</option>
         </select>

@@ -115,6 +115,7 @@ class Projects extends Component
 
         return view('livewire.projects.projects', [
             'projects' => $projects,
+            'isProjectList' => true,
         ]);
     }
 

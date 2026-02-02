@@ -23,6 +23,7 @@
     @include('livewire.partials.search-controls', [
         'textPlaceholder' => 'Buscar por nombre...',
         'allowStatusOrder' => true,
+        'isProjectList' => true,
     ])
 
     {{-- TABLA --}}
