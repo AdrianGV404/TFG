@@ -4,47 +4,53 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Project;
+use Faker\Factory as Faker;
 
 class ProjectSeeder extends Seeder
 {
-    public function run(): void
+    public function run(): array
     {
-        $faker = \Faker\Factory::create('es_ES');
+        $faker = Faker::create('es_ES');
 
-        // A few hand-crafted projects to cover edge cases (accents, quotes, emoji, special symbols)
+        $newProjects = [];
+
+        // Proyectos de ejemplo (no duplicar)
         $samples = [
             [
                 'name' => 'Proyecto Demo',
                 'description' => 'Proyecto de prueba',
-                'status' => 'active',
             ],
             [
                 'name' => 'Café & Código',
                 'description' => 'Descripción con acentos: ñ, á, é, í, ó, ú',
-                'status' => 'active',
             ],
             [
                 'name' => 'Proyecto "Comillas"',
                 'description' => "Descripción con \"comillas\" y 'apóstrofes'",
-                'status' => 'archived',
             ],
             [
                 'name' => 'Proyecto 🚀',
                 'description' => 'Incluye emoji y símbolos especiales: © ® ™ — prueba',
-                'status' => 'active',
-            ],
-            [
-                'name' => 'Proyecto — Largo de Prueba',
-                'description' => $faker->paragraph(),
-                'status' => $faker->randomElement(['active', 'archived']),
             ],
         ];
 
         foreach ($samples as $p) {
-            Project::create($p);
+            $project = Project::firstOrCreate(
+                ['name' => $p['name']],
+                ['description' => $p['description'], 'status' => 'archived']
+            );
+
+            // Solo si se creó nuevo, lo añadimos al array
+            if ($project->wasRecentlyCreated) {
+                $newProjects[] = $project;
+            }
         }
 
-        // Add some randomly generated projects for variety
-        Project::factory()->count(5)->create();
+        // Crear 5 proyectos aleatorios nuevos, todos archivados
+        $randomProjects = Project::factory()->count(5)->create(['status' => 'archived']);
+        $newProjects = array_merge($newProjects, $randomProjects->all());
+
+        // Devolver proyectos nuevos para TaskSeeder
+        return $newProjects;
     }
 }
