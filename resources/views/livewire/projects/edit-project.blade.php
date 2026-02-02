@@ -43,6 +43,6 @@
 
     <hr>
 
-    @include('projects._tasks', ['project' => $project])
+    @include('../tasks.tasks', ['project' => $project])
 </div>
 @endsection

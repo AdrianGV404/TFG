@@ -23,7 +23,7 @@ class Projects extends Component
     public string $editingName = '';
     public string $editingDescription = '';
     public string $editingStatus = 'active';
-    
+
     protected $listeners = [
         'delete-project' => 'deleteFromModal',
         'projectCreated' => 'onProjectCreated',
@@ -99,16 +99,17 @@ class Projects extends Component
 
     public function render()
     {
+
         $query = Project::withCount([
             'tasks as total_tasks',
-            'tasks as pending_tasks' => fn ($q) => $q->where('status', 'pending'),
-            'tasks as in_progress_tasks' => fn ($q) => $q->where('status', 'in_progress'),
-            'tasks as done_tasks' => fn ($q) => $q->where('status', 'done'),
-            'tasks as very_high_tasks' => fn ($q) => $q->where('priority', 'very_high'),
-            'tasks as high_tasks' => fn ($q) => $q->where('priority', 'high'),
-            'tasks as mid_tasks' => fn ($q) => $q->where('priority', 'mid'),
-            'tasks as low_tasks' => fn ($q) => $q->where('priority', 'low'),
-            'tasks as very_low_tasks' => fn ($q) => $q->where('priority', 'very_low'),
+            'tasks as pending_tasks' => fn($q) => $q->where('status', 'pending'),
+            'tasks as in_progress_tasks' => fn($q) => $q->where('status', 'in_progress'),
+            'tasks as done_tasks' => fn($q) => $q->where('status', 'done'),
+            'tasks as very_high_tasks' => fn($q) => $q->where('priority', 'very_high'),
+            'tasks as high_tasks' => fn($q) => $q->where('priority', 'high'),
+            'tasks as mid_tasks' => fn($q) => $q->where('priority', 'mid'),
+            'tasks as low_tasks' => fn($q) => $q->where('priority', 'low'),
+            'tasks as very_low_tasks' => fn($q) => $q->where('priority', 'very_low'),
         ]);
 
         // Ordenar: primero activos, luego archivados
@@ -117,7 +118,7 @@ class Projects extends Component
         // Aplicar filtros de búsqueda/paginación
         $projects = $this->applyFilters($query, 'name');
 
-        return view('livewire.projects', [
+        return view('livewire.projects.projects', [
             'projects' => $projects,
         ]);
     }
@@ -138,5 +139,4 @@ class Projects extends Component
     {
         $this->delete($id);
     }
-
 }

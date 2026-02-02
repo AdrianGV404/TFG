@@ -32,6 +32,6 @@ class ProjectForm extends Component
 
     public function render()
     {
-        return view('livewire.project-form');
+        return view('livewire.projects.project-form');
     }
 }

@@ -48,6 +48,6 @@ class TaskForm extends Component
 
     public function render()
     {
-        return view('livewire.task-form');
+        return view('livewire.tasks.task-form');
     }
 }

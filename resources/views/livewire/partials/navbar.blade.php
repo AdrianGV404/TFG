@@ -3,7 +3,7 @@
 
         {{-- Botón volver a proyectos (solo si no estamos en la ruta de proyectos) --}}
         @if(Route::currentRouteName() !== 'livewire.projects')
-            <a href="{{ route('livewire.projects') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
+            <a href="{{ route('projects') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
                 <i class="fas fa-arrow-left me-1"></i>
                 Volver a proyectos
             </a>

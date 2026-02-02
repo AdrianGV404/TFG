@@ -128,7 +128,7 @@ class Tasks extends Component
     {
         $query = $this->scopedQuery(Task::class);
 
-        return view('livewire.tasks', [
+        return view('livewire.tasks.tasks', [
             'tasks' => $this->applyFilters(
                 $query,
                 'title',

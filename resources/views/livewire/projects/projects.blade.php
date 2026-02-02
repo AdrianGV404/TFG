@@ -60,7 +60,7 @@
                                 placeholder="Descripción" x-data x-init="$el.style.height = $el.scrollHeight + 'px'"
                                 x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                         @else
-                            <a href="{{ route('livewire.projects.show', $project) }}" class="project-card-link"
+                            <a href="{{ route('projects.show', $project) }}" class="project-card-link"
                                 title="Abrir proyecto">
                                 <div class="project-name">
                                     <div class="project-title">

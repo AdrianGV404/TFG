@@ -16,6 +16,8 @@ class ProjectDetail extends Component
 
     public function render()
     {
-        return view('livewire.project-detail');
+        return view('livewire.projects.project-detail', [
+            'project' => $this->project
+        ]);    
     }
 }

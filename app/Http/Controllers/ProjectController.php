@@ -16,7 +16,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::all();
-        return view('projects.index', compact('projects'));
+        return view('projects.projects-page', compact('projects'));
     }
 
     public function create()
@@ -56,6 +56,6 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        return view('projects.show', compact('project'));
+        return view('livewire.projects.projects', compact('project'));
     }
 }
