@@ -439,7 +439,13 @@ td {
     text-align: center;
     vertical-align: middle;
 }
-.col-status { width:150px; }
+.col-status {
+    width: 150px;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 13px;
+    color: #555; 
+}
 .col-status-140 { width:140px; }
 
 .actions, .actions-row { display:flex; gap:6px; }
@@ -486,7 +492,6 @@ td {
 .col-project-320 { width: 320px; }
 .col-state-120 { width: 120px; }
 .col-tasks-280 { width: auto; } /* La columna Tarea ahora es la más grande */
-.col-priority { width: 120px; } /* Menor ancho que tarea */
 
 /* Inline form helper and hidden state */
 .inline-form { display: inline; }
@@ -615,4 +620,125 @@ select.editable {
 .project-card-link:hover .project-open-icon {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* ID - mínimo ancho, centrado */
+.col-id {
+    width: 50px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Acciones - ancho fijo para botones */
+.col-actions {
+    width: 180px;
+    white-space: nowrap;
+}
+
+/* Tarea - ocupa todo el espacio disponible */
+.col-task {
+    width: auto;
+    max-width: none;
+    white-space: normal;
+}
+
+/* Timestamps - lo más compacto posible, centrado */
+.col-timestamps {
+    min-width: 130px;
+    max-width: 150px;
+    white-space: nowrap;
+    text-align: center;
+    padding-right: 8px; /* un poco de espacio hacia la columna de estado */
+}
+
+/* Estado + Prioridad - lo más compacto posible */
+.col-status {
+    min-width: 140px;
+    max-width: 160px;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 8px; /* un poco de espacio desde timestamps */
+}
+
+/* Ajuste para td de la columna tarea */
+td .task-title,
+td .task-description {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Selects en columna estado + prioridad, uno debajo del otro */
+.task-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+/* TABLA */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    table-layout: auto; /* clave: permite que la columna de tarea crezca y las otras se ajusten */
+}
+
+th, td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+/* ACCIONES */
+.col-actions {
+    width: 180px;
+    white-space: nowrap;
+}
+
+/* ID */
+.col-id {
+    width: 50px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* TAREA - ocupa todo el espacio disponible */
+.col-task {
+    width: 100%; /* ocupa todo el espacio sobrante */
+    white-space: normal;
+}
+
+/* TIMESTAMPS - lo más compacto posible */
+.col-timestamps {
+    width: 120px; /* ancho mínimo fijo */
+    white-space: nowrap;
+    text-align: center;
+    padding-right: 6px; /* espacio hacia estado */
+}
+
+/* ESTADO + PRIORIDAD - lo más compacto posible */
+.col-status {
+    width: 140px; /* ancho mínimo fijo */
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 6px; /* espacio desde timestamps */
+}
+
+/* Ajuste visual para td de tarea */
+td .task-title,
+td .task-description {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Selects en columna estado + prioridad, uno debajo del otro */
+.task-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
 }

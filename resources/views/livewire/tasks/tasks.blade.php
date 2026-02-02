@@ -93,9 +93,9 @@
             <tr>
                 <th class="col-actions">Acciones</th>
                 <th class="col-id">ID</th>
-                <th>Tarea</th>
-                <th class="col-status">Estado</th>
-                <th class="col-priority">Prioridad</th>
+                <th class="col-task">Tarea</th>
+                <th class="col-timestamps">Creada / Actualizada</th>
+                <th class="col-status">Estado / Prioridad</th>
             </tr>
         </thead>
 
@@ -120,7 +120,7 @@
                     <td class="text-muted">#{{ $task->id }}</td>
 
                     {{-- TAREA --}}
-                    <td>
+                    <td class="col-task">
                         @if ($isEditing)
                             <input type="text" class="form-control form-control-sm mb-1"
                                 wire:model.defer="editingTitle">
@@ -134,9 +134,25 @@
                         @endif
                     </td>
 
-                    {{-- ESTADO --}}
+                    {{-- TIMESTAMPS --}}
+                    <td class="text-muted col-timestamps">
+                        <div>
+                            <span style="font-weight:500;">C:</span>
+                            <span>{{ $task->created_at->format('d/m/Y') }} |
+                                {{ $task->created_at->format('H:i') }}</span>
+                        </div>
+                        <div>
+                            <span style="font-weight:500;">A:</span>
+                            <span>{{ $task->updated_at->format('d/m/Y') }} |
+                                {{ $task->updated_at->format('H:i') }}</span>
+                        </div>
+                    </td>
+
+
+                    {{-- ESTADO + PRIORIDAD --}}
                     <td>
-                        <div class="task-status-wrapper">
+                        <div class="task-status-wrapper" style="display:flex; flex-direction:column; gap:4px;">
+                            {{-- ESTADO --}}
                             <select
                                 class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                 wire:model.defer="editingStatus.{{ $task->id }}"
@@ -145,13 +161,10 @@
                                 <option value="in_progress" @selected($status === 'in_progress')>En progreso</option>
                                 <option value="done" @selected($status === 'done')>Hecha</option>
                             </select>
-                        </div>
-                    </td>
 
-                    {{-- PRIORIDAD --}}
-                    <td>
-                        <div class="task-status-wrapper">
-                            <select wire:model.defer="priority" class="task-priority-select">
+                            {{-- PRIORIDAD --}}
+                            <select wire:model.defer="editingPriority.{{ $task->id }}"
+                                class="task-priority-select">
                                 @for ($i = 0; $i <= 10; $i++)
                                     @php
                                         $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
@@ -165,7 +178,6 @@
                             </select>
                         </div>
                     </td>
-
                 </tr>
             @empty
                 <tr>
