@@ -164,7 +164,8 @@
 
                             {{-- PRIORIDAD --}}
                             <select wire:model.defer="editingPriority.{{ $task->id }}"
-                                class="task-priority-select">
+                                class="task-priority-select {{ $isEditing ? 'editable' : 'readonly' }}"
+                                @if (!$isEditing) disabled @endif>
                                 @for ($i = 0; $i <= 10; $i++)
                                     @php
                                         $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
