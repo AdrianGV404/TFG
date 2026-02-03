@@ -13,6 +13,6 @@ return [
     */
     'days_to_keep_deleted' => [
         \App\Models\Task::class => 30,
-        \App\Models\Project::class  => 60,
+        \App\Models\Project::class  => 90,
     ],
 ];

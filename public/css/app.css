@@ -792,3 +792,8 @@ table tbody tr.bg-softdeleted td {
 table tbody tr.bg-softdeleted:hover td {
     background-color: #ffdada !important;
 }
+
+.badge.deleted {
+    background: #dc3545; /* rojo fuerte */
+    color: #fff;
+}

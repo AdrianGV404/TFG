@@ -67,6 +67,7 @@
                     <td>
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingProjectId,
+                            'project' => $project,
                             'id' => $project->id,
                         ])
                     </td>
@@ -111,9 +112,11 @@
                                     @endif
 
                                     {{-- SOLO SOFTDELETED: Expira debajo del contenido, alineado con el proyecto --}}
-                                    @if($isDeleted)
+                                    @if ($isDeleted)
                                         <div class="expira-text text-danger mt-1" style="font-size:13px;">
-                                            @if($daysLeft <= 5) ⚠️ @endif
+                                            @if ($daysLeft <= 5)
+                                                ⚠️
+                                            @endif
                                             Expira en {{ $daysLeft }} días ({{ $expiresAt->format('d/m/Y') }})
                                         </div>
                                     @endif

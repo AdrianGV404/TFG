@@ -13,12 +13,13 @@ use App\Livewire\Traits\FormValidationRules;
 class Projects extends Component
 {
     use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, FormValidationRules;
+
     public bool $showForm = false;
     public bool $showDeleted = false;
+
     /* =========================
        EDICIÓN INLINE
     ========================= */
-
     public ?int $editingProjectId = null;
     public string $editingName = '';
     public string $editingDescription = '';
@@ -29,6 +30,7 @@ class Projects extends Component
         'projectCreated' => 'onProjectCreated',
         'projectDeleted' => 'refreshProjects',
         'closeForm' => 'closeForm',
+        'restore-project' => 'restoreProject',
     ];
 
     public function openForm()
@@ -83,15 +85,13 @@ class Projects extends Component
 
     public function delete(int $projectId)
     {
-        $project = Project::withTrashed()->findOrFail($projectId); // incluimos softdeleted
+        $project = Project::withTrashed()->findOrFail($projectId);
         $name = $project->name;
 
         if ($project->trashed()) {
-            // Si ya está en softdelete, eliminar definitivamente
             $project->forceDelete();
             $this->notify("Proyecto \"$name\" eliminado definitivamente", 'danger');
         } else {
-            // Si no estaba eliminado, hacer softdelete
             $project->delete();
             $this->notify("Proyecto \"$name\" eliminado con éxito", 'danger');
         }
@@ -106,7 +106,6 @@ class Projects extends Component
 
     public function render()
     {
-
         $query = Project::withCount([
             'tasks as total_tasks' => fn($q) => $this->showDeleted ? $q->withTrashed() : $q,
             'tasks as pending_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'pending'),
@@ -114,14 +113,11 @@ class Projects extends Component
             'tasks as done_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'done'),
         ]);
 
-        // Incluir softdeleted si el usuario lo indica
         if ($this->showDeleted) {
             $query = $query->withTrashed();
         }
-        // Ordenar: primero activos, luego archivados
-        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
 
-        // Aplicar filtros de búsqueda/paginación
+        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
         $projects = $this->applyFilters($query, 'name');
 
         return view('livewire.projects.projects', [
@@ -129,6 +125,10 @@ class Projects extends Component
             'isProjectList' => true,
         ]);
     }
+
+    /* =========================
+       Confirmaciones con popup
+    ========================= */
 
     public function confirmDelete(int $projectId)
     {
@@ -141,26 +141,40 @@ class Projects extends Component
                 : "¿Seguro que quieres eliminar el proyecto <br> <i>{$project->name}</i>?<br>Esta acción solo la podrá deshacer el administrador.",
             'delete-project',
             $projectId,
-            $project->trashed() // isPermanent
+            $project->trashed()
         );
     }
 
+    public function confirmRestore(int $projectId)
+    {
+        $project = Project::withTrashed()->findOrFail($projectId);
+
+        $this->dispatchConfirmDelete(
+            'Restaurar proyecto',
+            "¿Seguro que quieres restaurar el proyecto <i>{$project->name}</i>?<br>Se cambiará su estado a <b>archivado</b>.",
+            'restore-project',
+            $projectId,
+            false,
+            'success'
+        );
+    }
 
     public function deleteFromModal(int $id)
     {
         $this->delete($id);
     }
 
-    public function restoreProject(int $projectId)
+    public function restoreProject(int $id)
     {
-        $project = Project::withTrashed()->findOrFail($projectId);
+        $project = Project::withTrashed()->findOrFail($id);
         $project->restore();
+        $project->status = 'archived';
+        $project->saveQuietly();
 
-        // Restaurar también las tareas relacionadas
         foreach ($project->tasks()->withTrashed()->get() as $task) {
             $task->restore();
         }
 
-        $this->notify("Proyecto y sus tareas restauradas con éxito", 'success');
+        $this->notify("Proyecto \"{$project->name}\" y sus tareas restauradas con éxito", 'success');
     }
 }

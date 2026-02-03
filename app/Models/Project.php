@@ -31,14 +31,15 @@ class Project extends Model
     protected static function booted()
     {
         static::deleting(function ($project) {
-            if ($project->isForceDeleting()) {
-                $project->tasks()->forceDelete();
-            } else {
+            if (!$project->isForceDeleting()) {
+                $project->status = 'deleted';
+                $project->saveQuietly();
                 $project->tasks()->delete();
+            } else {
+                $project->tasks()->forceDelete();
             }
         });
     }
-
     public function restoreWithTasks()
     {
         $this->restore();
