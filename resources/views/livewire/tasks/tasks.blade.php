@@ -91,12 +91,20 @@
     <hr>
 
     {{-- CONTROLES --}}
-    <div class="search-controls-wrapper">
+    <div class="search-controls-wrapper d-flex align-items-center justify-content-between mb-3">
         @include('livewire.partials.search-controls', [
             'textPlaceholder' => 'Buscar por título...',
             'allowStatusOrder' => true,
         ])
+        <div class="form-check ms-3">
+            <input class="form-check-input" type="checkbox" id="showDeleted" wire:model="showDeleted"
+                wire:change="$refresh">
+            <label class="form-check-label" for="showDeleted">
+                Mostrar tareas eliminadas
+            </label>
+        </div>
     </div>
+
     {{-- TABLA DE TAREAS --}}
     <table class="table">
         <thead>
@@ -130,7 +138,7 @@
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingTaskId,
                             'task' => $task,
-                            'isTask' => true
+                            'isTask' => true,
                         ])
                     </td>
 
@@ -205,13 +213,6 @@
                                 @endfor
                             </select>
                         </div>
-
-                        {{-- BOTÓN RESTAURAR --}}
-                        @if ($isDeleted)
-                            <button class="btn btn-sm btn-success mt-1" wire:click="restoreTask({{ $task->id }})">
-                                Restaurar
-                            </button>
-                        @endif
                     </td>
                 </tr>
             @empty
