@@ -115,14 +115,22 @@
                     $isEditing = $editingTaskId === $task->id;
                     $status = $editingStatus[$task->id] ?? $task->status;
                     $priority = $editingPriority[$task->id] ?? $task->priority;
+                    $isDeleted = $task->trashed();
+                    $deletedAt = $isDeleted ? $task->deleted_at : null;
+                    $daysToKeep = config('prune.days_to_keep_deleted.' . \App\Models\Task::class, 60);
+                    $expiresAt = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
+                    $daysLeft = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
                 @endphp
 
-                <tr wire:key="task-{{ $task->id }}--{{ $isEditing ? 'editing' : 'view' }}">
+                <tr wire:key="task-{{ $task->id }}--{{ $isEditing ? 'editing' : 'view' }}"
+                    class="{{ $isDeleted ? 'bg-softdeleted' : '' }}">
+
                     {{-- ACCIONES --}}
                     <td>
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingTaskId,
-                            'id' => $task->id,
+                            'task' => $task,
+                            'isTask' => true
                         ])
                     </td>
 
@@ -141,6 +149,16 @@
                             @if ($task->description)
                                 <div class="task-description">{!! nl2br(e($task->description)) !!}</div>
                             @endif
+
+                            {{-- SOLO SOFTDELETED: Expira debajo del contenido --}}
+                            @if ($isDeleted)
+                                <div class="expira-text text-danger mt-1" style="font-size:13px;">
+                                    @if ($daysLeft <= 5)
+                                        ⚠️
+                                    @endif
+                                    Expira en {{ $daysLeft }} días ({{ $expiresAt->format('d/m/Y') }})
+                                </div>
+                            @endif
                         @endif
                     </td>
 
@@ -158,7 +176,6 @@
                         </div>
                     </td>
 
-
                     {{-- ESTADO + PRIORIDAD --}}
                     <td>
                         <div class="task-status-wrapper" style="display:flex; flex-direction:column; gap:4px;">
@@ -166,7 +183,7 @@
                             <select
                                 class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                 wire:model.defer="editingStatus.{{ $task->id }}"
-                                @if (!$isEditing) disabled @endif>
+                                @if (!$isEditing || $isDeleted) disabled @endif>
                                 <option value="pending" @selected($status === 'pending')>Pendiente</option>
                                 <option value="in_progress" @selected($status === 'in_progress')>En progreso</option>
                                 <option value="done" @selected($status === 'done')>Hecha</option>
@@ -175,7 +192,7 @@
                             {{-- PRIORIDAD --}}
                             <select wire:model.defer="editingPriority.{{ $task->id }}"
                                 class="task-priority-select {{ $isEditing ? 'editable' : 'readonly' }}"
-                                @if (!$isEditing) disabled @endif>
+                                @if (!$isEditing || $isDeleted) disabled @endif>
                                 @for ($i = 0; $i <= 10; $i++)
                                     @php
                                         $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
@@ -188,6 +205,13 @@
                                 @endfor
                             </select>
                         </div>
+
+                        {{-- BOTÓN RESTAURAR --}}
+                        @if ($isDeleted)
+                            <button class="btn btn-sm btn-success mt-1" wire:click="restoreTask({{ $task->id }})">
+                                Restaurar
+                            </button>
+                        @endif
                     </td>
                 </tr>
             @empty
@@ -196,6 +220,7 @@
                 </tr>
             @endforelse
         </tbody>
+
     </table>
 
     {{-- PAGINADOR --}}

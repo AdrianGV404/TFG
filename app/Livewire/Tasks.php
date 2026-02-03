@@ -15,6 +15,7 @@ use App\Livewire\Traits\FormValidationRules;
 class Tasks extends Component
 {
     use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
+
     public bool $showForm = false;
     public Project $project;
     public bool $showDeleted = false;
@@ -35,6 +36,7 @@ class Tasks extends Component
         'taskCreated' => 'onTaskCreated',
         'delete-task' => 'deleteFromModal',
         'closeForm' => 'closeForm',
+        'restore-task' => 'restoreTask',
     ];
 
     public function mount()
@@ -73,7 +75,6 @@ class Tasks extends Component
             'editingDescription' => 'description',
         ]);
 
-        // Guardar los valores actuales como originales para restaurar si se cancela
         $this->originalStatus[$taskId] = $task->status;
         $this->originalPriority[$taskId] = $task->priority;
     }
@@ -81,12 +82,10 @@ class Tasks extends Component
     public function cancelEdit()
     {
         if ($this->editingTaskId) {
-            // Restaurar valores originales solo al cancelar
             $this->editingStatus[$this->editingTaskId] = $this->originalStatus[$this->editingTaskId];
             $this->editingPriority[$this->editingTaskId] = $this->originalPriority[$this->editingTaskId];
         }
 
-        // Limpiar campos de edición
         $this->editingTaskId = null;
         $this->editingTitle = '';
         $this->editingDescription = '';
@@ -103,13 +102,11 @@ class Tasks extends Component
             'priority' => $this->editingPriority[$this->editingTaskId],
         ]);
 
-        // Actualizar los valores originales para futuras ediciones
         $this->originalStatus[$this->editingTaskId] = $this->editingStatus[$this->editingTaskId];
         $this->originalPriority[$this->editingTaskId] = $this->editingPriority[$this->editingTaskId];
 
         $this->notify("Tarea \"{$this->editingTitle}\" actualizada con éxito", 'success');
 
-        // Limpiar campos de edición, sin restaurar selects
         $this->editingTaskId = null;
         $this->editingTitle = '';
         $this->editingDescription = '';
@@ -117,28 +114,18 @@ class Tasks extends Component
 
     public function delete(int $taskId)
     {
-        $this->deleteScoped(Task::class, $taskId);
+        $task = Task::withTrashed()->findOrFail($taskId);
+        $name = $task->title;
 
-        $this->notify('Tarea eliminada con éxito', 'danger');
+        if ($task->trashed()) {
+            $task->forceDelete();
+            $this->notify("Tarea \"$name\" eliminada definitivamente", 'danger');
+        } else {
+            $task->delete();
+            $this->notify("Tarea \"$name\" eliminada con éxito", 'danger');
+        }
 
         $this->resetPage();
-    }
-
-    public function render()
-    {
-        $query = $this->scopedQuery(Task::class);
-        
-        if ($this->showDeleted) {
-            $query = $query->withTrashed();
-        }
-        return view('livewire.tasks.tasks', [
-            'tasks' => $this->applyFilters(
-                $query,
-                'title',
-                "FIELD(status, 'pending', 'in_progress', 'done')",
-                'priority'
-            ),
-        ]);
     }
 
     public function restoreTask(int $taskId)
@@ -150,13 +137,16 @@ class Tasks extends Component
 
     public function confirmDelete(int $taskId)
     {
-        $task = $this->findScoped(Task::class, $taskId);
+        $task = Task::withTrashed()->findOrFail($taskId);
 
         $this->dispatchConfirmDelete(
             'Eliminar tarea',
-            "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción no se puede deshacer.",
+            $task->trashed()
+                ? "Esta tarea \"{$task->title}\" ya está eliminada. Se borrará permanentemente. Esta acción <b>no se puede deshacer</b>."
+                : "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción solo la podrá deshacer el administrador.",
             'delete-task',
-            $taskId
+            $taskId,
+            $task->trashed()
         );
     }
 
@@ -173,5 +163,23 @@ class Tasks extends Component
     public function closeForm()
     {
         $this->showForm = false;
+    }
+
+    public function render()
+    {
+        $query = $this->scopedQuery(Task::class);
+
+        if ($this->showDeleted) {
+            $query = $query->withTrashed();
+        }
+
+        return view('livewire.tasks.tasks', [
+            'tasks' => $this->applyFilters(
+                $query,
+                'title',
+                "FIELD(status, 'pending', 'in_progress', 'done')",
+                'priority'
+            ),
+        ]);
     }
 }

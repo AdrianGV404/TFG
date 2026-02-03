@@ -68,7 +68,6 @@
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingProjectId,
                             'project' => $project,
-                            'id' => $project->id,
                         ])
                     </td>
 

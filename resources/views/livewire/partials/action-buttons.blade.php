@@ -1,12 +1,17 @@
 @php
     $editingId = $editingId ?? null;
-    $project = $project ?? null;
-    $id = $id ?? ($project->id ?? null);
+    $isTask = $isTask ?? false;
+
+    $model = $isTask ? $task : $project;
+    $id = $id ?? ($model->id ?? null);
+    $title = $isTask ? $task->title : $project->name;
+    $trashed = $model->trashed();
+    $deleteEvent = $isTask ? 'delete-task' : 'delete-project';
+    $restoreEvent = $isTask ? 'restore-task' : 'restore-project';
 @endphp
 
 <div class="actions">
 
-    {{-- Modo edición inline --}}
     @if ($editingId === $id)
         <button type="button" class="btn btn-success btn-sm btn-loading" wire:click="saveEdit" wire:loading.attr="disabled"
             wire:target="saveEdit">
@@ -16,31 +21,28 @@
 
         <button type="button" class="btn btn-secondary btn-sm" wire:click="cancelEdit">Cancelar</button>
     @else
-        @if ($project && $project->trashed())
-            {{-- Proyecto softdeleted: Restaurar + Eliminar --}}
+        @if ($trashed)
             <button type="button" class="btn btn-success btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-restore', {
                     id: {{ $id }},
-                    title: 'Restaurar proyecto',
-                    message: 'Vas a restarurar el proyecto <i>{{ $project->name }}</i>.',
-                    action: 'restore-project'
+                    title: 'Restaurar {{ $isTask ? 'tarea' : 'proyecto' }}',
+                    message: 'Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>.',
+                    action: '{{ $restoreEvent }}'
                 })">
                 Restaurar
             </button>
 
-
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-delete', {
                     id: {{ $id }},
-                    title: 'Eliminar proyecto',
-                    message: 'Este proyecto ya está eliminado y se borrará permanentemente.<br>Esta acción <b>no se puede deshacer</b>.',
-                    action: 'delete-project',
+                    title: 'Eliminar {{ $isTask ? 'tarea' : 'proyecto' }}',
+                    message: '{{ $trashed ? 'Ya está eliminado y se borrará permanentemente.' : '' }} <i>{{ $title }}</i>. Esta acción <b>no se puede deshacer</b>.',
+                    action: '{{ $deleteEvent }}',
                     isPermanent: true
                 })">
                 Eliminar
             </button>
         @else
-            {{-- Proyecto normal: Editar + Eliminar --}}
             <button type="button" class="btn btn-secondary btn-sm" wire:click="startEdit({{ $id }})">
                 Editar
             </button>
@@ -48,14 +50,13 @@
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-delete', {
                     id: {{ $id }},
-                    title: 'Eliminar proyecto',
-                    message: '¿Seguro que quieres eliminar el proyecto <br> <i>{{ $project->name }}</i>?<br>Esta acción solo la podrá deshacer el administrador.',
-                    action: 'delete-project',
+                    title: 'Eliminar {{ $isTask ? 'tarea' : 'proyecto' }}',
+                    message: '¿Seguro que quieres eliminar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>? Esta acción solo la podrá deshacer el administrador.',
+                    action: '{{ $deleteEvent }}',
                     isPermanent: false
                 })">
                 Eliminar
             </button>
         @endif
-
     @endif
 </div>
