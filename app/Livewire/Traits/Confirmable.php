@@ -13,14 +13,20 @@ trait Confirmable
      * @param int $id
      * @return void
      */
-    protected function dispatchConfirmDelete(string $title, string $message, string $action, int $id): void
-    {
+    protected function dispatchConfirmDelete(
+        string $title,
+        string $message,
+        string $action,
+        int $id,
+        bool $isPermanent = false
+    ): void {
         $this->dispatch(
             'confirm-delete',
             title: $title,
             message: $message,
             action: $action,
-            id: $id
+            id: $id,
+            isPermanent: $isPermanent
         );
     }
 }

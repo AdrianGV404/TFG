@@ -83,13 +83,20 @@ class Projects extends Component
 
     public function delete(int $projectId)
     {
-        $project = Project::findOrFail($projectId);
+        $project = Project::withTrashed()->findOrFail($projectId); // incluimos softdeleted
         $name = $project->name;
 
-        $project->delete();
-
-        $this->notify("Proyecto \"$name\" eliminado con éxito", 'danger');
+        if ($project->trashed()) {
+            // Si ya está en softdelete, eliminar definitivamente
+            $project->forceDelete();
+            $this->notify("Proyecto \"$name\" eliminado definitivamente", 'danger');
+        } else {
+            // Si no estaba eliminado, hacer softdelete
+            $project->delete();
+            $this->notify("Proyecto \"$name\" eliminado con éxito", 'danger');
+        }
     }
+
     public function onProjectCreated(?string $name = null)
     {
         $this->notify($name ? "Proyecto \"$name\" creado con éxito" : "Proyecto creado con éxito", 'success');
@@ -125,15 +132,19 @@ class Projects extends Component
 
     public function confirmDelete(int $projectId)
     {
-        $project = Project::findOrFail($projectId);
+        $project = Project::withTrashed()->findOrFail($projectId);
 
         $this->dispatchConfirmDelete(
             'Eliminar proyecto',
-            "¿Seguro que quieres eliminar el proyecto \"{$project->name}\"? Esta acción no se puede deshacer.",
+            $project->trashed()
+                ? "Este proyecto <i>{$project->name}</i> ya está eliminado.<br>Se borrará permanentemente.<br>Esta acción <b>no se puede deshacer</b>."
+                : "¿Seguro que quieres eliminar el proyecto <br> <i>{$project->name}</i>?<br>Esta acción solo la podrá deshacer el administrador.",
             'delete-project',
-            $projectId
+            $projectId,
+            $project->trashed() // isPermanent
         );
     }
+
 
     public function deleteFromModal(int $id)
     {
