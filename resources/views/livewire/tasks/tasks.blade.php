@@ -91,19 +91,27 @@
     <hr>
 
     {{-- CONTROLES --}}
-    <div class="search-controls-wrapper d-flex align-items-center justify-content-between mb-3">
+    <div class="search-controls-wrapper mb-2">
+        {{-- Checkbox encima, alineado a la derecha --}}
+        <div class="d-flex justify-content-end mb-1">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="showDeleted" wire:model="showDeleted"
+                    wire:change="$refresh">
+                <label class="form-check-label ms-1" for="showDeleted">
+                    Mostrar tareas eliminadas
+                </label>
+            </div>
+        </div>
+
+        {{-- Search controls debajo --}}
         @include('livewire.partials.search-controls', [
             'textPlaceholder' => 'Buscar por título...',
             'allowStatusOrder' => true,
         ])
-        <div class="form-check ms-3">
-            <input class="form-check-input" type="checkbox" id="showDeleted" wire:model="showDeleted"
-                wire:change="$refresh">
-            <label class="form-check-label" for="showDeleted">
-                Mostrar tareas eliminadas
-            </label>
-        </div>
     </div>
+
+
+
 
     {{-- TABLA DE TAREAS --}}
     <table class="table">
@@ -229,3 +237,47 @@
         {{ $tasks->links() }}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const searchWrapper = document.querySelector('.search-controls-wrapper');
+        const table = document.querySelector('table');
+        const tableHead = table.querySelector('thead');
+
+        const navbarHeight = 64; // o tu altura real del navbar
+
+        function adjustSticky() {
+            // Actualiza altura del search-wrapper
+            const searchHeight = searchWrapper.offsetHeight;
+            document.documentElement.style.setProperty('--search-height', searchHeight + 'px');
+
+            // Ajusta top de thead th
+            tableHead.querySelectorAll('th').forEach(th => {
+                th.style.top = (navbarHeight + searchHeight + 15) + 'px';
+            });
+
+            // Ajusta ancho de th según td (mantener alineación)
+            const firstRow = table.querySelector('tbody tr');
+            if (!firstRow) return;
+
+            const tds = firstRow.querySelectorAll('td');
+            const ths = tableHead.querySelectorAll('th');
+
+            ths.forEach((th, i) => {
+                if (tds[i]) {
+                    th.style.width = tds[i].offsetWidth + 'px';
+                }
+            });
+        }
+
+        // Ajustar al cargar
+        adjustSticky();
+
+        // Ajustar al hacer resize
+        window.addEventListener('resize', adjustSticky);
+
+        // Opcional: también ajustar al hacer scroll si cambia layout
+        window.addEventListener('scroll', adjustSticky);
+    });
+</script>
