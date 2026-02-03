@@ -17,6 +17,7 @@ class Tasks extends Component
     use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
     public bool $showForm = false;
     public Project $project;
+    public bool $showDeleted = false;
 
     /* =========================
        EDICIÓN INLINE
@@ -126,7 +127,10 @@ class Tasks extends Component
     public function render()
     {
         $query = $this->scopedQuery(Task::class);
-
+        
+        if ($this->showDeleted) {
+            $query = $query->withTrashed();
+        }
         return view('livewire.tasks.tasks', [
             'tasks' => $this->applyFilters(
                 $query,
@@ -135,6 +139,13 @@ class Tasks extends Component
                 'priority'
             ),
         ]);
+    }
+
+    public function restoreTask(int $taskId)
+    {
+        $task = Task::withTrashed()->findOrFail($taskId);
+        $task->restore();
+        $this->notify("Tarea \"{$task->title}\" restaurada con éxito", 'success');
     }
 
     public function confirmDelete(int $taskId)

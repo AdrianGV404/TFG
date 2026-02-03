@@ -785,3 +785,10 @@ td .task-description {
     font-size: 14px;
     text-align: center;
 }
+
+table tbody tr.bg-softdeleted td {
+    background-color: #ffe5e5 !important;
+}
+table tbody tr.bg-softdeleted:hover td {
+    background-color: #ffdada !important;
+}

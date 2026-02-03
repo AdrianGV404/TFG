@@ -14,7 +14,7 @@ class Projects extends Component
 {
     use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, FormValidationRules;
     public bool $showForm = false;
-
+    public bool $showDeleted = false;
     /* =========================
        EDICIÓN INLINE
     ========================= */
@@ -101,12 +101,16 @@ class Projects extends Component
     {
 
         $query = Project::withCount([
-            'tasks as total_tasks',
-            'tasks as pending_tasks' => fn($q) => $q->where('status', 'pending'),
-            'tasks as in_progress_tasks' => fn($q) => $q->where('status', 'in_progress'),
-            'tasks as done_tasks' => fn($q) => $q->where('status', 'done'),
+            'tasks as total_tasks' => fn($q) => $this->showDeleted ? $q->withTrashed() : $q,
+            'tasks as pending_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'pending'),
+            'tasks as in_progress_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'in_progress'),
+            'tasks as done_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'done'),
         ]);
 
+        // Incluir softdeleted si el usuario lo indica
+        if ($this->showDeleted) {
+            $query = $query->withTrashed();
+        }
         // Ordenar: primero activos, luego archivados
         $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
 
@@ -134,5 +138,18 @@ class Projects extends Component
     public function deleteFromModal(int $id)
     {
         $this->delete($id);
+    }
+
+    public function restoreProject(int $projectId)
+    {
+        $project = Project::withTrashed()->findOrFail($projectId);
+        $project->restore();
+
+        // Restaurar también las tareas relacionadas
+        foreach ($project->tasks()->withTrashed()->get() as $task) {
+            $task->restore();
+        }
+
+        $this->notify("Proyecto y sus tareas restauradas con éxito", 'success');
     }
 }

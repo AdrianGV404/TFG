@@ -1,16 +1,16 @@
 <div class="container">
 
     {{-- HEADER --}}
-    <div class="page-header">
+    <div class="page-header d-flex align-items-center justify-content-between">
         <h1>Proyectos</h1>
 
-    @if (!$showForm)
-        <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
-            wire:target="openForm">
-            <span class="btn-text">+ Nuevo proyecto</span>
-            <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
-        </button>
-    @endif
+        @if (!$showForm)
+            <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
+                wire:target="openForm">
+                <span class="btn-text">+ Nuevo proyecto</span>
+                <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
+            </button>
+        @endif
     </div>
 
     {{-- FORMULARIO --}}
@@ -22,12 +22,21 @@
     @endif
 
     {{-- CONTROLES --}}
-    <div class="search-controls-wrapper">
+    <div class="search-controls-wrapper d-flex align-items-center justify-content-between mb-3">
         @include('livewire.partials.search-controls', [
             'textPlaceholder' => 'Buscar por nombre...',
             'allowStatusOrder' => true,
             'isProjectList' => true,
         ])
+
+        {{-- Checkbox para mostrar eliminados --}}
+        <div class="form-check ms-3">
+            <input class="form-check-input" type="checkbox" id="showDeleted" wire:model="showDeleted"
+                wire:change="$refresh">
+            <label class="form-check-label" for="showDeleted">
+                Mostrar proyectos eliminados
+            </label>
+        </div>
     </div>
 
     {{-- TABLA --}}
@@ -36,14 +45,23 @@
             <tr>
                 <th class="col-actions">Acciones</th>
                 <th class="col-id">ID</th>
-                <th>Proyecto</th>
+                <th class="col-project">Proyecto</th>
                 <th class="col-status-140">Estado</th>
             </tr>
         </thead>
 
         <tbody>
             @forelse ($projects as $project)
-                <tr wire:key="project-{{ $project->id }}-{{ $editingProjectId == $project->id ? 'editing' : 'view' }}">
+                @php
+                    $isDeleted = $project->trashed();
+                    $deletedAt = $isDeleted ? $project->deleted_at : null;
+                    $daysToKeep = config('prune.days_to_keep_deleted.' . \App\Models\Project::class, 60);
+                    $expiresAt = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
+                    $daysLeft = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
+                @endphp
+
+                <tr wire:key="project-{{ $project->id }}-{{ $editingProjectId == $project->id ? 'editing' : 'view' }}"
+                    class="{{ $isDeleted ? 'bg-softdeleted' : '' }}">
 
                     {{-- ACCIONES --}}
                     <td>
@@ -57,7 +75,7 @@
                     <td class="text-muted">#{{ $project->id }}</td>
 
                     {{-- PROYECTO --}}
-                    <td>
+                    <td class="col-project">
                         @if ($editingProjectId == $project->id)
                             <input type="text" class="form-control form-control-sm mb-1"
                                 wire:model.defer="editingName">
@@ -72,26 +90,34 @@
                                         {{ $project->name }}
                                         <span class="project-open-icon">→</span>
                                     </div>
+
+                                    @php
+                                        $total = $project->total_tasks ?? 0;
+                                    @endphp
+
+                                    @if ($total > 0)
+                                        @include('livewire.partials.project-progress', [
+                                            'total' => $total,
+                                            'done' => $project->done_tasks,
+                                            'inProgress' => $project->in_progress_tasks,
+                                            'pending' => $project->pending_tasks,
+                                        ])
+                                    @endif
+
+                                    @if ($project->description)
+                                        <div class="project-description">
+                                            {!! nl2br(e($project->description)) !!}
+                                        </div>
+                                    @endif
+
+                                    {{-- SOLO SOFTDELETED: Expira debajo del contenido, alineado con el proyecto --}}
+                                    @if($isDeleted)
+                                        <div class="expira-text text-danger mt-1" style="font-size:13px;">
+                                            @if($daysLeft <= 5) ⚠️ @endif
+                                            Expira en {{ $daysLeft }} días ({{ $expiresAt->format('d/m/Y') }})
+                                        </div>
+                                    @endif
                                 </div>
-
-                                @php
-                                    $total = $project->total_tasks ?? 0;
-                                @endphp
-
-                                @if ($total > 0)
-                                    @include('livewire.partials.project-progress', [
-                                        'total' => $total,
-                                        'done' => $project->done_tasks,
-                                        'inProgress' => $project->in_progress_tasks,
-                                        'pending' => $project->pending_tasks,
-                                    ])
-                                @endif
-
-                                @if ($project->description)
-                                    <div class="project-description">
-                                        {!! nl2br(e($project->description)) !!}
-                                    </div>
-                                @endif
                             </a>
                         @endif
                     </td>

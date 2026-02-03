@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Prunable;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, Prunable;
 
     protected $fillable = [
         'project_id',
@@ -79,5 +81,12 @@ class Task extends Model
     public function getPriorityClassAttribute(): string
     {
         return self::PRIORITY_CLASSES[$this->priority] ?? 'unknown';
+    }
+
+    public function prunable()
+    {
+        $days = config('prune.days_to_keep_deleted.' . self::class, 30);
+        return static::onlyTrashed()
+            ->where('deleted_at', '<=', now()->subDays($days));
     }
 }
