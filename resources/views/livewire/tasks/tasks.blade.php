@@ -146,7 +146,7 @@
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingTaskId,
                             'task' => $task,
-                            'isTask' => true,
+                            'isTask' => true
                         ])
                     </td>
 

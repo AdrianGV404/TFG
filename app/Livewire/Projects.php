@@ -5,14 +5,13 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Project;
 use App\Livewire\Traits\WithSearchAndPagination;
-use App\Livewire\Traits\Confirmable;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\Notifies;
 use App\Livewire\Traits\FormValidationRules;
 
 class Projects extends Component
 {
-    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, FormValidationRules;
+    use WithSearchAndPagination, HasInlineEditing, Notifies, FormValidationRules;
 
     public bool $showForm = false;
     public bool $showDeleted = false;
@@ -27,10 +26,10 @@ class Projects extends Component
 
     protected $listeners = [
         'delete-project' => 'deleteFromModal',
+        'restore-project' => 'restoreProject',
         'projectCreated' => 'onProjectCreated',
         'projectDeleted' => 'refreshProjects',
         'closeForm' => 'closeForm',
-        'restore-project' => 'restoreProject',
     ];
 
     public function openForm()
@@ -124,39 +123,6 @@ class Projects extends Component
             'projects' => $projects,
             'isProjectList' => true,
         ]);
-    }
-
-    /* =========================
-       Confirmaciones con popup
-    ========================= */
-
-    public function confirmDelete(int $projectId)
-    {
-        $project = Project::withTrashed()->findOrFail($projectId);
-
-        $this->dispatchConfirmDelete(
-            'Eliminar proyecto',
-            $project->trashed()
-                ? "Este proyecto <i>{$project->name}</i> ya está eliminado.<br>Se borrará permanentemente.<br>Esta acción <b>no se puede deshacer</b>."
-                : "¿Seguro que quieres eliminar el proyecto <br> <i>{$project->name}</i>?<br>Esta acción solo la podrá deshacer el administrador.",
-            'delete-project',
-            $projectId,
-            $project->trashed()
-        );
-    }
-
-    public function confirmRestore(int $projectId)
-    {
-        $project = Project::withTrashed()->findOrFail($projectId);
-
-        $this->dispatchConfirmDelete(
-            'Restaurar proyecto',
-            "¿Seguro que quieres restaurar el proyecto <i>{$project->name}</i>?<br>Se cambiará su estado a <b>archivado</b>.",
-            'restore-project',
-            $projectId,
-            false,
-            'success'
-        );
     }
 
     public function deleteFromModal(int $id)

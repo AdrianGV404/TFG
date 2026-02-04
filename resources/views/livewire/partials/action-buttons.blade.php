@@ -24,19 +24,18 @@
         @if ($trashed)
             <button type="button" class="btn btn-success btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-restore', {
-                    id: {{ $id }},
-                    title: 'Restaurar {{ $isTask ? 'tarea' : 'proyecto' }}',
-                    message: 'Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>.',
-                    action: '{{ $restoreEvent }}'
-                })">
+                id: {{ $id }},
+                title: 'Restaurar {{ $title }}',
+                message: 'Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>.',
+                action: '{{ $restoreEvent }}'})">
                 Restaurar
             </button>
 
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-delete', {
                     id: {{ $id }},
-                    title: 'Eliminar {{ $isTask ? 'tarea' : 'proyecto' }}',
-                    message: '{{ $trashed ? 'Ya está eliminado y se borrará permanentemente.' : '' }} <i>{{ $title }}</i>. Esta acción <b>no se puede deshacer</b>.',
+                    title: 'Eliminar {{ $title }}',
+                    message: '{{ $trashed ? 'Ya está eliminado y se borrará permanentemente.' : '' }}. Esta acción <b>no se puede deshacer</b>.',
                     action: '{{ $deleteEvent }}',
                     isPermanent: true
                 })">
@@ -50,7 +49,7 @@
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
                 x-on:click="$dispatch('confirm-delete', {
                     id: {{ $id }},
-                    title: 'Eliminar {{ $isTask ? 'tarea' : 'proyecto' }}',
+                    title: 'Eliminar {{ $title }}',
                     message: '¿Seguro que quieres eliminar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>? Esta acción solo la podrá deshacer el administrador.',
                     action: '{{ $deleteEvent }}',
                     isPermanent: false

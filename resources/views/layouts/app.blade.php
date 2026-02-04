@@ -141,8 +141,6 @@
             @click.outside="showRestore = false">
 
             <h5 class="mb-3" x-text="title"></h5>
-
-            <!-- 👇 AQUÍ LA MAGIA -->
             <p class="text-muted mb-4" x-html="message"></p>
 
             <div class="d-flex justify-content-end gap-2">

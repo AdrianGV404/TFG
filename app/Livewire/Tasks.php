@@ -6,7 +6,6 @@ use Livewire\Component;
 use App\Models\Task;
 use App\Models\Project;
 use App\Livewire\Traits\WithSearchAndPagination;
-use App\Livewire\Traits\Confirmable;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\ScopedByProject;
 use App\Livewire\Traits\Notifies;
@@ -14,7 +13,7 @@ use App\Livewire\Traits\FormValidationRules;
 
 class Tasks extends Component
 {
-    use WithSearchAndPagination, Confirmable, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
+    use WithSearchAndPagination, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
 
     public bool $showForm = false;
     public Project $project;
@@ -33,10 +32,10 @@ class Tasks extends Component
     public int $taskFormKey = 0;
 
     protected $listeners = [
-        'taskCreated' => 'onTaskCreated',
         'delete-task' => 'deleteFromModal',
-        'closeForm' => 'closeForm',
         'restore-task' => 'restoreTask',
+        'taskCreated' => 'onTaskCreated',
+        'closeForm' => 'closeForm',
     ];
 
     public function mount()
@@ -128,26 +127,11 @@ class Tasks extends Component
         $this->resetPage();
     }
 
-    public function restoreTask(int $taskId)
+    public function restoreTask(int $id)
     {
-        $task = Task::withTrashed()->findOrFail($taskId);
+        $task = Task::withTrashed()->findOrFail($id);
         $task->restore();
         $this->notify("Tarea \"{$task->title}\" restaurada con éxito", 'success');
-    }
-
-    public function confirmDelete(int $taskId)
-    {
-        $task = Task::withTrashed()->findOrFail($taskId);
-
-        $this->dispatchConfirmDelete(
-            'Eliminar tarea',
-            $task->trashed()
-                ? "Esta tarea \"{$task->title}\" ya está eliminada. Se borrará permanentemente. Esta acción <b>no se puede deshacer</b>."
-                : "¿Seguro que quieres eliminar la tarea \"{$task->title}\"? Esta acción solo la podrá deshacer el administrador.",
-            'delete-task',
-            $taskId,
-            $task->trashed()
-        );
     }
 
     public function deleteFromModal(int $id)
