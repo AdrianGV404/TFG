@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\UserManagement;
 
 // Página de inicio → Livewire
 Route::get('/', fn() => view('livewire.partials.wrapper', [
@@ -30,6 +31,11 @@ Route::get('/register-personal', fn() => view('livewire.partials.wrapper', [
     'component' => 'register-personal',
 ]))->name('register.personal');
 
+// Crear empresa → Livewire
+Route::get('/register-empresa', fn() => view('livewire.partials.wrapper', [
+    'component' => 'register-empresa',
+]))->name('register.empresa');
+
 // Login → Livewire
 Route::get('/login', fn() => view('livewire.partials.wrapper', [
     'component' => 'login',
@@ -37,3 +43,15 @@ Route::get('/login', fn() => view('livewire.partials.wrapper', [
 
 // Logout → controlador normal
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::middleware(['auth', 'isAdmin'])->group(function () {
+
+    Route::get('/users', fn() => view('livewire.partials.wrapper', [
+        'component' => 'user-management',
+    ]))->name('users.index');
+
+    Route::get('/users/create', fn() => view('livewire.partials.wrapper', [
+        'component' => 'user-form',
+    ]))->name('users.create');
+});
+

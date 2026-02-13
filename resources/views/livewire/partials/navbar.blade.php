@@ -5,7 +5,8 @@
         @if (Route::currentRouteName() !== 'projects' &&
                 Route::currentRouteName() !== 'landingpage' &&
                 Route::currentRouteName() !== 'login' &&
-                Route::currentRouteName() !== 'register.personal')
+                Route::currentRouteName() !== 'register.personal' &&
+                Route::currentRouteName() !== 'register.empresa')
             <a href="{{ route('projects') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
                 <i class="fas fa-arrow-left me-1"></i>
                 Volver a proyectos
@@ -20,6 +21,16 @@
                 {{ auth()->check() ? auth()->user()->name : '' }}
             </span>
         </div>
+        @auth
+            @if (auth()->user()->role === 'admin')
+                <a href="{{ route('users.create') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
+                </a>
+                <a href="{{ route('users.index') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-users me-1"></i> Gestionar Usuarios
+                </a>
+            @endif
+        @endauth
         @auth
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

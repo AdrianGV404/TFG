@@ -23,8 +23,7 @@ class Landingpage extends Component
     // Crear un tenant empresa → redirige a una ruta ejemplo
     public function createEmpresaTenant()
     {
-        // Aquí puedes redirigir al registro de empresa o dashboard
-        return redirect()->route('landingpage'); // Cambia a la ruta real de empresa
+        return redirect()->route('register.empresa');
     }
 
     public function render()
