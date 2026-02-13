@@ -2,9 +2,10 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\Project;
 use App\Livewire\Traits\FormValidationRules;
+use App\Models\Project;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class ProjectForm extends Component
 {
@@ -22,6 +23,7 @@ class ProjectForm extends Component
             'name' => $this->name,
             'description' => $this->description,
             'status' => $this->status,
+            'tenant_id' => Auth::user()->tenant_id,
         ]);
 
         $this->reset();

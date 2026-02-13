@@ -16,7 +16,14 @@ class Project extends Model
         'name',
         'description',
         'status',
+        'tenant_id',
     ];
+
+    // Relación con tenant
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
     /**
      * Relación uno a muchos con Task.

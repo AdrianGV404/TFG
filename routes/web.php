@@ -1,10 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TaskController;
 use App\Models\Project;
+use Illuminate\Support\Facades\Route;
+
+// Página de inicio → Livewire
+Route::get('/', fn() => view('livewire.partials.wrapper', [
+    'component' => 'landingpage',
+]))->name('landingpage');
 
 // Lista de proyectos → Livewire
-Route::get('/', fn() => view('livewire.partials.wrapper', [
+Route::get('/projects', fn() => view('livewire.partials.wrapper', [
     'component' => 'projects',
 ]))->name('projects');
 
@@ -15,8 +22,18 @@ Route::get('/projects/{project}', fn(Project $project) => view('livewire.partial
 ]))->name('projects.show');
 
 // CRUD de tareas → Livewire
-Route::resource('projects.tasks', \App\Http\Controllers\TaskController::class)
+Route::resource('projects.tasks', TaskController::class)
     ->except(['index', 'show', 'create']);
 
-// Otros recursos
-Route::get('/external-posts', [\App\Http\Controllers\ExternalPostController::class, 'index']);
+// Crear usuario personal → Livewire
+Route::get('/register-personal', fn() => view('livewire.partials.wrapper', [
+    'component' => 'register-personal',
+]))->name('register.personal');
+
+// Login → Livewire
+Route::get('/login', fn() => view('livewire.partials.wrapper', [
+    'component' => 'login',
+]))->name('login');
+
+// Logout → controlador normal
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

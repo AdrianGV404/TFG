@@ -2,7 +2,10 @@
     <div class="container d-flex align-items-center justify-content-between">
 
         {{-- Botón volver a proyectos (izquierda) --}}
-        @if(Route::currentRouteName() !== 'projects')
+        @if (Route::currentRouteName() !== 'projects' &&
+                Route::currentRouteName() !== 'landingpage' &&
+                Route::currentRouteName() !== 'login' &&
+                Route::currentRouteName() !== 'register.personal')
             <a href="{{ route('projects') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
                 <i class="fas fa-arrow-left me-1"></i>
                 Volver a proyectos
@@ -14,17 +17,18 @@
         {{-- Nombre de usuario centrado --}}
         <div class="flex-grow-1 text-center">
             <span class="navbar-brand fw-bold fs-5 mb-0">
-                NOMBRE USUARIO
+                {{ auth()->check() ? auth()->user()->name : '' }}
             </span>
         </div>
-
-        {{-- Botón cerrar sesión (derecha) --}}
-        <div style="width: 130px;"> {{-- mismo ancho que el botón de la izquierda para simetría --}}
-            <button type="button" class="btn btn-outline-light btn-sm d-flex align-items-center w-100">
-                <i class="fas fa-sign-out-alt me-1"></i>
-                Cerrar Sesión
-            </button>
-        </div>
+        @auth
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-outline-light btn-sm d-flex align-items-center w-100">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Cerrar Sesión
+                </button>
+            </form>
+        @endauth
 
     </div>
 </nav>

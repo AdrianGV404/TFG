@@ -41,6 +41,7 @@ class TaskForm extends Component
             'description' => $this->description,
             'status' => $this->status,
             'priority' => $this->priority,
+            'tenant_id' => auth()->user()->tenant_id,
         ]);
 
         $this->notify("Tarea \"{$this->title}\" creada con éxito", 'success');

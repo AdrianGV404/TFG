@@ -105,7 +105,7 @@ class Projects extends Component
 
     public function render()
     {
-        $query = Project::withCount([
+        $query = Project::where('tenant_id', auth()->user()->tenant_id)->withCount([
             'tasks as total_tasks' => fn($q) => $this->showDeleted ? $q->withTrashed() : $q,
             'tasks as pending_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'pending'),
             'tasks as in_progress_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'in_progress'),
