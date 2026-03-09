@@ -23,9 +23,6 @@
         </div>
         @auth
             @if (auth()->user()->role === 'admin')
-                <a href="{{ route('users.create') }}" class="btn btn-outline-light btn-sm me-2">
-                    <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
-                </a>
                 <a href="{{ route('users.index') }}" class="btn btn-outline-light btn-sm me-2">
                     <i class="fas fa-users me-1"></i> Gestionar Usuarios
                 </a>
