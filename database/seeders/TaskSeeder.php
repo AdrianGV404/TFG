@@ -4,34 +4,39 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Task;
-use Database\Seeders\ProjectSeeder;
+use App\Models\Project;
 
 class TaskSeeder extends Seeder
 {
     public function run(): void
     {
-        // Obtener solo los proyectos nuevos del ProjectSeeder
-        $projectSeeder = new ProjectSeeder();
-        $newProjects = $projectSeeder->run();
+        $projects = Project::all();
+        if ($projects->isEmpty()) {
+            return;
+        }
 
-        foreach ($newProjects as $project) {
-            // Generar entre 100 y 150 tareas aleatorias
-            $taskCount = rand(100, 150);
+        foreach ($projects as $project) {
+            $taskCount = rand(50, 150);
 
             Task::factory()
                 ->count($taskCount)
-                ->create(['project_id' => $project->id])
-                ->each(function ($task) {
+                ->make()
+                ->each(function ($task) use ($project) {
+                    $task->project_id = $project->id;
+                    $task->tenant_id = $project->tenant_id;
                     $task->status = ['pending','in_progress','done'][rand(0,2)];
                     $task->priority = rand(0,10);
+                    $task->title .= " 🚀 ñáéíóú 漢字 \" ' emojis 😎";
+                    $task->description .= "\nLínea nueva, tabs\t, comillas \" ' , símbolos #$%&*(), emojis 🎉";
                     $task->save();
                 });
 
-            // Crear tarea especial con caracteres
+            // Tarea especial de prueba
             Task::factory()->create([
                 'project_id' => $project->id,
-                'title' => 'Tarea con caracteres: ñáéíóú, 漢字, emoji 🙂',
-                'description' => "Descripción con \"comillas\", \n saltos de línea, tabs\t y símbolos #$%&*()",
+                'tenant_id' => $project->tenant_id,
+                'title' => 'Tarea límite: ñáéíóú, 漢字, emojis 😀🎉, "comillas", \'simples\'',
+                'description' => "Descripción compleja:\nSaltos de línea, tabs\t, símbolos #$%&*(), comillas \" ' y emojis 🚀",
                 'status' => ['pending','in_progress','done'][rand(0,2)],
                 'priority' => rand(0,10),
             ]);

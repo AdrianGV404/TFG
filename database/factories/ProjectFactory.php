@@ -15,9 +15,9 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->sentence(3),
-            'description' => $this->faker->paragraph(),
-            'status' => 'active',
+            'name' => $this->faker->sentence(3) . " 🚀 ñáéíóú 漢字",
+            'description' => $this->faker->paragraph() . "\nComillas \" ' , tabs\t, emojis 😎, símbolos #$%&*()",
+            'status' => $this->faker->randomElement(['active', 'archived']),
         ];
     }
 }
