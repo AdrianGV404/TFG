@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Project;
+use App\Models\Tenant;
 use Faker\Factory as Faker;
 
 class ProjectSeeder extends Seeder
@@ -12,45 +13,25 @@ class ProjectSeeder extends Seeder
     {
         $faker = Faker::create('es_ES');
 
-        $newProjects = [];
-
-        // Proyectos de ejemplo (no duplicar)
-        $samples = [
-            [
-                'name' => 'Proyecto Demo',
-                'description' => 'Proyecto de prueba',
-            ],
-            [
-                'name' => 'Café & Código',
-                'description' => 'Descripción con acentos: ñ, á, é, í, ó, ú',
-            ],
-            [
-                'name' => 'Proyecto "Comillas"',
-                'description' => "Descripción con \"comillas\" y 'apóstrofes'",
-            ],
-            [
-                'name' => 'Proyecto 🚀',
-                'description' => 'Incluye emoji y símbolos especiales: © ® ™ — prueba',
-            ],
-        ];
-
-        foreach ($samples as $p) {
-            $project = Project::firstOrCreate(
-                ['name' => $p['name']],
-                ['description' => $p['description'], 'status' => 'archived']
-            );
-
-            // Solo si se creó nuevo, lo añadimos al array
-            if ($project->wasRecentlyCreated) {
-                $newProjects[] = $project;
-            }
+        $tenants = Tenant::all();
+        if ($tenants->isEmpty()) {
+            return [];
         }
 
-        // Crear 5 proyectos aleatorios nuevos, todos archivados
-        $randomProjects = Project::factory()->count(5)->create(['status' => 'archived']);
-        $newProjects = array_merge($newProjects, $randomProjects->all());
+        $newProjects = [];
 
-        // Devolver proyectos nuevos para TaskSeeder
+        // Crear 20 proyectos con tenant aleatorio
+        for ($i = 0; $i < 20; $i++) {
+            $project = Project::create([
+                'name' => $faker->sentence(3) . " 🚀 ñáéíóú 漢字",
+                'description' => $faker->paragraph() . "\nComillas \" ' , tabs\t, emojis 😎, símbolos #$%&*()",
+                'status' => $faker->randomElement(['active', 'archived']),
+                'tenant_id' => $tenants->random()->id,
+            ]);
+
+            $newProjects[] = $project;
+        }
+
         return $newProjects;
     }
 }
