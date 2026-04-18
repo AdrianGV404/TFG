@@ -14,7 +14,6 @@ class UserProfile extends Component
 
     public $name, $email, $photo;
     public $profile_photo_path;
-
     public $current_password, $new_password, $new_password_confirmation;
 
     public $theme, $notif_tasks, $notif_alerts, $notif_reports;
