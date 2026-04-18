@@ -9,15 +9,6 @@
                     <i class="fas fa-bars"></i>
                 </button>
             @endif
-
-            @if (Route::currentRouteName() !== 'projects' && 
-                 Route::currentRouteName() !== 'landingpage' && 
-                 Route::currentRouteName() !== 'login')
-                <a href="{{ route('projects') }}" class="btn btn-outline-light btn-sm d-flex align-items-center">
-                    <i class="fas fa-arrow-left me-1"></i>
-                    <span class="d-none d-md-inline">Proyectos</span>
-                </a>
-            @endif
         </div>
 
         {{-- COLUMNA CENTRAL: Nombre de usuario --}}
@@ -43,5 +34,3 @@
     </div>
 </nav>
 
-{{-- Espacio para que el contenido no quede tapado por el navbar fijo --}}
-<div style="height: 56px;"></div>

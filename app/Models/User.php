@@ -2,51 +2,43 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasOne; // Importación recomendada
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'tenant_id',
         'role',
-        'settings',
         'profile_photo_path',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'settings' => 'array', // <--- Importante: esto convierte el JSON en un array
     ];
+
+    /**
+     * RELACIÓN: Esta es la parte que faltaba.
+     * Un usuario tiene una fila de configuración.
+     */
+    public function settings(): HasOne
+    {
+        return $this->hasOne(UserSettings::class);
+    }
 
     // Relación con Tenant
     public function tenant()
@@ -59,6 +51,7 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
     /**
      * Obtener la URL de la foto de perfil o una por defecto.
      */
@@ -68,7 +61,6 @@ class User extends Authenticatable
             return asset('storage/' . $this->profile_photo_path);
         }
 
-        // Si no tiene foto, genera un avatar con sus iniciales
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 }

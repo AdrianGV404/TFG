@@ -12,15 +12,41 @@
     @livewireStyles
 
     <style>
+        /* Bloquea transiciones temporalmente para evitar el salto visual al cargar */
+        .no-transition, .no-transition * {
+            transition: none !important;
+        }
+
         :root {
             --sidebar-width: 280px;
             --navbar-height: 56px;
+            --sidebar-bg: #212529;
+            --sidebar-border: #343a40;
+            --sidebar-link-color: #adb5bd;
+            --sidebar-title-color: #6c757d;
+            --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode-active {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
+            --sidebar-bg: #111827;
+            --sidebar-border: #1f2937;
+            --sidebar-link-color: #94a3b8;
+            --sidebar-title-color: #4b5563;
+        }
+
+        .dark-mode-active .card {
+            background-color: #1e293b !important;
+            color: white;
+            border-color: #334155;
         }
 
         body {
             padding-top: {{ auth()->check() ? 'var(--navbar-height)' : '0' }};
             overflow-x: hidden;
             margin: 0;
+            transition: background-color 0.3s ease;
         }
 
         #sidebar-panel {
@@ -29,77 +55,96 @@
             left: calc(var(--sidebar-width) * -1);
             width: var(--sidebar-width);
             height: 100vh;
-            background-color: #212529;
+            background-color: var(--sidebar-bg);
             z-index: 1060;
-            transition: left 0.3s ease;
-            border-right: 1px solid #343a40;
+            transition: left 0.3s ease, background-color 0.3s ease;
+            border-right: 1px solid var(--sidebar-border);
         }
 
-        .main-wrapper,
-        .fixed-top {
+        .main-wrapper, .fixed-top {
             transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100% !important;
             margin-left: 0;
         }
 
-        .sidebar-open #sidebar-panel {
+        /* Selectores vinculados estrictamente al body */
+        body.sidebar-open #sidebar-panel {
             left: 0;
         }
 
-        .sidebar-open .main-wrapper,
-        .sidebar-open .fixed-top {
+        body.sidebar-open .main-wrapper,
+        body.sidebar-open .fixed-top {
             margin-left: var(--sidebar-width) !important;
             width: calc(100% - var(--sidebar-width)) !important;
+        }
+
+        .sidebar-section-title {
+            color: var(--sidebar-title-color) !important;
+            transition: color 0.3s ease;
         }
 
         .sidebar-link {
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: #adb5bd;
+            color: var(--sidebar-link-color);
             text-decoration: none;
             transition: 0.2s;
             border-radius: 8px;
             margin: 4px 10px;
         }
 
-        .sidebar-link:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .sidebar-link:hover, .sidebar-link.active {
+            background: var(--sidebar-hover-bg);
             color: #fff;
         }
 
-        .sidebar-link i {
-            width: 25px;
-        }
-
-        [x-cloak] {
-            display: none !important;
-        }
-
-        .dark-mode { background-color: #121212; color: #eee; }
-        .dark-mode .card { background-color: #1e1e1e; color: white; border-color: #333; }
+        .sidebar-link i { width: 25px; }
+        [x-cloak] { display: none !important; }
     </style>
+
+    <script>
+        /**
+         * SCRIPT CRÍTICO: Se ejecuta antes de mostrar el body.
+         * Detecta el estado del sidebar y aplica la clase 'sidebar-open' y 'no-transition'
+         * al elemento HTML para que el navegador renderice el layout ya desplazado.
+         */
+        (function() {
+            const sidebarStatus = localStorage.getItem('sidebar-status') === 'true';
+            if (sidebarStatus) {
+                document.documentElement.classList.add('sidebar-open', 'no-transition');
+            }
+        })();
+    </script>
 </head>
 
 <body 
     x-data="{ 
-        sidebarOpen: {{ auth()->check() ? "localStorage.getItem('sidebar-status') === 'true'" : 'false' }},
-        theme: '{{ auth()->user()->settings['theme'] ?? 'light' }}',
+        sidebarOpen: localStorage.getItem('sidebar-status') === 'true',
+        theme: '{{ auth()->user()?->settings?->theme ?? 'light' }}',
         toggleSidebar() {
             this.sidebarOpen = !this.sidebarOpen;
             localStorage.setItem('sidebar-status', this.sidebarOpen);
+            // Al hacer clic, nos aseguramos de limpiar cualquier clase sobrante del documentElement
+            document.documentElement.classList.remove('sidebar-open');
         }
     }" 
     x-init="
-        if (!{{ auth()->check() ? 'true' : 'false' }}) {
-            localStorage.removeItem('sidebar-status');
+        // Una vez Alpine toma el control, limpiamos la clase del HTML y dejamos que el Body mande
+        if (sidebarOpen) {
+            document.documentElement.classList.remove('sidebar-open');
         }
+        // Reactivamos las animaciones
+        setTimeout(() => {
+            document.documentElement.classList.remove('no-transition');
+            document.body.classList.remove('no-transition');
+        }, 100);
     "
-    :class="{ 'sidebar-open': sidebarOpen, 'dark-mode': theme === 'dark' }"
     @theme-updated.window="theme = $event.detail.theme"
+    {{-- Alpine gestiona la clase aquí --}}
+    :class="{ 'sidebar-open': sidebarOpen, 'dark-mode-active': theme === 'dark' }"
 >
 
-    {{-- SIDEBAR --}}
     @auth
         <aside id="sidebar-panel" class="shadow">
             <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
@@ -118,7 +163,7 @@
                 </a>
                 
                 @if (auth()->user()->isAdmin())
-                    <div class="px-4 mt-4 mb-2 text-uppercase small text-muted fw-bold" style="font-size: 0.7rem;">
+                    <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">
                         Administración</div>
                     <a href="{{ route('users.index') }}" class="sidebar-link">
                         <i class="fas fa-users-cog"></i> Gestión Usuarios
@@ -128,7 +173,7 @@
                     </a>
                 @endif
 
-                <div class="px-4 mt-4 mb-2 text-uppercase small text-muted fw-bold" style="font-size: 0.7rem;">Cuenta</div>
+                <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">Cuenta</div>
                 
                 <form method="POST" action="{{ route('logout') }}" class="m-0"
                       @submit="localStorage.removeItem('sidebar-status')">
@@ -169,10 +214,6 @@
             });
         });
     </script>
-
-    @auth
-        <!-- Modales igual que antes -->
-    @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
