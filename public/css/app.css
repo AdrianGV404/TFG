@@ -746,7 +746,8 @@ td .task-description {
 }
 :root {
     --navbar-height: 64px;
-    --search-height: 56px; /* altura real del bloque search-controls */
+    --sidebar-width: 260px;
+    --navbar-height: 56px; /* Ajustado a tu navbar real */
 }
 
 .search-controls-wrapper {
