@@ -161,7 +161,13 @@
                 <a href="{{ route('projects') }}" class="sidebar-link">
                     <i class="fas fa-home"></i> Inicio / Proyectos
                 </a>
-                
+                <a href="{{ route('dashboard') }}" class="sidebar-link {{ Route::is('dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+
+                <a href="{{ route('calendario') }}" class="sidebar-link {{ Route::is('calendario') ? 'active' : '' }}">
+                    <i class="fas fa-calendar"></i> Calendario
+                </a>
                 @if (auth()->user()->isAdmin())
                     <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">
                         Administración</div>

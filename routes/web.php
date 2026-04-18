@@ -47,8 +47,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Panel principal / Dashboard
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+    Route::view('/dashboard', 'livewire.partials.wrapper', [
+        'component' => 'dashboard'
+    ])->name('dashboard');
+
+    Route::view('/calendario', 'livewire.partials.wrapper', [
+        'component' => 'calendario'
+    ])->name('calendario');
 
     // Mi Perfil (Configuración del Sistema y Usuario)
     Route::get('/profile', fn() => view('livewire.partials.wrapper', [
