@@ -5,8 +5,8 @@
         <div class="d-flex align-items-center" style="flex: 1; flex-basis: 0;">
             {{-- Solo mostrar botón si el usuario está logueado y no está en la página de login --}}
             @if(auth()->check() && Route::currentRouteName() !== 'login')
-                <button class="btn btn-outline-info btn-sm me-3" @click="sidebarOpen = !sidebarOpen">
-                    <i class="fas fa-bars fs-5"></i>
+                <button class="btn btn-dark me-2" @click="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
                 </button>
             @endif
 

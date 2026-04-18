@@ -23,6 +23,8 @@ class User extends Authenticatable
         'password',
         'tenant_id',
         'role',
+        'settings',
+        'profile_photo_path',
     ];
 
     /**
@@ -43,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'settings' => 'array', // <--- Importante: esto convierte el JSON en un array
     ];
 
     // Relación con Tenant
@@ -55,5 +58,17 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+    /**
+     * Obtener la URL de la foto de perfil o una por defecto.
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
+        // Si no tiene foto, genera un avatar con sus iniciales
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 }

@@ -747,7 +747,6 @@ td .task-description {
 :root {
     --navbar-height: 64px;
     --sidebar-width: 260px;
-    --navbar-height: 56px; /* Ajustado a tu navbar real */
 }
 
 .search-controls-wrapper {
@@ -797,4 +796,13 @@ table tbody tr.bg-softdeleted:hover td {
 .badge.deleted {
     background: #dc3545; /* rojo fuerte */
     color: #fff;
+}
+
+.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+.dark-mode .card {
+    background-color: #1e1e1e;
+    color: white;
 }
