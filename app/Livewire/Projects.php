@@ -16,9 +16,6 @@ class Projects extends Component
     public bool $showForm = false;
     public bool $showDeleted = false;
 
-    /* =========================
-       EDICIÓN INLINE
-    ========================= */
     public ?int $editingProjectId = null;
     public string $editingName = '';
     public string $editingDescription = '';
@@ -41,10 +38,6 @@ class Projects extends Component
     {
         $this->showForm = false;
     }
-
-    /* =========================
-       EDICIÓN INLINE
-    ========================= */
 
     public function startEdit(int $projectId)
     {

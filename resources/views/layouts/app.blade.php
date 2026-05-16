@@ -12,7 +12,6 @@
     @livewireStyles
 
     <style>
-        /* Bloquea transiciones temporalmente para evitar el salto visual al cargar */
         .no-transition, .no-transition * {
             transition: none !important;
         }
@@ -67,7 +66,6 @@
             margin-left: 0;
         }
 
-        /* Selectores vinculados estrictamente al body */
         body.sidebar-open #sidebar-panel {
             left: 0;
         }
@@ -107,7 +105,6 @@
     <script>
         (function() {
             const sidebarStatus = localStorage.getItem('sidebar-status') === 'true';
-
             if (sidebarStatus) {
                 document.documentElement.classList.add('sidebar-open', 'no-transition');
             }
@@ -133,14 +130,13 @@
         if (sidebarOpen) {
             document.documentElement.classList.remove('sidebar-open');
         }
-
         setTimeout(() => {
             document.documentElement.classList.remove('no-transition');
             document.body.classList.remove('no-transition');
         }, 100);
     "
 
-    @theme-updated.window="theme = $event.detail.theme"
+    x-on:theme-updated.window="theme = $event.detail.theme"
 
     :class="{ 
         'sidebar-open': sidebarOpen,
@@ -153,7 +149,7 @@
         <aside id="sidebar-panel" class="shadow">
             <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
                 <span class="text-white fw-bold fs-5"><i class="fas fa-th-large me-2"></i>Menú</span>
-                <button class="btn btn-sm text-white" @click="toggleSidebar()">
+                <button class="btn btn-sm text-white" x-on:click="toggleSidebar()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -168,10 +164,10 @@
                 <a href="{{ route('dashboard') }}" class="sidebar-link {{ Route::is('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </a>
-
                 <a href="{{ route('calendario') }}" class="sidebar-link {{ Route::is('calendario') ? 'active' : '' }}">
                     <i class="fas fa-calendar"></i> Calendario
                 </a>
+                
                 @if (auth()->user()->isAdmin())
                     <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">
                         Administración</div>
@@ -185,8 +181,7 @@
 
                 <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">Cuenta</div>
                 
-                <form method="POST" action="{{ route('logout') }}" class="m-0"
-                      @submit="localStorage.removeItem('sidebar-status')">
+                <form method="POST" action="{{ route('logout') }}" class="m-0" x-on:submit="localStorage.removeItem('sidebar-status')">
                     @csrf
                     <button type="submit" class="sidebar-link border-0 bg-transparent w-100 text-start">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -196,6 +191,32 @@
         </aside>
 
         @include('livewire.partials.navbar')
+
+        {{-- MODAL DE CONFIRMACIÓN GLOBAL (Atrapa eventos de eliminar/restaurar) --}}
+        <div x-data="{ open: false, id: null, title: '', message: '', action: '', isDanger: true }"
+             x-on:confirm-delete.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = true;"
+             x-on:confirm-restore.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = false;"
+             class="modal fade" :class="{ 'show d-block': open, 'd-none': !open }" 
+             style="background: rgba(0,0,0,0.5); z-index: 1070;" x-cloak>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" x-text="title"></h5>
+                        <button type="button" class="btn-close" x-on:click="open = false"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p x-html="message"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" x-on:click="open = false">Cancelar</button>
+                        <button type="button" class="btn" :class="isDanger ? 'btn-danger' : 'btn-success'"
+                                x-on:click="Livewire.dispatch(action, { id: id }); open = false;">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endauth
 
     <div class="main-wrapper">

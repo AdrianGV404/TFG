@@ -22,37 +22,52 @@
         <button type="button" class="btn btn-secondary btn-sm" wire:click="cancelEdit">Cancelar</button>
     @else
         @if ($trashed)
+            {{-- Botón Restaurar --}}
             <button type="button" class="btn btn-success btn-sm btn-loading" x-data
+                data-id="{{ $id }}"
+                data-title="Restaurar {{ $title }}"
+                data-message="Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>."
+                data-action="{{ $restoreEvent }}"
                 x-on:click="$dispatch('confirm-restore', {
-                id: {{ $id }},
-                title: 'Restaurar {{ $title }}',
-                message: 'Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>.',
-                action: '{{ $restoreEvent }}'})">
+                    id: $el.dataset.id,
+                    title: $el.dataset.title,
+                    message: $el.dataset.message,
+                    action: $el.dataset.action
+                })">
                 Restaurar
             </button>
 
+            {{-- Botón Eliminar Permanente --}}
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
+                data-id="{{ $id }}"
+                data-title="Eliminar {{ $title }}"
+                data-message="Ya está eliminado y se borrará permanentemente. Esta acción <b>no se puede deshacer</b>."
+                data-action="{{ $deleteEvent }}"
                 x-on:click="$dispatch('confirm-delete', {
-                    id: {{ $id }},
-                    title: 'Eliminar {{ $title }}',
-                    message: '{{ $trashed ? 'Ya está eliminado y se borrará permanentemente.' : '' }}. Esta acción <b>no se puede deshacer</b>.',
-                    action: '{{ $deleteEvent }}',
-                    isPermanent: true
+                    id: $el.dataset.id,
+                    title: $el.dataset.title,
+                    message: $el.dataset.message,
+                    action: $el.dataset.action
                 })">
                 Eliminar
             </button>
         @else
+            {{-- Botón Editar --}}
             <button type="button" class="btn btn-secondary btn-sm" wire:click="startEdit({{ $id }})">
                 Editar
             </button>
 
+            {{-- Botón Eliminar Soft --}}
             <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
+                data-id="{{ $id }}"
+                data-title="Eliminar {{ $title }}"
+                data-message="¿Seguro que quieres eliminar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>? Esta acción solo la podrá deshacer el administrador."
+                data-action="{{ $deleteEvent }}"
                 x-on:click="$dispatch('confirm-delete', {
-                    id: {{ $id }},
-                    title: 'Eliminar {{ $title }}',
-                    message: '¿Seguro que quieres eliminar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>? Esta acción solo la podrá deshacer el administrador.',
-                    action: '{{ $deleteEvent }}',
-                    isPermanent: false
+                    id: $el.dataset.id,
+                    title: $el.dataset.title,
+                    message: $el.dataset.message,
+                    action: $el.dataset.action
                 })">
                 Eliminar
             </button>
