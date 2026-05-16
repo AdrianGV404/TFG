@@ -103,46 +103,50 @@
         [x-cloak] { display: none !important; }
     </style>
 
+    @if(auth()->check())
     <script>
-        /**
-         * SCRIPT CRÍTICO: Se ejecuta antes de mostrar el body.
-         * Detecta el estado del sidebar y aplica la clase 'sidebar-open' y 'no-transition'
-         * al elemento HTML para que el navegador renderice el layout ya desplazado.
-         */
         (function() {
             const sidebarStatus = localStorage.getItem('sidebar-status') === 'true';
+
             if (sidebarStatus) {
                 document.documentElement.classList.add('sidebar-open', 'no-transition');
             }
         })();
     </script>
+    @endif
 </head>
 
-<body 
+<body
+@if(auth()->check())
     x-data="{ 
         sidebarOpen: localStorage.getItem('sidebar-status') === 'true',
         theme: '{{ auth()->user()?->settings?->theme ?? 'light' }}',
+
         toggleSidebar() {
             this.sidebarOpen = !this.sidebarOpen;
             localStorage.setItem('sidebar-status', this.sidebarOpen);
-            // Al hacer clic, nos aseguramos de limpiar cualquier clase sobrante del documentElement
             document.documentElement.classList.remove('sidebar-open');
         }
-    }" 
+    }"
+
     x-init="
-        // Una vez Alpine toma el control, limpiamos la clase del HTML y dejamos que el Body mande
         if (sidebarOpen) {
             document.documentElement.classList.remove('sidebar-open');
         }
-        // Reactivamos las animaciones
+
         setTimeout(() => {
             document.documentElement.classList.remove('no-transition');
             document.body.classList.remove('no-transition');
         }, 100);
     "
+
     @theme-updated.window="theme = $event.detail.theme"
-    {{-- Alpine gestiona la clase aquí --}}
-    :class="{ 'sidebar-open': sidebarOpen, 'dark-mode-active': theme === 'dark' }"
+
+    :class="{ 
+        'sidebar-open': sidebarOpen,
+        'dark-mode-active': theme === 'dark'
+    }"
+@endif
 >
 
     @auth
