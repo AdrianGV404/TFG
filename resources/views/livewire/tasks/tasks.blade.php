@@ -8,9 +8,14 @@
     {{-- FORMULARIO --}}
     <div class="d-flex"
         style="gap:24px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; justify-content:space-between;">
+
         @if (!$showForm)
-            <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
-                wire:target="openForm">
+            <button type="button"
+                    class="btn btn-primary btn-loading"
+                    wire:click="openForm"
+                    wire:loading.attr="disabled"
+                    wire:target="openForm">
+
                 <span class="btn-text">+ Nueva Tarea</span>
                 <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
             </button>
@@ -24,94 +29,32 @@
         @endif
     </div>
 
-    {{-- PIECHARTS --}}
-    @php
-        $done = $project->tasks()->where('status', 'done')->count();
-        $inProgress = $project->tasks()->where('status', 'in_progress')->count();
-        $pending = $project->tasks()->where('status', 'pending')->count();
-        $total = $done + $inProgress + $pending;
-
-        $priorityCounts = [
-            'very_high' => $project
-                ->tasks()
-                ->whereIn('priority', [0])
-                ->count(),
-            'high' => $project
-                ->tasks()
-                ->whereIn('priority', [1, 2, 3])
-                ->count(),
-            'mid' => $project
-                ->tasks()
-                ->whereIn('priority', [4, 5, 6])
-                ->count(),
-            'low' => $project
-                ->tasks()
-                ->whereIn('priority', [7, 8])
-                ->count(),
-            'very_low' => $project
-                ->tasks()
-                ->whereIn('priority', [9, 10])
-                ->count(),
-        ];
-        $totalPriority = array_sum($priorityCounts);
-    @endphp
-    <div class="piecharts-fixed">
-        @if ($total > 0 || $totalPriority > 0)
-            <div class="piecharts-wrapper" style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
-                @if ($total > 0)
-                    <div class="piecol" style="flex:1; min-width:200px;">
-                        <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Estados</h5>
-                        @include('livewire.partials.pie-chart', [
-                            'values' => [$done, $inProgress, $pending],
-                            'labels' => ['Hecha', 'En progreso', 'Pendiente'],
-                            'colors' => ['#4caf7a', '#3399ff', '#ffc107'],
-                        ])
-                    </div>
-                @endif
-
-                @if ($totalPriority > 0)
-                    <div class="piecol" style="flex:1; min-width:200px;">
-                        <h5 style="margin-bottom:8px; font-size:14px; text-align:center;">Prioridades</h5>
-                        @include('livewire.partials.pie-chart', [
-                            'values' => array_values($priorityCounts),
-                            'labels' => [
-                                'Muy Alta (0)',
-                                'Alta (1, 2, 3)',
-                                'Media (4, 5, 6)',
-                                'Baja (7, 8)',
-                                'Muy Baja (9, 10)',
-                            ],
-                            'colors' => ['#dc3545', '#fd7e14', '#ffc107', '#0dcaf0', '#6c757d'],
-                        ])
-                    </div>
-                @endif
-            </div>
-        @endif
-    </div>
     <hr>
 
     {{-- CONTROLES --}}
     <div class="search-controls-wrapper mb-2">
+
         {{-- Checkbox encima, alineado a la derecha --}}
         <div class="d-flex justify-content-end mb-1">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="showDeleted" wire:model="showDeleted"
-                    wire:change="$refresh">
+                <input class="form-check-input"
+                       type="checkbox"
+                       id="showDeleted"
+                       wire:model="showDeleted"
+                       wire:change="$refresh">
+
                 <label class="form-check-label ms-1" for="showDeleted">
                     Mostrar tareas eliminadas
                 </label>
             </div>
         </div>
 
-        {{-- Search controls debajo --}}
+        {{-- Search controls --}}
         @include('livewire.partials.search-controls', [
             'textPlaceholder' => 'Buscar por título...',
             'allowStatusOrder' => true,
         ])
     </div>
-
-
-
 
     {{-- TABLA DE TAREAS --}}
     <table class="table">
@@ -127,6 +70,7 @@
 
         <tbody>
             @forelse ($tasks as $task)
+
                 @php
                     $isEditing = $editingTaskId === $task->id;
                     $status = $editingStatus[$task->id] ?? $task->status;
@@ -155,18 +99,26 @@
 
                     {{-- TAREA --}}
                     <td class="col-task">
+
                         @if ($isEditing)
-                            <input type="text" class="form-control form-control-sm mb-1"
-                                wire:model.defer="editingTitle">
-                            <textarea class="form-control form-control-sm auto-resize-textarea" rows="1" wire:model.defer="editingDescription"
-                                x-data x-init="$el.style.height = $el.scrollHeight + 'px'" x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
+                            <input type="text"
+                                   class="form-control form-control-sm mb-1"
+                                   wire:model.defer="editingTitle">
+
+                            <textarea class="form-control form-control-sm auto-resize-textarea"
+                                      rows="1"
+                                      wire:model.defer="editingDescription"
+                                      x-data
+                                      x-init="$el.style.height = $el.scrollHeight + 'px'"
+                                      x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
+
                         @else
                             <div class="task-title">{{ $task->title }}</div>
+
                             @if ($task->description)
                                 <div class="task-description">{!! nl2br(e($task->description)) !!}</div>
                             @endif
 
-                            {{-- SOLO SOFTDELETED: Expira debajo del contenido --}}
                             @if ($isDeleted)
                                 <div class="expira-text text-danger mt-1" style="font-size:13px;">
                                     @if ($daysLeft <= 5)
@@ -182,54 +134,54 @@
                     <td class="text-muted col-timestamps">
                         <div>
                             <span style="font-weight:500;">C:</span>
-                            <span>{{ $task->created_at->format('d/m/Y') }} |
-                                {{ $task->created_at->format('H:i') }}</span>
+                            <span>{{ $task->created_at->format('d/m/Y') }} | {{ $task->created_at->format('H:i') }}</span>
                         </div>
                         <div>
                             <span style="font-weight:500;">A:</span>
-                            <span>{{ $task->updated_at->format('d/m/Y') }} |
-                                {{ $task->updated_at->format('H:i') }}</span>
+                            <span>{{ $task->updated_at->format('d/m/Y') }} | {{ $task->updated_at->format('H:i') }}</span>
                         </div>
                     </td>
 
                     {{-- ESTADO + PRIORIDAD --}}
                     <td>
-                        <div class="task-status-wrapper" style="display:flex; flex-direction:column; gap:4px;">
-                            {{-- ESTADO --}}
-                            <select
-                                class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
-                                wire:model.defer="editingStatus.{{ $task->id }}"
-                                @if (!$isEditing || $isDeleted) disabled @endif>
-                                <option value="pending" @selected($status === 'pending')>Pendiente</option>
-                                <option value="in_progress" @selected($status === 'in_progress')>En progreso</option>
-                                <option value="done" @selected($status === 'done')>Hecha</option>
+                        <div class="task-status-wrapper"
+                             style="display:flex; flex-direction:column; gap:4px;">
+
+                            <select class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
+                                    wire:model.defer="editingStatus.{{ $task->id }}"
+                                    @if (!$isEditing || $isDeleted) disabled @endif>
+
+                                <option value="pending">Pendiente</option>
+                                <option value="in_progress">En progreso</option>
+                                <option value="done">Hecha</option>
                             </select>
 
-                            {{-- PRIORIDAD --}}
                             <select wire:model.defer="editingPriority.{{ $task->id }}"
-                                class="task-priority-select {{ $isEditing ? 'editable' : 'readonly' }}"
-                                @if (!$isEditing || $isDeleted) disabled @endif>
+                                    class="task-priority-select {{ $isEditing ? 'editable' : 'readonly' }}"
+                                    @if (!$isEditing || $isDeleted) disabled @endif>
+
                                 @for ($i = 0; $i <= 10; $i++)
                                     @php
                                         $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
                                     @endphp
-                                    <option value="{{ $i }}" class="priority-{{ $class }}"
-                                        @selected($priority == $i)>
-                                        {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }}
-                                        ({{ $i }})
+
+                                    <option value="{{ $i }}"
+                                            class="priority-{{ $class }}">
+                                        {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }} ({{ $i }})
                                     </option>
                                 @endfor
                             </select>
+
                         </div>
                     </td>
                 </tr>
+
             @empty
                 <tr>
                     <td colspan="5" class="text-muted">No hay tareas que coincidan.</td>
                 </tr>
             @endforelse
         </tbody>
-
     </table>
 
     {{-- PAGINADOR --}}
@@ -239,45 +191,37 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 
-        const searchWrapper = document.querySelector('.search-controls-wrapper');
-        const table = document.querySelector('table');
-        const tableHead = table.querySelector('thead');
+    const searchWrapper = document.querySelector('.search-controls-wrapper');
+    const table = document.querySelector('table');
+    const tableHead = table.querySelector('thead');
 
-        const navbarHeight = 64; // o tu altura real del navbar
+    const navbarHeight = 64;
 
-        function adjustSticky() {
-            // Actualiza altura del search-wrapper
-            const searchHeight = searchWrapper.offsetHeight;
-            document.documentElement.style.setProperty('--search-height', searchHeight + 'px');
+    function adjustSticky() {
+        const searchHeight = searchWrapper.offsetHeight;
+        document.documentElement.style.setProperty('--search-height', searchHeight + 'px');
 
-            // Ajusta top de thead th
-            tableHead.querySelectorAll('th').forEach(th => {
-                th.style.top = (navbarHeight + searchHeight + 15) + 'px';
-            });
+        tableHead.querySelectorAll('th').forEach(th => {
+            th.style.top = (navbarHeight + searchHeight + 15) + 'px';
+        });
 
-            // Ajusta ancho de th según td (mantener alineación)
-            const firstRow = table.querySelector('tbody tr');
-            if (!firstRow) return;
+        const firstRow = table.querySelector('tbody tr');
+        if (!firstRow) return;
 
-            const tds = firstRow.querySelectorAll('td');
-            const ths = tableHead.querySelectorAll('th');
+        const tds = firstRow.querySelectorAll('td');
+        const ths = tableHead.querySelectorAll('th');
 
-            ths.forEach((th, i) => {
-                if (tds[i]) {
-                    th.style.width = tds[i].offsetWidth + 'px';
-                }
-            });
-        }
+        ths.forEach((th, i) => {
+            if (tds[i]) {
+                th.style.width = tds[i].offsetWidth + 'px';
+            }
+        });
+    }
 
-        // Ajustar al cargar
-        adjustSticky();
-
-        // Ajustar al hacer resize
-        window.addEventListener('resize', adjustSticky);
-
-        // Opcional: también ajustar al hacer scroll si cambia layout
-        window.addEventListener('scroll', adjustSticky);
-    });
+    adjustSticky();
+    window.addEventListener('resize', adjustSticky);
+    window.addEventListener('scroll', adjustSticky);
+});
 </script>
