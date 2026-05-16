@@ -105,12 +105,25 @@ class Projects extends Component
 
     public function render()
     {
-        $query = Project::where('tenant_id', auth()->user()->tenant_id)->withCount([
-            'tasks as total_tasks' => fn($q) => $this->showDeleted ? $q->withTrashed() : $q,
-            'tasks as pending_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'pending'),
-            'tasks as in_progress_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'in_progress'),
-            'tasks as done_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'done'),
-        ]);
+        $query = Project::query()
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->withCount([
+                'tasks as total_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                },
+                'tasks as pending_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'pending');
+                },
+                'tasks as in_progress_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'in_progress');
+                },
+                'tasks as done_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'done');
+                },
+            ]);
 
         if ($this->showDeleted) {
             $query = $query->withTrashed();
