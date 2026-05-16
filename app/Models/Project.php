@@ -17,6 +17,7 @@ class Project extends Model
         'description',
         'status',
         'tenant_id',
+        'created_by',
     ];
 
     // Relación con tenant
@@ -58,5 +59,16 @@ class Project extends Model
         $days = config('prune.days_to_keep_deleted.' . self::class, 60);
         return static::onlyTrashed()
             ->where('deleted_at', '<=', now()->subDays($days));
+    }
+    // Usuario creador del proyecto
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // Usuarios asignados al proyecto
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
     }
 }

@@ -63,4 +63,15 @@ class User extends Authenticatable
 
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
+    // Proyectos creados por el usuario
+    public function createdProjects()
+    {
+        return $this->hasMany(Project::class, 'created_by');
+    }
+
+    // Proyectos donde está asignado
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class);
+    }
 }
