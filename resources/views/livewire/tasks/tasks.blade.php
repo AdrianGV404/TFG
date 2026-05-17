@@ -1,5 +1,4 @@
-<div class="container tasks-wrapper">
-
+<div class="container tasks-wrapper" x-data="{ openModal: false }">
     {{-- HEADER --}}
     <div class="page-header">
         <h2 class="mb-0">Tareas del proyecto</h2>
@@ -119,6 +118,40 @@
                                 <div class="task-description">{!! nl2br(e($task->description)) !!}</div>
                             @endif
 
+                            {{-- TIEMPO DEDICADO --}}
+                            @php
+                                $totalSeconds = $task->timeEntries->sum('duration_seconds');
+
+                                $hours = floor($totalSeconds / 3600);
+                                $minutes = floor(($totalSeconds % 3600) / 60);
+                            @endphp
+
+                            @if ($totalSeconds > 0)
+                                <div class="mt-2 small text-muted">
+                                    ⏱ Tiempo total:
+                                    <strong>{{ $hours }}h {{ $minutes }}m</strong>
+                                </div>
+
+                                <div class="small text-muted mt-1">
+                                    @foreach ($task->timeEntries->groupBy('user_id') as $userId => $entries)
+
+                                        @php
+                                            $userSeconds = $entries->sum('duration_seconds');
+
+                                            $uHours = floor($userSeconds / 3600);
+                                            $uMinutes = floor(($userSeconds % 3600) / 60);
+
+                                            $user = $entries->first()->user;
+                                        @endphp
+
+                                        <div>
+                                            • {{ $user->name }}:
+                                            {{ $uHours }}h {{ $uMinutes }}m
+                                        </div>
+
+                                    @endforeach
+                                </div>
+                            @endif
                             @if ($isDeleted)
                                 <div class="expira-text text-danger mt-1" style="font-size:13px;">
                                     @if ($daysLeft <= 5)
@@ -188,8 +221,38 @@
     <div class="mt-3">
         {{ $tasks->links() }}
     </div>
+    {{-- Coloca este bloque justo antes del último </div> del archivo tasks.blade.php --}}
+<div class="modal fade {{ $showManualTimeModal ? 'show d-block' : '' }}" 
+     style="background: rgba(0,0,0,.5); {{ $showManualTimeModal ? 'display: block;' : 'display: none;' }}"
+     tabindex="-1"
+     wire:key="manual-time-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Añadir tiempo manual</h5>
+                <button type="button" class="btn-close" wire:click="closeManualTimeModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label>Horas</label>
+                        <input type="number" min="0" class="form-control" wire:model="manualHours">
+                        @error('manualHours') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="col">
+                        <label>Minutos</label>
+                        <input type="number" min="0" max="59" class="form-control" wire:model="manualMinutes">
+                        @error('manualMinutes') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" wire:click="closeManualTimeModal">Cancelar</button>
+                <button type="button" class="btn btn-primary" wire:click="saveManualTime">Guardar tiempo</button>
+            </div>
+        </div>
+    </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 

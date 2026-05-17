@@ -73,4 +73,28 @@
             </button>
         @endif
     @endif
+
+    @if($isTask && isset($task) && $task)
+        @php
+            $isTracking = ($task->timeEntries ?? collect())
+                ->where('user_id', auth()->id())
+                ->where('is_running', true)
+                ->isNotEmpty();
+        @endphp
+
+        <button
+            wire:click="toggleTimeTracking({{ $task->id }})"
+            class="btn btn-sm {{ $isTracking ? 'btn-danger' : 'btn-outline-primary' }}"
+        >
+            {{ $isTracking ? '⏹ Detener' : '▶ Grabar tiempo' }}
+        </button>
+        <button
+            type="button"
+            x-on:click="openModal = true; $wire.openManualTimeModal({{ $task->id }})"
+            class="btn btn-sm btn-outline-secondary"
+            title="Añadir tiempo manual"
+        >
+            ➕⏱
+        </button>
+    @endif
 </div>

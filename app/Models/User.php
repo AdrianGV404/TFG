@@ -74,4 +74,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Project::class);
     }
+    
+    public function timeEntries()
+    {
+        return $this->hasMany(TaskTimeEntry::class);
+    }
 }
