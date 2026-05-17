@@ -47,9 +47,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
 
-    Route::view('/dashboard', 'livewire.partials.wrapper', [
-        'component' => 'dashboard'
-    ])->name('dashboard');
+    Route::get('/dashboard', fn () => view('livewire.partials.wrapper', [
+        'component' => 'dashboard',
+    ]))->name('dashboard');
 
     Route::view('/calendario', 'livewire.partials.wrapper', [
         'component' => 'calendario'
