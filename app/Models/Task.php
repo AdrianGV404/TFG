@@ -19,8 +19,12 @@ class Task extends Model
         'status',
         'priority',
         'processed_at',
+        'due_date',
     ];
-
+    
+    protected $casts = [
+        'due_date' => 'date',
+    ];
     /**
      * Relación inversa: una tarea pertenece a un proyecto.
      */

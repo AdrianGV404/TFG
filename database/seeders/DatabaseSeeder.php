@@ -9,9 +9,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UserSeeder::class,       // primero usuarios y tenants
-            ProjectSeeder::class,    // luego 20 proyectos
-            TaskSeeder::class,       // luego tareas (50-150 por proyecto)
+            UserSeeder::class,    // 1. Crea usuarios y tenants
+            ProjectSeeder::class, // 2. Crea proyectos y asigna los usuarios
+            TaskSeeder::class,    // 3. Crea las 50 tareas/proyecto con tiempos y la nueva due_date
         ]);
     }
 }

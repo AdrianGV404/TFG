@@ -163,7 +163,7 @@
                         @endif
                     </td>
 
-                    {{-- TIMESTAMPS --}}
+{{-- TIMESTAMPS Y CADUCIDAD --}}
                     <td class="text-muted col-timestamps">
                         <div>
                             <span style="font-weight:500;">C:</span>
@@ -172,6 +172,31 @@
                         <div>
                             <span style="font-weight:500;">A:</span>
                             <span>{{ $task->updated_at->format('d/m/Y') }} | {{ $task->updated_at->format('H:i') }}</span>
+                        </div>
+                        
+                        {{-- FECHA CADUCIDAD --}}
+                        <div class="mt-1" style="border-top: 1px dashed #ccc; padding-top: 4px;">
+                            <span style="font-weight:500;">Vence:</span>
+                            
+                            @if ($isEditing)
+                                <input type="date" 
+                                       class="form-control form-control-sm" 
+                                       wire:model.defer="editingDueDate.{{ $task->id }}"
+                                       style="display: inline-block; width: auto;">
+                            @else
+                                @if ($task->due_date)
+                                    @php
+                                        // Comprobamos si está caducada y NO está terminada para ponerla en rojo
+                                        $isOverdue = $task->due_date->isPast() && !$task->isDone();
+                                    @endphp
+                                    <span class="{{ $isOverdue ? 'text-danger fw-bold' : '' }}">
+                                        {{ $task->due_date->format('d/m/Y') }}
+                                        @if($isOverdue) ⚠️ @endif
+                                    </span>
+                                @else
+                                    <span style="font-style: italic;">Sin fecha</span>
+                                @endif
+                            @endif
                         </div>
                     </td>
 

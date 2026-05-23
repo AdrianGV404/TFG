@@ -51,9 +51,9 @@ Route::middleware(['auth'])->group(function () {
         'component' => 'dashboard',
     ]))->name('dashboard');
 
-    Route::view('/calendario', 'livewire.partials.wrapper', [
-        'component' => 'calendario'
-    ])->name('calendario');
+    Route::view('/calendar', 'livewire.partials.wrapper', [
+        'component' => 'calendar'
+    ])->name('calendar');
 
     // Mi Perfil (Configuración del Sistema y Usuario)
     Route::get('/profile', fn() => view('livewire.partials.wrapper', [

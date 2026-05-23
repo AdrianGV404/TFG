@@ -164,7 +164,7 @@
                 <a href="{{ route('dashboard') }}" class="sidebar-link {{ Route::is('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </a>
-                <a href="{{ route('calendario') }}" class="sidebar-link {{ Route::is('calendario') ? 'active' : '' }}">
+                <a href="{{ route('calendar') }}" class="sidebar-link {{ Route::is('calendar') ? 'active' : '' }}">
                     <i class="fas fa-calendar"></i> Calendario
                 </a>
                 

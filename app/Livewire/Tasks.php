@@ -31,7 +31,8 @@ class Tasks extends Component
     public array $originalStatus = [];
     public array $originalPriority = [];
     public int $taskFormKey = 0;
-
+    public array $editingDueDate = [];
+    public array $originalDueDate = [];
     /* =========================
        MODAL TIEMPO MANUAL
     ========================= */
@@ -47,19 +48,22 @@ class Tasks extends Component
         'closeForm' => 'closeForm',
     ];
 
-    public function mount()
+public function mount()
     {
         $this->orderBy = 'priority';
 
         foreach ($this->project->tasks as $task) {
             $this->editingStatus[$task->id] = $task->status;
             $this->editingPriority[$task->id] = $task->priority;
+            $this->editingDueDate[$task->id] = $task->due_date ? $task->due_date->format('Y-m-d') : null; 
+            
             $this->originalStatus[$task->id] = $task->status;
             $this->originalPriority[$task->id] = $task->priority;
+            $this->originalDueDate[$task->id] = $this->editingDueDate[$task->id];
         }
     }
 
-    public function onTaskCreated()
+public function onTaskCreated()
     {
         $this->taskFormKey++;
         $this->resetPage();
@@ -68,8 +72,11 @@ class Tasks extends Component
             if (!isset($this->editingStatus[$task->id])) {
                 $this->editingStatus[$task->id] = $task->status;
                 $this->editingPriority[$task->id] = $task->priority;
+                $this->editingDueDate[$task->id] = $task->due_date ? $task->due_date->format('Y-m-d') : null;
+                
                 $this->originalStatus[$task->id] = $task->status;
                 $this->originalPriority[$task->id] = $task->priority;
+                $this->originalDueDate[$task->id] = $this->editingDueDate[$task->id];
             }
         }
     }
@@ -85,6 +92,8 @@ class Tasks extends Component
 
         $this->originalStatus[$taskId] = $task->status;
         $this->originalPriority[$taskId] = $task->priority;
+        $this->originalDueDate[$taskId] = $this->editingDueDate[$taskId];
+        
     }
 
     public function cancelEdit()
@@ -92,6 +101,7 @@ class Tasks extends Component
         if ($this->editingTaskId) {
             $this->editingStatus[$this->editingTaskId] = $this->originalStatus[$this->editingTaskId];
             $this->editingPriority[$this->editingTaskId] = $this->originalPriority[$this->editingTaskId];
+            $this->editingDueDate[$this->editingTaskId] = $this->originalDueDate[$this->editingTaskId];
         }
 
         $this->editingTaskId = null;
@@ -101,18 +111,19 @@ class Tasks extends Component
 
     public function saveEdit()
     {
-        $this->validate($this->taskRulesForEditing());
+$this->validate($this->taskRulesForEditing()); // **Nota abajo**
 
         $this->updateScoped(Task::class, $this->editingTaskId, [
             'title' => $this->editingTitle,
             'description' => $this->editingDescription,
             'status' => $this->editingStatus[$this->editingTaskId],
             'priority' => $this->editingPriority[$this->editingTaskId],
+            'due_date' => $this->editingDueDate[$this->editingTaskId] ?: null,
         ]);
 
         $this->originalStatus[$this->editingTaskId] = $this->editingStatus[$this->editingTaskId];
         $this->originalPriority[$this->editingTaskId] = $this->editingPriority[$this->editingTaskId];
-
+        $this->originalDueDate[$this->editingTaskId] = $this->editingDueDate[$this->editingTaskId];
         $this->notify("Tarea \"{$this->editingTitle}\" actualizada con éxito", 'success');
 
         $this->editingTaskId = null;
