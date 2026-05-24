@@ -16,6 +16,22 @@
                 {{ auth()->check() ? auth()->user()->name : 'ProMaTi' }}
             </span>
         </div>
+        @auth
+            @if (auth()->user()->role === 'admin')
+                <a href="{{ route('users.index') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-users me-1"></i> Gestionar Usuarios
+                </a>
+            @endif
+        @endauth
+        @auth
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-outline-light btn-sm d-flex align-items-center w-100">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Cerrar Sesión
+                </button>
+            </form>
+        @endauth
 
         {{-- COLUMNA DERECHA: Cerrar Sesión --}}
         <div class="d-flex align-items-center justify-content-end" style="flex: 1; flex-basis: 0;">
