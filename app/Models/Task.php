@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Prunable;
+use App\Models\TaskTimeEntry;
 
 class Task extends Model
 {
@@ -18,8 +19,12 @@ class Task extends Model
         'status',
         'priority',
         'processed_at',
+        'due_date',
     ];
-
+    
+    protected $casts = [
+        'due_date' => 'date',
+    ];
     /**
      * Relación inversa: una tarea pertenece a un proyecto.
      */
@@ -88,5 +93,9 @@ class Task extends Model
         $days = config('prune.days_to_keep_deleted.' . self::class, 30);
         return static::onlyTrashed()
             ->where('deleted_at', '<=', now()->subDays($days));
+    }
+    public function timeEntries()
+    {
+        return $this->hasMany(TaskTimeEntry::class);
     }
 }

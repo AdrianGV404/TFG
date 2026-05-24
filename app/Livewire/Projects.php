@@ -16,9 +16,6 @@ class Projects extends Component
     public bool $showForm = false;
     public bool $showDeleted = false;
 
-    /* =========================
-       EDICIÓN INLINE
-    ========================= */
     public ?int $editingProjectId = null;
     public string $editingName = '';
     public string $editingDescription = '';
@@ -42,13 +39,14 @@ class Projects extends Component
         $this->showForm = false;
     }
 
-    /* =========================
-       EDICIÓN INLINE
-    ========================= */
-
     public function startEdit(int $projectId)
     {
         $project = Project::findOrFail($projectId);
+
+        if (!$this->canManage($project)) {
+            $this->notify('No tienes permisos para editar este proyecto', 'danger');
+            return;
+        }
 
         $this->startEditingModel($project, 'editingProjectId', [
             'editingName' => 'name',
@@ -85,6 +83,12 @@ class Projects extends Component
     public function delete(int $projectId)
     {
         $project = Project::withTrashed()->findOrFail($projectId);
+
+        if (!$this->canManage($project)) {
+            $this->notify('No tienes permisos para eliminar este proyecto', 'danger');
+            return;
+        }
+
         $name = $project->name;
 
         if ($project->trashed()) {
@@ -105,11 +109,40 @@ class Projects extends Component
 
     public function render()
     {
-        $query = Project::where('tenant_id', auth()->user()->tenant_id)->withCount([
-            'tasks as total_tasks' => fn($q) => $this->showDeleted ? $q->withTrashed() : $q,
-            'tasks as pending_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'pending'),
-            'tasks as in_progress_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'in_progress'),
-            'tasks as done_tasks' => fn($q) => ($this->showDeleted ? $q->withTrashed() : $q)->where('status', 'done'),
+    $user = auth()->user();
+
+    $query = Project::query()
+        ->where('tenant_id', $user->tenant_id)
+        ->with(['users'])
+        ->where(function ($q) use ($user) {
+
+            // ADMIN: ve todo el tenant
+            if ($user->isAdmin()) {
+                return;
+            }
+
+            // CREADOR o ASIGNADO
+            $q->where('created_by', $user->id)
+              ->orWhereHas('users', function ($q2) use ($user) {
+                  $q2->where('users.id', $user->id);
+              });
+        })
+        ->withCount([
+            'tasks as total_tasks' => function ($q) {
+                if ($this->showDeleted) $q->withTrashed();
+            },
+            'tasks as pending_tasks' => function ($q) {
+                if ($this->showDeleted) $q->withTrashed();
+                $q->where('status', 'pending');
+            },
+            'tasks as in_progress_tasks' => function ($q) {
+                if ($this->showDeleted) $q->withTrashed();
+                $q->where('status', 'in_progress');
+            },
+            'tasks as done_tasks' => function ($q) {
+                if ($this->showDeleted) $q->withTrashed();
+                $q->where('status', 'done');
+            },
         ]);
 
         if ($this->showDeleted) {
@@ -133,6 +166,12 @@ class Projects extends Component
     public function restoreProject(int $id)
     {
         $project = Project::withTrashed()->findOrFail($id);
+
+        if (!$this->canManage($project)) {
+            $this->notify('No tienes permisos para restaurar este proyecto', 'danger');
+            return;
+        }
+
         $project->restore();
         $project->status = 'archived';
         $project->saveQuietly();
@@ -142,5 +181,13 @@ class Projects extends Component
         }
 
         $this->notify("Proyecto \"{$project->name}\" y sus tareas restauradas con éxito", 'success');
+    }
+
+    private function canManage(Project $project): bool
+    {
+        $user = auth()->user();
+
+        return $user->isAdmin()
+            || $project->created_by === $user->id;
     }
 }

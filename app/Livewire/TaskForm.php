@@ -18,12 +18,14 @@ class TaskForm extends Component
     public ?string $description = null;
     public string $status = 'pending';
     public int $priority = 5;
+    public ?string $due_date = null;
 
     protected $rules = [
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
         'status' => 'required|in:pending,in_progress,done',
         'priority' => 'required|integer|min:0|max:10',
+        'due_date' => 'nullable|date',
     ];
 
     public function mount()
@@ -41,12 +43,14 @@ class TaskForm extends Component
             'description' => $this->description,
             'status' => $this->status,
             'priority' => $this->priority,
+            'due_date' => $this->due_date, // <-- NUEVO
             'tenant_id' => auth()->user()->tenant_id,
         ]);
 
         $this->notify("Tarea \"{$this->title}\" creada con éxito", 'success');
 
-        $this->reset(['title', 'description', 'status', 'priority']);
+        // Reiniciar también due_date
+        $this->reset(['title', 'description', 'status', 'priority', 'due_date']); 
         $this->status = 'pending';
         $this->priority = 5;
 

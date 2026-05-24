@@ -24,6 +24,7 @@ class ProjectForm extends Component
             'description' => $this->description,
             'status' => $this->status,
             'tenant_id' => Auth::user()->tenant_id,
+            'created_by' => Auth::id(),
         ]);
 
         $this->reset();

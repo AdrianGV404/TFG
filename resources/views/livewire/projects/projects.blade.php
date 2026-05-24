@@ -91,7 +91,15 @@
                                         {{ $project->name }}
                                         <span class="project-open-icon">→</span>
                                     </div>
-
+                                    @if($project->users->count())
+                                        <div class="mt-1">
+                                            @foreach($project->users as $user)
+                                                <span class="badge bg-secondary" style="font-size: 10px;">
+                                                    {{ $user->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     @php
                                         $total = $project->total_tasks ?? 0;
                                     @endphp
@@ -124,7 +132,22 @@
                             </a>
                         @endif
                     </td>
+<th>Usuarios</th>
+<td>
+    @foreach($project->users as $user)
+        <span class="badge bg-secondary">
+            {{ $user->name }}
+        </span>
+    @endforeach
 
+    @if($project->users->count() === 0)
+        <span class="text-muted">Sin asignar</span>
+    @endif
+
+    @if(auth()->user()->isAdmin() || $project->created_by === auth()->id())
+        <livewire:project-users-manager :project="$project" :key="$project->id" />
+    @endif
+</td>
                     {{-- ESTADO --}}
                     <td>
                         @if ($editingProjectId == $project->id)

@@ -8,15 +8,15 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->foreignId('tenant_id')->nullable()->after('project_id')->constrained('tenants')->cascadeOnDelete();
+            // Añadimos la fecha de caducidad después de la prioridad
+            $table->date('due_date')->nullable()->after('priority');
         });
     }
 
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropForeign(['tenant_id']);
-            $table->dropColumn('tenant_id');
+            $table->dropColumn('due_date');
         });
     }
 };

@@ -44,6 +44,14 @@
                     @endfor
                 </select>
             </div>
+            <!-- FECHA CADUCIDAD -->
+            <div class="form-group">
+                <label class="form-label">Fecha Límite</label>
+                <input type="date" wire:model.defer="due_date" class="form-control">
+                @error('due_date')
+                    <small class="text-error">{{ $message }}</small>
+                @enderror
+            </div>
         </div>
         <br>
         <button class="btn btn-primary btn-loading" type="submit" wire:loading.attr="disabled" wire:target="save">
