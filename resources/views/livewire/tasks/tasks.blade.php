@@ -14,13 +14,11 @@
                     wire:click="openForm"
                     wire:loading.attr="disabled"
                     wire:target="openForm">
-
                 <span class="btn-text">+ Nueva Tarea</span>
                 <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
             </button>
         @endif
 
-        {{-- FORMULARIO --}}
         @if ($showForm)
             <div class="form-col">
                 <livewire:task-form :project="$project" wire:key="task-form-{{ $taskFormKey }}" />
@@ -32,8 +30,6 @@
 
     {{-- CONTROLES --}}
     <div class="search-controls-wrapper mb-2">
-
-        {{-- Checkbox encima, alineado a la derecha --}}
         <div class="d-flex justify-content-end mb-1">
             <div class="form-check">
                 <input class="form-check-input"
@@ -41,21 +37,19 @@
                        id="showDeleted"
                        wire:model="showDeleted"
                        wire:change="$refresh">
-
                 <label class="form-check-label ms-1" for="showDeleted">
                     Mostrar tareas eliminadas
                 </label>
             </div>
         </div>
 
-        {{-- Search controls --}}
         @include('livewire.partials.search-controls', [
-            'textPlaceholder' => 'Buscar por título...',
+            'textPlaceholder'  => 'Buscar por título...',
             'allowStatusOrder' => true,
         ])
     </div>
 
-    {{-- TABLA DE TAREAS --}}
+    {{-- TABLA --}}
     <table class="table">
         <thead>
             <tr>
@@ -71,14 +65,14 @@
             @forelse ($tasks as $task)
 
                 @php
-                    $isEditing = $editingTaskId === $task->id;
-                    $status = $editingStatus[$task->id] ?? $task->status;
-                    $priority = $editingPriority[$task->id] ?? $task->priority;
-                    $isDeleted = $task->trashed();
-                    $deletedAt = $isDeleted ? $task->deleted_at : null;
+                    $isEditing  = $editingTaskId === $task->id;
+                    $status     = $editingStatus[$task->id]   ?? $task->status;
+                    $priority   = $editingPriority[$task->id] ?? $task->priority;
+                    $isDeleted  = $task->trashed();
+                    $deletedAt  = $isDeleted ? $task->deleted_at : null;
                     $daysToKeep = config('prune.days_to_keep_deleted.' . \App\Models\Task::class, 60);
-                    $expiresAt = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
-                    $daysLeft = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
+                    $expiresAt  = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
+                    $daysLeft   = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
                 @endphp
 
                 <tr wire:key="task-{{ $task->id }}--{{ $isEditing ? 'editing' : 'view' }}"
@@ -88,8 +82,8 @@
                     <td>
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingTaskId,
-                            'task' => $task,
-                            'isTask' => true
+                            'task'      => $task,
+                            'isTask'    => true,
                         ])
                     </td>
 
@@ -98,7 +92,6 @@
 
                     {{-- TAREA --}}
                     <td class="col-task">
-
                         @if ($isEditing)
                             <input type="text"
                                    class="form-control form-control-sm mb-1"
@@ -118,52 +111,39 @@
                                 <div class="task-description">{!! nl2br(e($task->description)) !!}</div>
                             @endif
 
-                            {{-- TIEMPO DEDICADO --}}
                             @php
                                 $totalSeconds = $task->timeEntries->sum('duration_seconds');
-
-                                $hours = floor($totalSeconds / 3600);
-                                $minutes = floor(($totalSeconds % 3600) / 60);
+                                $hours        = floor($totalSeconds / 3600);
+                                $minutes      = floor(($totalSeconds % 3600) / 60);
                             @endphp
 
                             @if ($totalSeconds > 0)
                                 <div class="mt-2 small text-muted">
-                                    ⏱ Tiempo total:
-                                    <strong>{{ $hours }}h {{ $minutes }}m</strong>
+                                    ⏱ Tiempo total: <strong>{{ $hours }}h {{ $minutes }}m</strong>
                                 </div>
-
                                 <div class="small text-muted mt-1">
                                     @foreach ($task->timeEntries->groupBy('user_id') as $userId => $entries)
-
                                         @php
-                                            $userSeconds = $entries->sum('duration_seconds');
-
-                                            $uHours = floor($userSeconds / 3600);
-                                            $uMinutes = floor(($userSeconds % 3600) / 60);
-
-                                            $user = $entries->first()->user;
+                                            $uSec  = $entries->sum('duration_seconds');
+                                            $uH    = floor($uSec / 3600);
+                                            $uM    = floor(($uSec % 3600) / 60);
+                                            $uUser = $entries->first()->user;
                                         @endphp
-
-                                        <div>
-                                            • {{ $user->name }}:
-                                            {{ $uHours }}h {{ $uMinutes }}m
-                                        </div>
-
+                                        <div>• {{ $uUser->name }}: {{ $uH }}h {{ $uM }}m</div>
                                     @endforeach
                                 </div>
                             @endif
+
                             @if ($isDeleted)
                                 <div class="expira-text text-danger mt-1" style="font-size:13px;">
-                                    @if ($daysLeft <= 5)
-                                        ⚠️
-                                    @endif
+                                    @if ($daysLeft <= 5) ⚠️ @endif
                                     Expira en {{ $daysLeft }} días ({{ $expiresAt->format('d/m/Y') }})
                                 </div>
                             @endif
                         @endif
                     </td>
 
-{{-- TIMESTAMPS Y CADUCIDAD --}}
+                    {{-- TIMESTAMPS Y CADUCIDAD --}}
                     <td class="text-muted col-timestamps">
                         <div>
                             <span style="font-weight:500;">C:</span>
@@ -173,28 +153,23 @@
                             <span style="font-weight:500;">A:</span>
                             <span>{{ $task->updated_at->format('d/m/Y') }} | {{ $task->updated_at->format('H:i') }}</span>
                         </div>
-                        
-                        {{-- FECHA CADUCIDAD --}}
-                        <div class="mt-1" style="border-top: 1px dashed #ccc; padding-top: 4px;">
+
+                        <div class="mt-1" style="border-top:1px dashed #ccc; padding-top:4px;">
                             <span style="font-weight:500;">Vence:</span>
-                            
                             @if ($isEditing)
-                                <input type="date" 
-                                       class="form-control form-control-sm" 
+                                <input type="date"
+                                       class="form-control form-control-sm"
                                        wire:model.defer="editingDueDate.{{ $task->id }}"
-                                       style="display: inline-block; width: auto;">
+                                       style="display:inline-block; width:auto;">
                             @else
                                 @if ($task->due_date)
-                                    @php
-                                        // Comprobamos si está caducada y NO está terminada para ponerla en rojo
-                                        $isOverdue = $task->due_date->isPast() && !$task->isDone();
-                                    @endphp
+                                    @php $isOverdue = $task->due_date->isPast() && !$task->isDone(); @endphp
                                     <span class="{{ $isOverdue ? 'text-danger fw-bold' : '' }}">
                                         {{ $task->due_date->format('d/m/Y') }}
                                         @if($isOverdue) ⚠️ @endif
                                     </span>
                                 @else
-                                    <span style="font-style: italic;">Sin fecha</span>
+                                    <span style="font-style:italic;">Sin fecha</span>
                                 @endif
                             @endif
                         </div>
@@ -202,29 +177,24 @@
 
                     {{-- ESTADO + PRIORIDAD --}}
                     <td>
-                        <div class="task-status-wrapper"
-                             style="display:flex; flex-direction:column; gap:4px;">
+                        <div class="task-status-wrapper" style="display:flex; flex-direction:column; gap:4px;">
 
                             <select class="task-status-select {{ $status }} {{ $isEditing ? 'editable' : 'readonly' }}"
                                     wire:model.defer="editingStatus.{{ $task->id }}"
                                     @if (!$isEditing || $isDeleted) disabled @endif>
-
-                                <option value="pending">Pendiente</option>
-                                <option value="in_progress">En progreso</option>
-                                <option value="done">Hecha</option>
+                                <option value="pending">⏳ Pendiente</option>
+                                <option value="in_progress">▶ En progreso</option>
+                                <option value="on_hold">⏸ En pausa</option>
+                                <option value="testing">🧪 En pruebas</option>
+                                <option value="done">✅ Hecha</option>
                             </select>
 
                             <select wire:model.defer="editingPriority.{{ $task->id }}"
                                     class="task-priority-select {{ $isEditing ? 'editable' : 'readonly' }}"
                                     @if (!$isEditing || $isDeleted) disabled @endif>
-
                                 @for ($i = 0; $i <= 10; $i++)
-                                    @php
-                                        $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown';
-                                    @endphp
-
-                                    <option value="{{ $i }}"
-                                            class="priority-{{ $class }}">
+                                    @php $class = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown'; @endphp
+                                    <option value="{{ $i }}" class="priority-{{ $class }}">
                                         {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }} ({{ $i }})
                                     </option>
                                 @endfor
@@ -246,45 +216,53 @@
     <div class="mt-3">
         {{ $tasks->links() }}
     </div>
-    {{-- Coloca este bloque justo antes del último </div> del archivo tasks.blade.php --}}
-<div class="modal fade {{ $showManualTimeModal ? 'show d-block' : '' }}" 
-     style="background: rgba(0,0,0,.5); {{ $showManualTimeModal ? 'display: block;' : 'display: none;' }}"
-     tabindex="-1"
-     wire:key="manual-time-modal">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Añadir tiempo manual</h5>
-                <button type="button" class="btn-close" wire:click="closeManualTimeModal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col">
-                        <label>Horas</label>
-                        <input type="number" min="0" class="form-control" wire:model="manualHours">
-                        @error('manualHours') <span class="text-danger small">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="col">
-                        <label>Minutos</label>
-                        <input type="number" min="0" max="59" class="form-control" wire:model="manualMinutes">
-                        @error('manualMinutes') <span class="text-danger small">{{ $message }}</span> @enderror
+
+    {{-- MODAL TIEMPO MANUAL --}}
+    <div class="modal fade {{ $showManualTimeModal ? 'show d-block' : '' }}"
+         style="background:rgba(0,0,0,.5); {{ $showManualTimeModal ? 'display:block;' : 'display:none;' }}"
+         tabindex="-1"
+         wire:key="manual-time-modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Añadir tiempo manual</h5>
+                    <button type="button" class="btn-close" wire:click="closeManualTimeModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <label>Horas</label>
+                            <input type="number" min="0" class="form-control" wire:model="manualHours">
+                            @error('manualHours') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="col">
+                            <label>Minutos</label>
+                            <input type="number" min="0" max="59" class="form-control" wire:model="manualMinutes">
+                            @error('manualMinutes') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" wire:click="closeManualTimeModal">Cancelar</button>
-                <button type="button" class="btn btn-primary" wire:click="saveManualTime">Guardar tiempo</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="closeManualTimeModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" wire:click="saveManualTime">Guardar tiempo</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+
+<style>
+    .task-status-select.on_hold { background-color: #f59e0b !important; color: #fff !important; }
+    .task-status-select.testing { background-color: #8b5cf6 !important; color: #fff !important; }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
     const searchWrapper = document.querySelector('.search-controls-wrapper');
-    const table = document.querySelector('table');
-    const tableHead = table.querySelector('thead');
+    const table         = document.querySelector('table');
+    if (!searchWrapper || !table) return;
 
+    const tableHead    = table.querySelector('thead');
     const navbarHeight = 64;
 
     function adjustSticky() {
@@ -300,12 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tds = firstRow.querySelectorAll('td');
         const ths = tableHead.querySelectorAll('th');
-
-        ths.forEach((th, i) => {
-            if (tds[i]) {
-                th.style.width = tds[i].offsetWidth + 'px';
-            }
-        });
+        ths.forEach((th, i) => { if (tds[i]) th.style.width = tds[i].offsetWidth + 'px'; });
     }
 
     adjustSticky();
@@ -313,3 +286,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', adjustSticky);
 });
 </script>
+
+</div>

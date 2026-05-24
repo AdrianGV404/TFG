@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasOne; // Importación recomendada
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -28,55 +31,54 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
     ];
 
-    /**
-     * RELACIÓN: Esta es la parte que faltaba.
-     * Un usuario tiene una fila de configuración.
-     */
+    // ── Relaciones ───────────────────────────────────────────────────────────
+
     public function settings(): HasOne
     {
         return $this->hasOne(UserSettings::class);
     }
 
-    // Relación con Tenant
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    // Helper
+    public function createdProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'created_by');
+    }
+
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class);
+    }
+
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TaskTimeEntry::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->latest();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    /**
-     * Obtener la URL de la foto de perfil o una por defecto.
-     */
-    public function getProfilePhotoUrlAttribute()
+    public function getProfilePhotoUrlAttribute(): string
     {
         if ($this->profile_photo_path) {
             return asset('storage/' . $this->profile_photo_path);
         }
 
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
-    }
-    // Proyectos creados por el usuario
-    public function createdProjects()
-    {
-        return $this->hasMany(Project::class, 'created_by');
-    }
-
-    // Proyectos donde está asignado
-    public function projects()
-    {
-        return $this->belongsToMany(Project::class);
-    }
-    
-    public function timeEntries()
-    {
-        return $this->hasMany(TaskTimeEntry::class);
     }
 }
