@@ -9,8 +9,6 @@ use App\Models\User;
 
 class NotificationService
 {
-    // ── Método central ───────────────────────────────────────────────────────
-
     public static function send(
         User   $user,
         string $type,
@@ -42,14 +40,7 @@ class NotificationService
                 'data'    => $data,
             ]);
         }
-
-        // TODO: email
-        // if (in_array($channel, ['email', 'both'])) {
-        //     Mail::to($user->email)->queue(new NotificationMail($title, $body));
-        // }
     }
-
-    // ── Helpers por tipo de evento ───────────────────────────────────────────
 
     public static function notifyProjectAssignment(User $user, string $projectName): void
     {
@@ -71,46 +62,48 @@ class NotificationService
         );
     }
 
-    public static function notifyStatusChange(
-        Task   $task,
-        string $oldStatus,
-        string $newStatus,
-        int    $changedByUserId
-    ): void {
-        $labels = [
-            'pending'     => 'Pendiente',
-            'in_progress' => 'En progreso',
-            'on_hold'     => 'En pausa',
-            'testing'     => 'En pruebas',
-            'done'        => 'Hecha',
-        ];
+public static function notifyStatusChange(
+    Task   $task,
+    string $oldStatus,
+    string $newStatus,
+    int    $changedByUserId
+): void {
+    $labels = [
+        'pending'     => 'Pendiente',
+        'in_progress' => 'En progreso',
+        'on_hold'     => 'En pausa',
+        'testing'     => 'En pruebas',
+        'done'        => 'Hecha',
+    ];
 
-        TaskTimeEntry::query()->where('task_id', '=', $task->id) 
-            ->where('user_id', '!=', $changedByUserId)
-            ->pluck('user_id')
-            ->unique()
-            ->toArray();
+    $workerIds = $task->project->users()
+        ->where('users.id', '!=', $changedByUserId)
+        ->pluck('users.id')
+        ->toArray();
 
-        if (empty($workerIds)) {
-            return;
-        }
-
-        $users = User::query()->where('id', $workerIds)->with('settings')->get();
-
-        foreach ($users as $user) {
-            self::send(
-                $user,
-                Notification::TYPE_STATUS_CHANGE,
-                "Tarea actualizada: {$task->title}",
-                "Estado cambiado de \"{$labels[$oldStatus]}\" a \"{$labels[$newStatus]}\".",
-                ['task_id' => $task->id, 'project_id' => $task->project_id],
-            );
-        }
+    if (empty($workerIds)) {
+        return;
     }
+
+    $oldLabel = $labels[$oldStatus] ?? $oldStatus;
+    $newLabel = $labels[$newStatus] ?? $newStatus;
+
+    $users = User::whereIn('id', $workerIds)->with('settings')->get();
+
+    foreach ($users as $user) {
+        self::send(
+            $user,
+            Notification::TYPE_STATUS_CHANGE,
+            "Tarea actualizada: {$task->title}",
+            "Estado cambiado de \"{$oldLabel}\" a \"{$newLabel}\".",
+            ['task_id' => $task->id, 'project_id' => $task->project_id],
+        );
+    }
+}
 
     public static function notifyDueSoon(Task $task): void
     {
-        $workerIds = TaskTimeEntry::query()->where('task_id', '=', $task->id)
+        $workerIds = TaskTimeEntry::where('task_id', $task->id)
             ->pluck('user_id')
             ->unique()
             ->toArray();
@@ -119,7 +112,7 @@ class NotificationService
             return;
         }
 
-        $users = User::query()->where('id', $workerIds)->with('settings')->get();
+        $users = User::whereIn('id', $workerIds)->with('settings')->get();
 
         foreach ($users as $user) {
             self::send(

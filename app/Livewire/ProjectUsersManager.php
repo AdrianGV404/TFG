@@ -3,14 +3,13 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-
 use App\Models\Project;
 use App\Models\User;
+use App\Services\NotificationService;
 
 class ProjectUsersManager extends Component
 {
     public Project $project;
-
     public string $search = '';
 
     public function addUser(int $userId)
@@ -20,6 +19,12 @@ class ProjectUsersManager extends Component
         }
 
         $this->project->users()->syncWithoutDetaching([$userId]);
+
+        // Send notification to the added user
+        $user = User::find($userId);
+        if ($user) {
+            NotificationService::notifyProjectAssignment($user, $this->project->name);
+        }
     }
 
     public function removeUser(int $userId)
