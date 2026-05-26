@@ -16,32 +16,10 @@
                 {{ auth()->check() ? auth()->user()->name : 'ProMaTi' }}
             </span>
         </div>
-        @auth
-            @if (auth()->user()->role === 'admin')
-                <a href="{{ route('users.index') }}" class="btn btn-outline-light btn-sm me-2">
-                    <i class="fas fa-users me-1"></i> Gestionar Usuarios
-                </a>
-            @endif
-        @endauth
-        @auth
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm d-flex align-items-center w-100">
-                    <i class="fas fa-sign-out-alt me-1"></i>
-                    Cerrar Sesión
-                </button>
-            </form>
-        @endauth
 
-        {{-- COLUMNA DERECHA: Notificaciones + Cerrar Sesión --}}
+        {{-- COLUMNA DERECHA: Notificaciones + Logout --}}
         <div class="d-flex align-items-center justify-content-end gap-2" style="flex: 1; flex-basis: 0;">
             @auth
-                @if (auth()->user()->role === 'admin')
-                    <a href="{{ route('users.index') }}" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-users me-1"></i>
-                        <span class="d-none d-md-inline">Usuarios</span>
-                    </a>
-                @endif
 
                 <livewire:notification-bell />
 
@@ -52,6 +30,7 @@
                         <span class="d-none d-md-inline">Cerrar Sesión</span>
                     </button>
                 </form>
+
             @endauth
         </div>
 

@@ -1,16 +1,22 @@
 <div class="container">
 
-    {{-- HEADER --}}
-    <div class="page-header d-flex align-items-center justify-content-between">
-        <h1>Proyectos</h1>
+{{-- HEADER --}}
+    <div class="page-header d-flex align-items-center justify-content-between mb-4">
+        <h1 class="m-0">Proyectos</h1>
 
-        @if (!$showForm)
-            <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled"
-                wire:target="openForm">
-                <span class="btn-text">+ Nuevo proyecto</span>
-                <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
+        <div class="d-flex gap-2">
+            {{-- Botón de Etiquetas --}}
+            <button type="button" class="btn btn-outline-secondary" wire:click="$dispatch('open-label-modal')">
+                <i class="fas fa-tag"></i> <span class="d-none d-sm-inline">Crear etiqueta</span>
             </button>
-        @endif
+
+            @if (!$showForm)
+                <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled" wire:target="openForm">
+                    <span class="btn-text">+ Nuevo proyecto</span>
+                    <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
+                </button>
+            @endif
+        </div>
     </div>
 
     {{-- FORMULARIO --}}
@@ -174,7 +180,12 @@
     </table>
 
     <div class="mt-3">
-        {{ $projects->links() }}
+            {{ $projects->links() }}
+        </div>
+
+        {{-- MODAL DE ETIQUETAS --}}
+        <livewire:label-create-modal />
+
     </div>
 
 </div>

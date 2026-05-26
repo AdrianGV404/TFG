@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Prunable;
 use App\Models\TaskTimeEntry;
+use App\Models\Label;
 
 class Task extends Model
 {
@@ -97,5 +98,10 @@ class Task extends Model
     public function timeEntries()
     {
         return $this->hasMany(TaskTimeEntry::class);
+    }
+    public function labels()
+    {
+        // Cambia 'Label::class' por el nombre exacto de tu modelo de etiquetas si aplica
+        return $this->belongsToMany(Label::class, 'label_task'); 
     }
 }
