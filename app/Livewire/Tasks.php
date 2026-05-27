@@ -5,17 +5,18 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Task;
 use App\Models\Project;
-use App\Models\Label; // Cambiado: Importa el modelo Label en lugar de Tag
+use App\Models\Label;
 use App\Livewire\Traits\WithSearchAndPagination;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\ScopedByProject;
 use App\Livewire\Traits\Notifies;
 use App\Livewire\Traits\FormValidationRules;
 use App\Models\TaskTimeEntry;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Tasks extends Component
 {
-    use WithSearchAndPagination, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
+    use WithSearchAndPagination, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules, AuthorizesRequests;
 
     public bool $showForm = false;
     public Project $project;
@@ -34,8 +35,6 @@ class Tasks extends Component
     public int $taskFormKey = 0;
     public array $editingDueDate = [];
     public array $originalDueDate = [];
-
-    // Cambiado: Arrays para gestionar la edición de etiquetas (labels) N a N
     public array $editingLabelIds = [];
     public array $originalLabelIds = [];
 
@@ -48,6 +47,7 @@ class Tasks extends Component
     public int $manualMinutes = 0;
 
     public array $searchLabels = [];
+    
     protected $listeners = [
         'delete-task' => 'deleteFromModal',
         'restore-task' => 'restoreTask',
@@ -98,6 +98,13 @@ class Tasks extends Component
     {
         $task = $this->findScoped(Task::class, $taskId);
 
+        try {
+            $this->authorize('update', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para editar esta tarea.', 'danger');
+            return;
+        }
+
         $this->startEditingModel($task, 'editingTaskId', [
             'editingTitle' => 'title',
             'editingDescription' => 'description',
@@ -117,8 +124,6 @@ class Tasks extends Component
             $this->editingStatus[$this->editingTaskId] = $this->originalStatus[$this->editingTaskId];
             $this->editingPriority[$this->editingTaskId] = $this->originalPriority[$this->editingTaskId];
             $this->editingDueDate[$this->editingTaskId] = $this->originalDueDate[$this->editingTaskId];
-            
-            // Cambiado: Revertimos los labels al estado original
             $this->editingLabelIds[$this->editingTaskId] = $this->originalLabelIds[$this->editingTaskId];
         }
 
@@ -129,6 +134,17 @@ class Tasks extends Component
 
     public function saveEdit()
     {
+        $taskModel = Task::find($this->editingTaskId);
+        
+        try {
+            if ($taskModel) {
+                $this->authorize('update', $taskModel);
+            }
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para actualizar esta tarea.', 'danger');
+            return;
+        }
+
         $rules = array_merge($this->taskRulesForEditing(), [
             "editingLabelIds.{$this->editingTaskId}" => 'nullable|array',
             "editingLabelIds.{$this->editingTaskId}.*" => 'distinct|exists:labels,id'
@@ -144,7 +160,6 @@ class Tasks extends Component
             'due_date' => $this->editingDueDate[$this->editingTaskId] ?: null,
         ]);
 
-        $taskModel = Task::find($this->editingTaskId);
         if ($taskModel) {
             $taskModel->labels()->sync($this->editingLabelIds[$this->editingTaskId] ?? []);
         }
@@ -164,6 +179,14 @@ class Tasks extends Component
     public function delete(int $taskId)
     {
         $task = Task::withTrashed()->findOrFail($taskId);
+        
+        try {
+            $this->authorize('delete', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para eliminar esta tarea.', 'danger');
+            return;
+        }
+        
         $name = $task->title;
 
         if ($task->trashed()) {
@@ -180,28 +203,25 @@ class Tasks extends Component
     public function restoreTask(int $id)
     {
         $task = Task::withTrashed()->findOrFail($id);
+        
+        try {
+            $this->authorize('delete', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para restaurar esta tarea.', 'danger');
+            return;
+        }
+        
         $task->restore();
         $this->notify("Tarea \"{$task->title}\" restaurada con éxito", 'success');
     }
 
-    public function deleteFromModal(int $id)
-    {
-        $this->delete($id);
-    }
+    public function deleteFromModal(int $id) { $this->delete($id); }
 
-    public function openForm()
-    {
-        $this->showForm = true;
-    }
+    public function openForm() { $this->showForm = true; }
+    public function closeForm() { $this->showForm = false; }
 
-    public function closeForm()
+    public function render()
     {
-        $this->showForm = false;
-    }
-
-public function render()
-    {
-        // 1. Iniciar la consulta
         $query = $this->scopedQuery(Task::class)
             ->with(['labels', 'timeEntries.user']);
 
@@ -209,20 +229,17 @@ public function render()
             $query = $query->withTrashed();
         }
 
-        // 2. NUEVO: Filtrar por etiquetas si hay alguna seleccionada
         if (!empty($this->searchLabels)) {
             $query->whereHas('labels', function ($q) {
                 $q->whereIn('labels.id', $this->searchLabels);
             });
         }
 
-        // 3. Obtener etiquetas para el dropdown
         $labels = Label::where('tenant_id', auth()->user()->tenant_id)->get();
 
-        // 4. Aplicar filtros y devolver vista
         return view('livewire.tasks.tasks', [
             'tasks' => $this->applyFilters(
-                $query, // Ahora $query ya viene filtrado por etiquetas
+                $query,
                 'title',
                 "FIELD(status, 'pending', 'in_progress', 'done')",
                 'priority'
@@ -234,7 +251,6 @@ public function render()
     public function toggleTimeTracking(int $taskId)
     {
         $task = $this->findScoped(Task::class, $taskId);
-
         $runningEntry = TaskTimeEntry::query()
             ->where('task_id', $task->id)
             ->where('user_id', auth()->id())
@@ -247,7 +263,6 @@ public function render()
                 'duration_seconds' => now()->diffInSeconds($runningEntry->started_at),
                 'is_running' => false,
             ]);
-
             $this->notify('Tiempo detenido', 'success');
             return;
         }
@@ -258,7 +273,6 @@ public function render()
             'started_at' => now(),
             'is_running' => true,
         ]);
-
         $this->notify('Tiempo iniciado', 'success');
     }
 
@@ -272,21 +286,12 @@ public function render()
 
     public function closeManualTimeModal()
     {
-        $this->reset([
-            'showManualTimeModal',
-            'manualTimeTaskId',
-            'manualHours',
-            'manualMinutes',
-        ]);
+        $this->reset(['showManualTimeModal', 'manualTimeTaskId', 'manualHours', 'manualMinutes']);
     }
 
     public function saveManualTime()
     {
-        $this->validate([
-            'manualHours' => 'required|integer|min:0|max:999',
-            'manualMinutes' => 'required|integer|min:0|max:59',
-        ]);
-
+        $this->validate(['manualHours' => 'required|integer|min:0|max:999', 'manualMinutes' => 'required|integer|min:0|max:59']);
         $seconds = ($this->manualHours * 3600) + ($this->manualMinutes * 60);
 
         if ($seconds <= 0) {
@@ -304,7 +309,6 @@ public function render()
         ]);
 
         $this->notify('Tiempo añadido correctamente', 'success');
-        
         $this->closeManualTimeModal();
     }
 }

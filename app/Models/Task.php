@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Prunable;
 use App\Models\TaskTimeEntry;
 use App\Models\Label;
+use App\Models\User;
 
 class Task extends Model
 {
@@ -15,6 +16,7 @@ class Task extends Model
 
     protected $fillable = [
         'project_id',
+        'user_id', // Añadido para poder identificar al creador en los permisos
         'title',
         'description',
         'status',
@@ -26,12 +28,21 @@ class Task extends Model
     protected $casts = [
         'due_date' => 'date',
     ];
+
     /**
      * Relación inversa: una tarea pertenece a un proyecto.
      */
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Relación: usuario que ha creado la tarea.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id'); 
     }
 
     /**
@@ -95,13 +106,14 @@ class Task extends Model
         return static::onlyTrashed()
             ->where('deleted_at', '<=', now()->subDays($days));
     }
+
     public function timeEntries()
     {
         return $this->hasMany(TaskTimeEntry::class);
     }
+
     public function labels()
     {
-        // Cambia 'Label::class' por el nombre exacto de tu modelo de etiquetas si aplica
         return $this->belongsToMany(Label::class, 'label_task'); 
     }
 }
