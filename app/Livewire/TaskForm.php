@@ -57,6 +57,7 @@ class TaskForm extends Component
             'priority' => $this->priority,
             'due_date' => $this->due_date,
             'tenant_id' => auth()->user()->tenant_id,
+            'created_by'  => auth()->id(), 
         ]);
 
         if (!empty($this->selected_labels)) {

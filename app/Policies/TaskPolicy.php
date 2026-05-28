@@ -28,4 +28,11 @@ class TaskPolicy
     {
         return $user->hasCustomPermission('reassign_users');
     }
+    public function view(User $user, Task $task): bool
+    {
+        if ($user->isAdmin()) return true;
+        if ($task->created_by === $user->id) return true;
+        return $user->hasCustomPermission('edit_task', $task)
+            || $user->hasCustomPermission('delete_task', $task);
+    }
 }

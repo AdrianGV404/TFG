@@ -23,6 +23,7 @@ class Task extends Model
         'priority',
         'processed_at',
         'due_date',
+        'created_by',
     ];
     
     protected $casts = [
@@ -37,12 +38,9 @@ class Task extends Model
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * Relación: usuario que ha creado la tarea.
-     */
     public function creator()
     {
-        return $this->belongsTo(User::class, 'user_id'); 
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
