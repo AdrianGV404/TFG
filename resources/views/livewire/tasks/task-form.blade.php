@@ -1,5 +1,4 @@
 <div class="new-task">
-
     <h3>Nueva tarea</h3>
 
     <form wire:submit.prevent="save">
@@ -16,8 +15,28 @@
                 class="auto-resize-textarea"></textarea>
         </div>
 
+        <div class="form-group mb-3">
+            <label class="form-label">Labels</label>
+            <select multiple class="form-control" wire:model.defer="selected_labels" style="min-height: 120px;">
+                @forelse($labels as $label)
+                    <option value="{{ $label->id }}">{{ $label->name }}</option>
+                @empty
+                    <option disabled>No hay labels creados en este tenant.</option>
+                @endforelse
+            </select>
+            <div class="text-muted mt-1" style="font-size: 0.8rem;">
+                * Mantén presionado Ctrl (o Cmd en Mac) para seleccionar varias.
+            </div>
+            @error('selected_labels')
+                <small class="text-error d-block" style="color: red;">{{ $message }}</small>
+            @enderror
+            @error('selected_labels.*')
+                <small class="text-error d-block" style="color: red;">Error: Se ha seleccionado un label duplicado o
+                    inválido.</small>
+            @enderror
+        </div>
+
         <div class="form-group-row">
-            <!-- ESTADO -->
             <div class="form-group">
                 <label class="form-label">Estado</label>
                 <select wire:model.defer="status" class="task-status-select">
@@ -27,10 +46,8 @@
                 </select>
             </div>
 
-            <!-- PRIORIDAD -->
             <div class="form-group">
                 <label class="form-label">Prioridad</label>
-
                 <select wire:model.defer="priority"
                     class="task-priority-select priority-{{ \App\Models\Task::PRIORITY_CLASSES[$priority] ?? 'mid' }}">
                     @for ($i = 0; $i <= 10; $i++)
@@ -44,7 +61,7 @@
                     @endfor
                 </select>
             </div>
-            <!-- FECHA CADUCIDAD -->
+
             <div class="form-group">
                 <label class="form-label">Fecha Límite</label>
                 <input type="date" wire:model.defer="due_date" class="form-control">
@@ -62,7 +79,7 @@
         </button>
         <button type="button" class="btn btn-secondary" wire:click="$dispatch('closeForm')"
             wire:loading.attr="disabled">
-            Cancelar
+            Cancel
         </button>
     </form>
 </div>

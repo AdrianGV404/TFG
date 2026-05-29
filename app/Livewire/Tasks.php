@@ -5,16 +5,18 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Task;
 use App\Models\Project;
+use App\Models\Label;
 use App\Livewire\Traits\WithSearchAndPagination;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\ScopedByProject;
 use App\Livewire\Traits\Notifies;
 use App\Livewire\Traits\FormValidationRules;
 use App\Models\TaskTimeEntry;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Tasks extends Component
 {
-    use WithSearchAndPagination, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules;
+    use WithSearchAndPagination, HasInlineEditing, Notifies, ScopedByProject, FormValidationRules, AuthorizesRequests;
 
     public bool $showForm = false;
     public Project $project;
@@ -33,6 +35,9 @@ class Tasks extends Component
     public int $taskFormKey = 0;
     public array $editingDueDate = [];
     public array $originalDueDate = [];
+    public array $editingLabelIds = [];
+    public array $originalLabelIds = [];
+
     /* =========================
        MODAL TIEMPO MANUAL
     ========================= */
@@ -41,6 +46,8 @@ class Tasks extends Component
     public int $manualHours = 0;
     public int $manualMinutes = 0;
 
+    public array $searchLabels = [];
+    
     protected $listeners = [
         'delete-task' => 'deleteFromModal',
         'restore-task' => 'restoreTask',
@@ -48,7 +55,7 @@ class Tasks extends Component
         'closeForm' => 'closeForm',
     ];
 
-public function mount()
+    public function mount()
     {
         $this->orderBy = 'priority';
 
@@ -60,10 +67,13 @@ public function mount()
             $this->originalStatus[$task->id] = $task->status;
             $this->originalPriority[$task->id] = $task->priority;
             $this->originalDueDate[$task->id] = $this->editingDueDate[$task->id];
+
+            $this->editingLabelIds[$task->id] = ($task->labels ?? collect())->pluck('id')->toArray();
+            $this->originalLabelIds[$task->id] = $this->editingLabelIds[$task->id];
         }
     }
 
-public function onTaskCreated()
+    public function onTaskCreated()
     {
         $this->taskFormKey++;
         $this->resetPage();
@@ -77,6 +87,9 @@ public function onTaskCreated()
                 $this->originalStatus[$task->id] = $task->status;
                 $this->originalPriority[$task->id] = $task->priority;
                 $this->originalDueDate[$task->id] = $this->editingDueDate[$task->id];
+
+                $this->editingLabelIds[$task->id] = ($task->labels ?? collect())->pluck('id')->toArray();
+                $this->originalLabelIds[$task->id] = $this->editingLabelIds[$task->id];
             }
         }
     }
@@ -84,6 +97,13 @@ public function onTaskCreated()
     public function startEdit(int $taskId)
     {
         $task = $this->findScoped(Task::class, $taskId);
+
+        try {
+            $this->authorize('update', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para editar esta tarea.', 'danger');
+            return;
+        }
 
         $this->startEditingModel($task, 'editingTaskId', [
             'editingTitle' => 'title',
@@ -94,6 +114,8 @@ public function onTaskCreated()
         $this->originalPriority[$taskId] = $task->priority;
         $this->originalDueDate[$taskId] = $this->editingDueDate[$taskId];
         
+        $this->editingLabelIds[$taskId] = $task->labels->pluck('id')->toArray();
+        $this->originalLabelIds[$taskId] = $this->editingLabelIds[$taskId];
     }
 
     public function cancelEdit()
@@ -102,6 +124,7 @@ public function onTaskCreated()
             $this->editingStatus[$this->editingTaskId] = $this->originalStatus[$this->editingTaskId];
             $this->editingPriority[$this->editingTaskId] = $this->originalPriority[$this->editingTaskId];
             $this->editingDueDate[$this->editingTaskId] = $this->originalDueDate[$this->editingTaskId];
+            $this->editingLabelIds[$this->editingTaskId] = $this->originalLabelIds[$this->editingTaskId];
         }
 
         $this->editingTaskId = null;
@@ -111,7 +134,23 @@ public function onTaskCreated()
 
     public function saveEdit()
     {
-$this->validate($this->taskRulesForEditing()); // **Nota abajo**
+        $taskModel = Task::find($this->editingTaskId);
+        
+        try {
+            if ($taskModel) {
+                $this->authorize('update', $taskModel);
+            }
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para actualizar esta tarea.', 'danger');
+            return;
+        }
+
+        $rules = array_merge($this->taskRulesForEditing(), [
+            "editingLabelIds.{$this->editingTaskId}" => 'nullable|array',
+            "editingLabelIds.{$this->editingTaskId}.*" => 'distinct|exists:labels,id'
+        ]);
+
+        $this->validate($rules);
 
         $this->updateScoped(Task::class, $this->editingTaskId, [
             'title' => $this->editingTitle,
@@ -121,9 +160,15 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
             'due_date' => $this->editingDueDate[$this->editingTaskId] ?: null,
         ]);
 
+        if ($taskModel) {
+            $taskModel->labels()->sync($this->editingLabelIds[$this->editingTaskId] ?? []);
+        }
+
         $this->originalStatus[$this->editingTaskId] = $this->editingStatus[$this->editingTaskId];
         $this->originalPriority[$this->editingTaskId] = $this->editingPriority[$this->editingTaskId];
         $this->originalDueDate[$this->editingTaskId] = $this->editingDueDate[$this->editingTaskId];
+        $this->originalLabelIds[$this->editingTaskId] = $this->editingLabelIds[$this->editingTaskId];
+
         $this->notify("Tarea \"{$this->editingTitle}\" actualizada con éxito", 'success');
 
         $this->editingTaskId = null;
@@ -134,6 +179,14 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
     public function delete(int $taskId)
     {
         $task = Task::withTrashed()->findOrFail($taskId);
+        
+        try {
+            $this->authorize('delete', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para eliminar esta tarea.', 'danger');
+            return;
+        }
+        
         $name = $task->title;
 
         if ($task->trashed()) {
@@ -150,35 +203,39 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
     public function restoreTask(int $id)
     {
         $task = Task::withTrashed()->findOrFail($id);
+        
+        try {
+            $this->authorize('delete', $task);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permiso para restaurar esta tarea.', 'danger');
+            return;
+        }
+        
         $task->restore();
         $this->notify("Tarea \"{$task->title}\" restaurada con éxito", 'success');
     }
 
-    public function deleteFromModal(int $id)
-    {
-        $this->delete($id);
-    }
+    public function deleteFromModal(int $id) { $this->delete($id); }
 
-    public function openForm()
-    {
-        $this->showForm = true;
-    }
-
-    public function closeForm()
-    {
-        $this->showForm = false;
-    }
+    public function openForm() { $this->showForm = true; }
+    public function closeForm() { $this->showForm = false; }
 
     public function render()
     {
         $query = $this->scopedQuery(Task::class)
-            ->with([
-                'timeEntries.user'
-            ]);
+            ->with(['labels', 'timeEntries.user']);
 
         if ($this->showDeleted) {
             $query = $query->withTrashed();
         }
+
+        if (!empty($this->searchLabels)) {
+            $query->whereHas('labels', function ($q) {
+                $q->whereIn('labels.id', $this->searchLabels);
+            });
+        }
+
+        $labels = Label::where('tenant_id', auth()->user()->tenant_id)->get();
 
         return view('livewire.tasks.tasks', [
             'tasks' => $this->applyFilters(
@@ -187,13 +244,13 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
                 "FIELD(status, 'pending', 'in_progress', 'done')",
                 'priority'
             ),
+            'labels' => $labels,
         ]);
     }
 
     public function toggleTimeTracking(int $taskId)
     {
         $task = $this->findScoped(Task::class, $taskId);
-
         $runningEntry = TaskTimeEntry::query()
             ->where('task_id', $task->id)
             ->where('user_id', auth()->id())
@@ -206,7 +263,6 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
                 'duration_seconds' => now()->diffInSeconds($runningEntry->started_at),
                 'is_running' => false,
             ]);
-
             $this->notify('Tiempo detenido', 'success');
             return;
         }
@@ -217,7 +273,6 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
             'started_at' => now(),
             'is_running' => true,
         ]);
-
         $this->notify('Tiempo iniciado', 'success');
     }
 
@@ -231,21 +286,12 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
 
     public function closeManualTimeModal()
     {
-        $this->reset([
-            'showManualTimeModal',
-            'manualTimeTaskId',
-            'manualHours',
-            'manualMinutes',
-        ]);
+        $this->reset(['showManualTimeModal', 'manualTimeTaskId', 'manualHours', 'manualMinutes']);
     }
 
     public function saveManualTime()
     {
-        $this->validate([
-            'manualHours' => 'required|integer|min:0|max:999',
-            'manualMinutes' => 'required|integer|min:0|max:59',
-        ]);
-
+        $this->validate(['manualHours' => 'required|integer|min:0|max:999', 'manualMinutes' => 'required|integer|min:0|max:59']);
         $seconds = ($this->manualHours * 3600) + ($this->manualMinutes * 60);
 
         if ($seconds <= 0) {
@@ -263,7 +309,6 @@ $this->validate($this->taskRulesForEditing()); // **Nota abajo**
         ]);
 
         $this->notify('Tiempo añadido correctamente', 'success');
-        
         $this->closeManualTimeModal();
     }
 }

@@ -3,10 +3,10 @@
 @section('content')
     @if(isset($component))
         @if(isset($project))
-            {{-- Componente con proyecto --}}
             @livewire($component, ['project' => $project])
+        @elseif(isset($task))
+            @livewire($component, ['task' => $task])
         @else
-            {{-- Componente sin proyecto --}}
             @livewire($component)
         @endif
     @endif

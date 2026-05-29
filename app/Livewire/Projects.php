@@ -8,10 +8,11 @@ use App\Livewire\Traits\WithSearchAndPagination;
 use App\Livewire\Traits\HasInlineEditing;
 use App\Livewire\Traits\Notifies;
 use App\Livewire\Traits\FormValidationRules;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Projects extends Component
 {
-    use WithSearchAndPagination, HasInlineEditing, Notifies, FormValidationRules;
+    use WithSearchAndPagination, HasInlineEditing, Notifies, FormValidationRules, AuthorizesRequests;
 
     public bool $showForm = false;
     public bool $showDeleted = false;
@@ -29,21 +30,16 @@ class Projects extends Component
         'closeForm' => 'closeForm',
     ];
 
-    public function openForm()
-    {
-        $this->showForm = true;
-    }
-
-    public function closeForm()
-    {
-        $this->showForm = false;
-    }
+    public function openForm() { $this->showForm = true; }
+    public function closeForm() { $this->showForm = false; }
 
     public function startEdit(int $projectId)
     {
         $project = Project::findOrFail($projectId);
 
-        if (!$this->canManage($project)) {
+        try {
+            $this->authorize('update', $project);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
             $this->notify('No tienes permisos para editar este proyecto', 'danger');
             return;
         }
@@ -67,6 +63,16 @@ class Projects extends Component
 
     public function saveEdit()
     {
+        $project = Project::findOrFail($this->editingProjectId);
+        
+        try {
+            $this->authorize('update', $project);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permisos para editar este proyecto', 'danger');
+            $this->cancelEdit();
+            return;
+        }
+
         $this->validate($this->projectRulesForEditing());
 
         $this->applyModelUpdate(Project::class, $this->editingProjectId, [
@@ -76,7 +82,6 @@ class Projects extends Component
         ]);
 
         $this->notify("Proyecto \"{$this->editingName}\" actualizado con éxito", 'success');
-
         $this->cancelEdit();
     }
 
@@ -84,7 +89,9 @@ class Projects extends Component
     {
         $project = Project::withTrashed()->findOrFail($projectId);
 
-        if (!$this->canManage($project)) {
+        try {
+            $this->authorize('delete', $project);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
             $this->notify('No tienes permisos para eliminar este proyecto', 'danger');
             return;
         }
@@ -100,6 +107,11 @@ class Projects extends Component
         }
     }
 
+    public function deleteFromModal(int $id)
+    {
+        $this->delete($id);
+    }
+
     public function onProjectCreated(?string $name = null)
     {
         $this->notify($name ? "Proyecto \"$name\" creado con éxito" : "Proyecto creado con éxito", 'success');
@@ -107,67 +119,13 @@ class Projects extends Component
 
     public function refreshProjects() {}
 
-    public function render()
-    {
-    $user = auth()->user();
-
-    $query = Project::query()
-        ->where('tenant_id', $user->tenant_id)
-        ->with(['users'])
-        ->where(function ($q) use ($user) {
-
-            // ADMIN: ve todo el tenant
-            if ($user->isAdmin()) {
-                return;
-            }
-
-            // CREADOR o ASIGNADO
-            $q->where('created_by', $user->id)
-              ->orWhereHas('users', function ($q2) use ($user) {
-                  $q2->where('users.id', $user->id);
-              });
-        })
-        ->withCount([
-            'tasks as total_tasks' => function ($q) {
-                if ($this->showDeleted) $q->withTrashed();
-            },
-            'tasks as pending_tasks' => function ($q) {
-                if ($this->showDeleted) $q->withTrashed();
-                $q->where('status', 'pending');
-            },
-            'tasks as in_progress_tasks' => function ($q) {
-                if ($this->showDeleted) $q->withTrashed();
-                $q->where('status', 'in_progress');
-            },
-            'tasks as done_tasks' => function ($q) {
-                if ($this->showDeleted) $q->withTrashed();
-                $q->where('status', 'done');
-            },
-        ]);
-
-        if ($this->showDeleted) {
-            $query = $query->withTrashed();
-        }
-
-        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
-        $projects = $this->applyFilters($query, 'name');
-
-        return view('livewire.projects.projects', [
-            'projects' => $projects,
-            'isProjectList' => true,
-        ]);
-    }
-
-    public function deleteFromModal(int $id)
-    {
-        $this->delete($id);
-    }
-
     public function restoreProject(int $id)
     {
         $project = Project::withTrashed()->findOrFail($id);
 
-        if (!$this->canManage($project)) {
+        try {
+            $this->authorize('delete', $project);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
             $this->notify('No tienes permisos para restaurar este proyecto', 'danger');
             return;
         }
@@ -183,11 +141,41 @@ class Projects extends Component
         $this->notify("Proyecto \"{$project->name}\" y sus tareas restauradas con éxito", 'success');
     }
 
-    private function canManage(Project $project): bool
+    public function render()
     {
         $user = auth()->user();
 
-        return $user->isAdmin()
-            || $project->created_by === $user->id;
+        $query = Project::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->with(['users'])
+            ->withCount([
+                'tasks as total_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                },
+                'tasks as pending_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'pending');
+                },
+                'tasks as in_progress_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'in_progress');
+                },
+                'tasks as done_tasks' => function ($q) {
+                    if ($this->showDeleted) $q->withTrashed();
+                    $q->where('status', 'done');
+                },
+            ]);
+
+        if ($this->showDeleted) {
+            $query = $query->withTrashed();
+        }
+
+        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
+        $projects = $this->applyFilters($query, 'name');
+
+        return view('livewire.projects.projects', [
+            'projects' => $projects,
+            'isProjectList' => true,
+        ]);
     }
 }

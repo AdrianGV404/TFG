@@ -12,33 +12,35 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker   = Faker::create();
         $tenants = [];
-        
-        // 1. Crear 5 Tenants (Usamos 'empresa' porque es lo que permite tu migración)
+
+        // 1. Crear 5 Tenants de tipo empresa
         for ($i = 1; $i <= 5; $i++) {
             $tenants[] = Tenant::create([
-                'name' => "Empresa $i", 
-                'type' => 'empresa' // <-- ESTE es el valor correcto según tu migración
+                'name' => "Empresa $i",
+                'type' => 'empresa',
             ]);
         }
 
-        // 2. Crear Adrián (Admin del Tenant 1)
+        // 2. Adrián — único admin de toda la aplicación (Tenant 1)
         User::create([
-            'name' => 'Adrian',
-            'email' => 'adrian@adrian.adrian',
-            'password' => Hash::make('adrian'),
+            'name'      => 'Adrian',
+            'email'     => 'adrian@adrian.adrian',
+            'password'  => Hash::make('adrian'),
             'tenant_id' => $tenants[0]->id,
+            'role'      => 'admin',   // ← único admin
         ]);
 
-        // 3. Crear 99 usuarios restantes distribuidos en los 5 tenants
+        // 3. Resto de usuarios: TODOS con role 'user'
         foreach ($tenants as $tenant) {
             for ($i = 0; $i < 20; $i++) {
                 User::create([
-                    'name' => $faker->name,
-                    'email' => $faker->unique()->safeEmail,
-                    'password' => Hash::make('1234'),
+                    'name'      => $faker->name(),
+                    'email'     => $faker->unique()->safeEmail(),
+                    'password'  => Hash::make('1234'),
                     'tenant_id' => $tenant->id,
+                    'role'      => 'user',
                 ]);
             }
         }
