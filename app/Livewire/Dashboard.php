@@ -7,197 +7,322 @@ use App\Models\TaskTimeEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\HistoricoHorasDia;
+use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
 
 class Dashboard extends Component
 {
     // ─── Filtros ────────────────────────────────────────────────────────────
-    public string $range    = 'week';
-    public ?int   $userId   = null;
-    public ?int   $projectId = null;
+    public ?int $userId    = null;
+    public ?int $projectId = null;
 
     // ─── Listas para selects ────────────────────────────────────────────────
     public array $users    = [];
     public array $projects = [];
 
     // ─── KPIs ───────────────────────────────────────────────────────────────
-    public float $totalHours      = 0;
-    public float $avgDailyHours   = 0;
-    public int   $completedTasks  = 0;
-    public int   $inProgressTasks = 0;
-    public int   $pendingTasks    = 0;
+    public float $avgHoursPerTask = 0;
 
-    // ─── Datos para gráficas ────────────────────────────────────────────────
-    public array $chartLabels    = [];
-    public array $chartData      = [];
-    public array $taskStatusData = [];
+    // ─── Datos para gráficas / listas ───────────────────────────────────────
+    public array  $taskStatusData  = [];   // para el piechart
+    public array  $taskTimeList    = [];   // lista id+titulo+horas
+    public array  $heatmapData     = [];   // para el heatmap anual
+    public array  $heatmapTooltips = [];   // desglose por día (tooltip)
+    public $recentTasks            = [];   // últimas 15 modificadas
 
-    // ─── Heatmap (array de ['date','hours','level']) ─────────────────────────
-    public array $heatmapData = [];
-
-    // ─── Listas ─────────────────────────────────────────────────────────────
-    public $recentTasks    = [];
-    public array $userBreakdown = [];
+    // ─── Permisos de UI ─────────────────────────────────────────────────────
+    public bool $isAdmin = false;
 
     // ────────────────────────────────────────────────────────────────────────
 
     public function mount(): void
     {
-        $user = auth()->user();
+        $user           = auth()->user();
+        $this->isAdmin  = in_array($user->role, ['admin', 'responsable']);
 
-        if (in_array($user->role, ['admin', 'responsable'])) {
-            $this->users = User::select('id', 'name')
-                ->when(
-                    isset($user->tenant_id),
-                    fn ($q) => $q->where('tenant_id', $user->tenant_id)
-                )
-                ->orderBy('name')
-                ->get()
-                ->toArray();
-        } else {
-            // Empleado: fuerza su propio ID, no ve otros usuarios
-            $this->userId = $user->id;
-        }
-
+        // Proyectos del tenant (todos los roles)
         $this->projects = Project::select('id', 'name')
-            ->when(
-                isset($user->tenant_id),
-                fn ($q) => $q->where('tenant_id', $user->tenant_id)
-            )
+            ->where('tenant_id', $user->tenant_id)
             ->whereNull('deleted_at')
             ->orderBy('name')
             ->get()
             ->toArray();
 
+        if ($this->isAdmin) {
+            // Admin: ve todos los usuarios del tenant
+            $this->users = User::select('id', 'name')
+                ->where('tenant_id', $user->tenant_id)
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        } else {
+            // Empleado: forzar su propio userId, sin selector de usuario
+            $this->userId = $user->id;
+        }
+
         $this->loadData();
     }
 
-    public function updated(string $propertyName): void
-    {
-        $this->loadData();
-    }
+    // ❌ El método updated() ha sido eliminado para evitar recargas automáticas conflictivas
+
+    // ────────────────────────────────────────────────────────────────────────
 
     public function loadData(): void
     {
-        [$startDate, $endDate] = $this->dateRange();
+        $tenantId = auth()->user()->tenant_id;
 
-        // ── 1. Time entries → chart + heatmap ───────────────────────────────
-        $timeEntries = TaskTimeEntry::query()
-            ->where('created_at', '>=', $startDate)
-            ->where('created_at', '<=', $endDate)
-            ->when($this->userId,    fn ($q) => $q->where('user_id', $this->userId))
-            ->when($this->projectId, fn ($q) => $q->whereHas(
-                'task', fn ($t) => $t->where('project_id', $this->projectId)
-            ))
-            ->selectRaw('DATE(created_at) as date, SUM(duration_seconds) as seconds')
-            ->groupBy('date')
-            ->pluck('seconds', 'date');
+        // ── 1. Lista de tareas con tiempo total ──────────────────────────────
+        $this->taskTimeList = $this->buildTaskTimeList($tenantId);
 
-        $this->chartLabels  = [];
-        $this->chartData    = [];
-        $this->heatmapData  = [];
-        $this->totalHours   = 0;
+        // ── 2. Promedio de horas por tarea ───────────────────────────────────
+        $totalHoras = collect($this->taskTimeList)->sum('horas');
+        $numTareas  = count($this->taskTimeList);
+        $this->avgHoursPerTask = $numTareas > 0
+            ? round($totalHoras / $numTareas, 1)
+            : 0;
 
-        foreach (CarbonPeriod::create($startDate, $endDate) as $date) {
-            $key     = $date->format('Y-m-d');
-            $seconds = $timeEntries->get($key, 0);
-            $hours   = round($seconds / 3600, 2);
+        // ── 3. Estados de tareas ─────────────────────────────────────────────
+        $this->taskStatusData = $this->buildStatusData($tenantId);
 
-            $this->chartLabels[] = $date->format('d M');
-            $this->chartData[]   = $hours;
-            $this->totalHours   += $hours;
+        // ── 4. Heatmap anual desde historico_horas_dia ───────────────────────
+        $this->heatmapData     = $this->buildHeatmap($tenantId);
+        $this->heatmapTooltips = $this->buildHeatmapTooltips($tenantId);
 
-            // Level 0-4 para el heatmap (escala visual)
+        // ── 5. Tareas recientes (últimas 15 por updated_at) ──────────────────
+        $this->recentTasks = $this->buildRecentTasks($tenantId);
+    }
+
+    // ─── Builders privados ──────────────────────────────────────────────────
+
+    /**
+     * Devuelve [ ['id', 'title', 'horas'], … ] de las tareas con tiempo registrado,
+     * aplicando los filtros activos, ordenado por horas DESC.
+     */
+    private function buildTaskTimeList(int $tenantId): array
+    {
+        $query = DB::table('task_time_entries as tte')
+            ->join('tasks', 'tasks.id', '=', 'tte.task_id')
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->where('projects.tenant_id', $tenantId)
+            ->whereNull('projects.deleted_at')
+            ->whereNull('tasks.deleted_at')
+            ->where('tte.is_running', false)
+            ->selectRaw('tasks.id, tasks.title, SUM(tte.duration_seconds) as seconds');
+
+        if ($this->userId) {
+            $query->where('tte.user_id', $this->userId);
+        }
+
+        if ($this->projectId) {
+            $query->where('tasks.project_id', $this->projectId);
+        }
+
+        return $query
+            ->groupBy('tasks.id', 'tasks.title')
+            ->orderByDesc('seconds')
+            ->get()
+            ->map(fn ($r) => [
+                'id'    => $r->id,
+                'title' => $r->title,
+                'horas' => round($r->seconds / 3600, 1),
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Devuelve conteos y porcentajes de tareas por estado.
+     */
+    private function buildStatusData(int $tenantId): array
+    {
+        $query = Task::query()
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->where('projects.tenant_id', $tenantId)
+            ->whereNull('projects.deleted_at')
+            ->whereNull('tasks.deleted_at');
+
+        if ($this->userId) {
+            $query->whereHas('timeEntries', fn ($q) => $q->where('user_id', $this->userId));
+        }
+
+        if ($this->projectId) {
+            $query->where('tasks.project_id', $this->projectId);
+        }
+
+        $counts = $query
+            ->select('tasks.status', DB::raw('count(*) as total'))
+            ->groupBy('tasks.status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $total = array_sum($counts);
+
+        $labels = [
+            'pending'     => 'Pendiente',
+            'in_progress' => 'En progreso',
+            'on_hold'     => 'En pausa',
+            'testing'     => 'En pruebas',
+            'done'        => 'Completada',
+        ];
+
+        $colors = [
+            'pending'     => '#f59e0b',
+            'in_progress' => '#3b82f6',
+            'on_hold'     => '#6b7280',
+            'testing'     => '#8b5cf6',
+            'done'        => '#22c55e',
+        ];
+
+        $result = [];
+        foreach ($labels as $key => $label) {
+            $n = $counts[$key] ?? 0;
+            $result[] = [
+                'key'     => $key,
+                'label'   => $label,
+                'count'   => $n,
+                'percent' => $total > 0 ? round($n / $total * 100) : 0,
+                'color'   => $colors[$key],
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Construye el array de celdas del heatmap (desde hace ~1 año hasta hoy).
+     * Usa historico_horas_dia para obtener las horas por día.
+     *
+     * @return array  [ 'date' => 'Y-m-d', 'horas' => float, 'level' => 0-3 ][]
+     */
+    private function buildHeatmap(int $tenantId): array
+    {
+        $end   = now()->toDateString();
+        $start = now()->subYear()->addDay()->toDateString();
+
+        $query = DB::table('historico_horas_dia')
+            ->where('tenant_id', $tenantId)
+            ->whereBetween('dia', [$start, $end]);
+
+        if ($this->projectId) {
+            $query->where('project_id', $this->projectId);
+        }
+
+        // Agrupar por día (sumando todos los proyectos si no hay filtro)
+        $rows = $query
+            ->selectRaw('dia, SUM(horas) as horas')
+            ->groupBy('dia')
+            ->pluck('horas', 'dia')
+            ->map(fn ($h) => (float) $h);
+
+        $cells = [];
+        foreach (CarbonPeriod::create($start, $end) as $date) {
+            $key   = $date->toDateString();
+            $horas = (float) ($rows[$key] ?? 0);
+
             $level = match (true) {
-                $hours <= 0  => 0,
-                $hours < 2   => 1,
-                $hours < 4   => 2,
-                $hours < 6   => 3,
-                default      => 4,
+                $horas <= 0 => 0,
+                $horas < 3  => 1,
+                $horas < 6  => 2,
+                default     => 3,
             };
 
-            $this->heatmapData[] = [
-                'date'  => $date->format('d M'),
-                'hours' => $hours,
+            $cells[] = [
+                'date'  => $key,
+                'horas' => round($horas, 1),
                 'level' => $level,
             ];
         }
 
-        $days = max(1, count($this->chartData));
-        $this->avgDailyHours = round($this->totalHours / $days, 1);
+        return $cells;
+    }
 
-        // ── 2. Estado de tareas ──────────────────────────────────────────────
-        $statuses = Task::query()
-            ->when($this->userId,    fn ($q) => $q->whereHas(
-                'users', fn ($u) => $u->where('users.id', $this->userId)
-            ))
-            ->when($this->projectId, fn ($q) => $q->where('project_id', $this->projectId))
-            ->whereNull('deleted_at')
-            ->select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+    /**
+     * Para cada día con actividad construye el desglose que mostrará el tooltip:
+     * lista de [ task_id, title, horas ] del día.
+     * Solo se calculan los días que tienen horas > 0 para no sobrecargar.
+     *
+     * @return array  [ 'Y-m-d' => [ ['task_id', 'title', 'horas'], … ] ]
+     */
+    private function buildHeatmapTooltips(int $tenantId): array
+    {
+        $end   = now()->toDateString();
+        $start = now()->subYear()->addDay()->toDateString();
 
-        $this->completedTasks  = $statuses['done']        ?? 0;
-        $this->inProgressTasks = $statuses['in_progress'] ?? 0;
-        $this->pendingTasks    = $statuses['pending']      ?? 0;
+        $query = DB::table('task_time_entries as tte')
+            ->join('tasks', 'tasks.id', '=', 'tte.task_id')
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->where('projects.tenant_id', $tenantId)
+            ->whereNull('tasks.deleted_at')
+            ->whereNull('projects.deleted_at')
+            ->where('tte.is_running', false)
+            ->whereBetween(DB::raw('DATE(tte.started_at)'), [$start, $end]);
 
-        $this->taskStatusData = [
-            'Pendientes'  => $this->pendingTasks,
-            'En progreso' => $this->inProgressTasks,
-            'Completadas' => $this->completedTasks,
-        ];
+        if ($this->projectId) {
+            $query->where('tasks.project_id', $this->projectId);
+        }
 
-        // ── 3. Actividad reciente ────────────────────────────────────────────
-        $this->recentTasks = Task::query()
-            ->with('project')
-            ->when($this->userId,    fn ($q) => $q->whereHas(
-                'users', fn ($u) => $u->where('users.id', $this->userId)
-            ))
-            ->when($this->projectId, fn ($q) => $q->where('project_id', $this->projectId))
-            ->whereNull('deleted_at')
-            ->latest('updated_at')
-            ->take(8)
+        if ($this->userId) {
+            $query->where('tte.user_id', $this->userId);
+        }
+
+        $rows = $query
+            ->selectRaw('DATE(tte.started_at) as dia, tasks.id as task_id, tasks.title, SUM(tte.duration_seconds) as seconds')
+            ->groupBy('dia', 'tasks.id', 'tasks.title')
+            ->orderBy('dia')
+            ->orderByDesc('seconds')
             ->get();
 
-        // ── 4. Desglose por usuario (solo admin/responsable) ─────────────────
-        $user = auth()->user();
-        $this->userBreakdown = [];
-
-        if (in_array($user->role, ['admin', 'responsable'])) {
-            $rows = DB::table('task_time_entries as tte')
-                ->join('users', 'users.id', '=', 'tte.user_id')
-                ->whereBetween('tte.created_at', [$startDate, $endDate])
-                ->when($this->projectId, function ($q) {
-                    $q->join('tasks', 'tasks.id', '=', 'tte.task_id')
-                      ->where('tasks.project_id', $this->projectId);
-                })
-                ->selectRaw('users.id, users.name, SUM(tte.duration_seconds) as seconds')
-                ->groupBy('users.id', 'users.name')
-                ->orderByDesc('seconds')
-                ->take(5)
-                ->get();
-
-            $totalSeconds = $rows->sum('seconds') ?: 1;
-
-            $this->userBreakdown = $rows->map(fn ($r) => [
-                'name'    => $r->name,
-                'hours'   => round($r->seconds / 3600, 1),
-                'percent' => (int) round($r->seconds / $totalSeconds * 100),
-            ])->toArray();
+        $tooltips = [];
+        foreach ($rows as $row) {
+            $tooltips[$row->dia][] = [
+                'task_id' => $row->task_id,
+                'title'   => $row->title,
+                'horas'   => round($row->seconds / 3600, 1),
+            ];
         }
+
+        return $tooltips;
+    }
+
+    /**
+     * Últimas 15 tareas modificadas del tenant (con filtros aplicados).
+     */
+    private function buildRecentTasks(int $tenantId)
+    {
+        $query = Task::query()
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->where('projects.tenant_id', $tenantId)
+            ->whereNull('projects.deleted_at')
+            ->whereNull('tasks.deleted_at')
+            ->select('tasks.*');
+
+        if ($this->userId) {
+            $query->whereHas('timeEntries', fn ($q) => $q->where('user_id', $this->userId));
+        }
+
+        if ($this->projectId) {
+            $query->where('tasks.project_id', $this->projectId);
+        }
+
+        return $query
+            ->with('project')
+            ->orderByDesc('tasks.updated_at')
+            ->limit(15)
+            ->get();
+    }
+
+    /**
+     * Se ejecuta al pulsar el botón "Aplicar filtros".
+     * Recarga los datos y emite un evento al navegador para que JS redibuje los gráficos.
+     */
+    public function applyFilters(): void
+    {
+        $this->loadData();
+        $this->dispatchBrowserEvent('filters-applied');
     }
 
     // ────────────────────────────────────────────────────────────────────────
-
-    private function dateRange(): array
-    {
-        return match ($this->range) {
-            'month' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-            default => [now()->subDays(6)->startOfDay(),  now()->endOfDay()],
-        };
-    }
 
     public function render()
     {
