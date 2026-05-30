@@ -10,6 +10,5 @@ class DispatchProcessTaskJob
     public function handle(TaskCompleted $event): void
     {
         ProcessTaskJob::dispatch($event->task);
-        logger()->info('JOB DISPATCHED', ['task_id' => $event->task->id]);
     }
 }

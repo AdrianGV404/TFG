@@ -1,30 +1,94 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
-use App\Http\Controllers\ExternalPostController;
-use App\Livewire\ProjectDetail;
+use App\Models\Project;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| RUTAS PÚBLICAS (Visitantes)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
+// Página de inicio: si está logueado va a proyectos, si no, a la landing
 Route::get('/', function () {
-    return view('welcome');
+    if (auth()->check()) {
+        return redirect()->route('projects');
+    }
+    return view('livewire.partials.wrapper', ['component' => 'landingpage']);
+})->name('landingpage');
+
+// Rutas para usuarios NO logueados (Guest)
+Route::middleware(['guest'])->group(function () {
+    // Login con Livewire
+    Route::get('/login', fn() => view('livewire.partials.wrapper', [
+        'component' => 'login',
+    ]))->name('login');
+
+    // Registros
+    Route::get('/register-personal', fn() => view('livewire.partials.wrapper', [
+        'component' => 'register-personal',
+    ]))->name('register.personal');
+
+    Route::get('/register-empresa', fn() => view('livewire.partials.wrapper', [
+        'component' => 'register-empresa',
+    ]))->name('register.empresa');
 });
 
-Route::resource('projects', ProjectController::class);
-Route::resource('projects.tasks', TaskController::class)->except(['index', 'show', 'create']);
-Route::get('/external-posts', [ExternalPostController::class, 'index']);
-Route::get('/livewire/projects', function () {
-    return view('livewire.projects-page');
-})->name('livewire.projects');
-Route::get('/livewire/projects/{project}', ProjectDetail::class)
-    ->name('livewire.projects.show');
+// Logout (POST) - Siempre debe estar accesible para usuarios autenticados
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS (Solo usuarios autenticados)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/tasks/{task}', fn(\App\Models\Task $task) => view('livewire.partials.wrapper', [
+        'component' => 'tasks.task-detail',
+        'task'      => $task,
+    ]))->name('tasks.show');
+
+    Route::get('/dashboard', fn () => view('livewire.partials.wrapper', [
+        'component' => 'dashboard',
+    ]))->name('dashboard');
+
+    Route::view('/calendar', 'livewire.partials.wrapper', [
+        'component' => 'calendar'
+    ])->name('calendar');
+
+    // Mi Perfil (Configuración del Sistema y Usuario)
+    Route::get('/profile', fn() => view('livewire.partials.wrapper', [
+        'component' => 'user-profile',
+    ]))->name('profile');
+
+    // Gestión de Proyectos
+    Route::get('/projects', fn() => view('livewire.partials.wrapper', [
+        'component' => 'projects',
+    ]))->name('projects');
+
+    Route::get('/projects/{project}', fn(Project $project) => view('livewire.partials.wrapper', [
+        'component' => 'project-detail',
+        'project' => $project,
+    ]))->name('projects.show');
+
+    // CRUD de tareas
+    Route::resource('projects.tasks', TaskController::class)
+        ->except(['index', 'show', 'create']);
+
+    /*
+    |--- SOLO ADMINISTRADORES ---
+    */
+    Route::middleware(['isAdmin'])->group(function () {
+        Route::get('/users', fn() => view('livewire.partials.wrapper', [
+            'component' => 'user-management',
+        ]))->name('users.index');
+
+        Route::get('/users/create', fn() => view('livewire.partials.wrapper', [
+            'component' => 'user-form',
+        ]))->name('users.create');
+    });
+});

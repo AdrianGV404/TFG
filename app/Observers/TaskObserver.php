@@ -4,24 +4,28 @@ namespace App\Observers;
 
 use App\Models\Task;
 use App\Events\TaskCompleted;
+use App\Services\NotificationService;
 
 class TaskObserver
-{   
-    /**
-     * Se ejecuta automáticamente después de que una tarea
-     * haya sido actualizada en la base de datos.
-     */
+{
     public function updated(Task $task): void
     {
-        // Comprueba si el campo "status" ha cambiado en esta actualización
-        // y si el nuevo valor del estado es "done"
-        if (
-            $task->wasChanged('status') &&
-            $task->status === 'done'
-        ) {
-            // Dispara el evento TaskCompleted para desacoplar
-            // las acciones que deben ocurrir cuando una tarea se completa
-            event(new TaskCompleted($task));
+        if ($task->wasChanged('status')) {
+            $oldStatus = $task->getOriginal('status');
+            $newStatus = $task->status;
+
+            // Fire the TaskCompleted event when done
+            if ($newStatus === 'done') {
+                event(new TaskCompleted($task));
+            }
+
+            // Notify other project members of the status change
+            NotificationService::notifyStatusChange(
+                $task,
+                $oldStatus,
+                $newStatus,
+                auth()->id() ?? 0
+            );
         }
     }
 }

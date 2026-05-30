@@ -11,7 +11,8 @@ class SendTaskCompletedEmail
 {
     public function handle(TaskCompleted $event): void
     {
+        // Queue the mailable for asynchronous delivery (improves throughput under load)
         Mail::to('test@laravel.com')
-            ->send(new TaskCompletedMail($event->task));
+            ->queue(new TaskCompletedMail($event->task));
     }
 }

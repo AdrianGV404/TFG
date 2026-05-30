@@ -43,6 +43,7 @@ body {
 .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: 6px 12px;
     font-size: 14px;
@@ -53,6 +54,7 @@ body {
     background: #e9ecef;
     color: #212529;
     transition: background 0.15s ease, opacity 0.15s ease;
+    min-width: 80px; /* Evita cambios de tamaño al cambiar el texto */
 }
 
 .btn:hover {
@@ -73,6 +75,7 @@ body {
 /* Variantes */
 .btn-primary {
     background: #0d6efd;
+    min-width: 120px;
     color: #fff;
 }
 
@@ -86,19 +89,26 @@ body {
 ========================================================= */
 .btn-loading {
     position: relative;
+    min-width: 120px; /* evita cambios de ancho */
+    justify-content: center;
 }
 
-.btn-spinner {
-    display: none;
-    font-size: 13px;
+.btn-loading .btn-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .btn-loading[disabled] .btn-text {
-    display: none;
+    visibility: hidden; /* sigue ocupando espacio */
 }
 
 .btn-loading[disabled] .btn-spinner {
-    display: inline-block;
+    opacity: 1;
 }
 
 /* =========================================================
@@ -131,7 +141,9 @@ textarea:focus {
 table {
     width: 100%;
     border-collapse: collapse;
+    border-spacing: 0;         /* mantiene todo alineado */
     background: #fff;
+    table-layout: fixed;
 }
 
 thead {
@@ -147,21 +159,32 @@ th {
 
 td {
     padding: 10px;
-    font-size: 14px;
-    vertical-align: top;
+    vertical-align: middle;
     border-bottom: 1px solid #eee;
 }
 
+/* Centrar IDs en la columna ID */
 .text-muted {
-    color: #6c757d;
+    text-align: center;
 }
 
 /* =========================================================
    ACCIONES
 ========================================================= */
+.actions,
 .actions-row {
     display: flex;
     gap: 6px;
+}
+
+.actions button,
+.actions-row button {
+    min-width: 80px; /* ancho mínimo para que no cambie con el texto */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    box-sizing: border-box;
 }
 
 /* =========================================================
@@ -195,24 +218,23 @@ td {
     text-transform: capitalize;
 }
 
-/* Estados */
 .badge.pending {
-    background: #fff3cd;
+    background: #fff9db; 
     color: #856404;
 }
 
 .badge.in_progress {
-    background: #cce5ff;
+    background: #d6eaff; 
     color: #004085;
 }
 
 .badge.done {
-    background: #d4edda;
+    background: #d8f6d8; 
     color: #155724;
 }
 
 .badge.active {
-    background: #d4edda;
+    background: #d8f6d8;
     color: #155724;
 }
 
@@ -226,17 +248,28 @@ td {
 ========================================================= */
 .tasks-wrapper {
     margin-top: 20px;
+    overflow: visible;
 }
 
 .task-title {
     font-weight: 600;
     font-size: 14px;
+    display: block;           
+    max-width: 100%;          
+    word-wrap: break-word;    
+    overflow-wrap: break-word;
+    white-space: normal;      
 }
 
 .task-description {
     font-size: 13px;
     color: #555;
     margin-top: 4px;
+    display: block;
+    max-width: 100%;          
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 /* =========================================================
@@ -248,27 +281,528 @@ td {
     gap: 10px;
 }
 
-.task-status-dot {
-    width: 14px;
-    height: 14px;
-    min-width: 14px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.25);
-}
-
-.task-status-dot.pending {
-    background: #ffc107;
-}
-
-.task-status-dot.in_progress {
-    background: #0d6efd;
-}
-
-.task-status-dot.done {
-    background: #198754;
-}
-
-.task-status-select {
+/* =========================================================
+   SELECT STATUS Y PRIORIDAD
+========================================================= */
+.task-status-select,
+.task-priority-select {
     font-size: 13px;
     padding: 4px 6px;
+    color: #000;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+/* ---------------------------------------------------------
+   STATUS - Select cerrado según value
+--------------------------------------------------------- */
+.task-status-select:has(option[value="pending"]:checked) {
+    background: #fff9db;
+    border-color: #ffec99;
+    color: #856404;
+}
+
+.task-status-select:has(option[value="in_progress"]:checked) {
+    background: #d6eaff;
+    border-color: #74b9ff;
+    color: #004085;
+}
+
+.task-status-select:has(option[value="done"]:checked) {
+    background: #d8f6d8;
+    border-color: #81c784;
+    color: #155724;
+}
+
+/* Opciones del desplegable */
+.task-status-select option[value="pending"] { background: #fff9db; color: #856404; }
+.task-status-select option[value="in_progress"] { background: #d6eaff; color: #004085; }
+.task-status-select option[value="done"] { background: #d8f6d8; color: #155724; }
+
+/* Hover y active para opciones */
+.task-status-select option[value="pending"]:hover,
+.task-status-select option[value="pending"]:active {
+    background: #ffe066;
+    color: #856404;
+}
+
+.task-status-select option[value="in_progress"]:hover,
+.task-status-select option[value="in_progress"]:active {
+    background: #a0d2ff;
+    color: #004085;
+}
+
+.task-status-select option[value="done"]:hover,
+.task-status-select option[value="done"]:active {
+    background: #a5d6a7;
+    color: #155724;
+}
+
+/* ---------------------------------------------------------
+   PRIORIDAD - Select cerrado según value
+--------------------------------------------------------- */
+/* =============================
+   PRIORIDAD - Select cerrado según value numérico
+============================= */
+.task-priority-select:has(option[value="0"]:checked) {
+    background: #ffb3b3;
+    border-color: #ff6b6b;
+    color: #800000;
+}
+
+.task-priority-select:has(option[value="1"]:checked),
+.task-priority-select:has(option[value="2"]:checked),
+.task-priority-select:has(option[value="3"]:checked) {
+    background: #ffd8a8;
+    border-color: #ffa500;
+    color: #663300;
+}
+
+.task-priority-select:has(option[value="4"]:checked),
+.task-priority-select:has(option[value="5"]:checked),
+.task-priority-select:has(option[value="6"]:checked) {
+    background: #fff8b3;
+    border-color: #ffd700;
+    color: #665500;
+}
+
+.task-priority-select:has(option[value="7"]:checked),
+.task-priority-select:has(option[value="8"]:checked) {
+    background: #b3e5ff;
+    border-color: #4da6ff;
+    color: #004466;
+}
+
+.task-priority-select:has(option[value="9"]:checked),
+.task-priority-select:has(option[value="10"]:checked) {
+    background: #e0e0e0;
+    border-color: #a0a0a0;
+    color: #555555;
+}
+
+/* =============================
+   Opciones del desplegable
+============================= */
+.task-priority-select option[value="0"] { background: #ffb3b3; color: #800000; }
+.task-priority-select option[value="1"],
+.task-priority-select option[value="2"],
+.task-priority-select option[value="3"] { background: #ffd8a8; color: #663300; }
+.task-priority-select option[value="4"],
+.task-priority-select option[value="5"],
+.task-priority-select option[value="6"] { background: #fff8b3; color: #665500; }
+.task-priority-select option[value="7"],
+.task-priority-select option[value="8"] { background: #b3e5ff; color: #004466; }
+.task-priority-select option[value="9"],
+.task-priority-select option[value="10"] { background: #e0e0e0; color: #555555; }
+
+/* =============================
+   Hover y active para opciones
+============================= */
+.task-priority-select option[value="0"]:hover,
+.task-priority-select option[value="0"]:active { background: #ff8080; color: #800000; }
+
+.task-priority-select option[value="1"]:hover,
+.task-priority-select option[value="1"]:active,
+.task-priority-select option[value="2"]:hover,
+.task-priority-select option[value="2"]:active,
+.task-priority-select option[value="3"]:hover,
+.task-priority-select option[value="3"]:active { background: #ffbf66; color: #663300; }
+
+.task-priority-select option[value="4"]:hover,
+.task-priority-select option[value="4"]:active,
+.task-priority-select option[value="5"]:hover,
+.task-priority-select option[value="5"]:active,
+.task-priority-select option[value="6"]:hover,
+.task-priority-select option[value="6"]:active { background: #fff27f; color: #665500; }
+
+.task-priority-select option[value="7"]:hover,
+.task-priority-select option[value="7"]:active,
+.task-priority-select option[value="8"]:hover,
+.task-priority-select option[value="8"]:active { background: #80d4ff; color: #004466; }
+
+.task-priority-select option[value="9"]:hover,
+.task-priority-select option[value="9"]:active,
+.task-priority-select option[value="10"]:hover,
+.task-priority-select option[value="10"]:active { background: #cfcfcf; color: #555555; }
+
+/* =========================================================
+   Alpine.js x-cloak
+========================================================= */
+[x-cloak] {
+    display: none !important;
+}
+
+/* =========================================================
+   REUSABLE CLASSES FOR LIVEWIRE VIEWS
+========================================================= */
+.col-actions { width:180px; }
+.col-id, 
+.col-id td {
+    text-align: center;
+    vertical-align: middle;
+}
+.col-status {
+    width: 150px;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 13px;
+    color: #555; 
+}
+.col-status-140 { width:140px; }
+
+.actions, .actions-row { display:flex; gap:6px; }
+
+.tasks-legend { font-size:13px; display:flex; flex-direction:column; gap:4px; margin-top:8px; text-align:right; }
+
+.project-stats { margin-top:6px; }
+.project-progress { display:flex; height:6px; border-radius:4px; overflow:hidden; }
+.project-progress-bar { height:100%; }
+.project-progress-bar.done { background:#4caf7a; }
+.project-progress-bar.in_progress { background:#3399ff; }
+.project-progress-bar.pending { background:#ffc107; }
+
+.text-error { color: #dc3545; }
+.loading-msg { margin-bottom: 10px; }
+
+.auto-resize-textarea {
+    overflow: hidden;
+    resize: none;
+    min-height: 40px;
+    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    width: 100%;
+}
+
+.piecol { flex:0 0 160px; display:flex; flex-direction:column; align-items:center; }
+
+/* Search controls layout */
+.search-controls { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.search-left { display:flex; gap:8px; }
+.search-right { display:flex; gap:10px; }
+.search-input-small { max-width:260px; }
+.search-input-id { width:100px; }
+.search-select-wide { min-width:190px; }
+
+/* Generic form column used in list pages */
+.form-col { flex:1 1 auto; min-width:280px; }
+
+/* Project index specific column widths */
+.col-actions-200 { width: 200px; }
+.col-id-80 { width: 80px; }
+.col-project-320 { width: 320px; }
+.col-state-120 { width: 120px; }
+.col-tasks-280 { width: auto; } /* La columna Tarea ahora es la más grande */
+
+/* Inline form helper and hidden state */
+.inline-form { display: inline; }
+.hidden { display: none; }
+
+/* ==============================
+   TABLA
+============================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    table-layout: fixed;
+}
+
+th, td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+/* ID centrado y ancho mínimo */
+.col-id {
+    width: 5%;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Título de tarea con wrap sin romper bordes */
+.task-title,
+.task-description {
+    display: block;
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Contenedor flexible para varios selects en fila */
+.form-group-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+/* Cada select ocupa el espacio proporcional */
+.form-group-row .form-group {
+    flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Label encima del select */
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #212529;
+}
+
+/* Ajuste visual interno de los selects */
+.form-group-row select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   SELECTS EDITABLE / NO EDITABLE
+========================================================= */
+
+/* Si es readonly, ocultamos la flecha del select */
+select.readonly {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: default;
+}
+
+/* Si es editable, mostramos la flecha normal */
+select.editable {
+    -webkit-appearance: menulist-button;
+    -moz-appearance: menulist-button;
+    appearance: menulist-button;
+    cursor: pointer;
+}
+
+.project-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+
+    padding: 8px 10px;
+    border-radius: 10px;
+
+    transition: background-color 0.15s ease;
+}
+
+.project-card-link:hover {
+    background-color: rgba(13,110,253,0.06);
+}
+
+.project-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #212529;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.project-open-icon {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all 0.15s ease;
+    font-weight: 500;
+}
+
+.project-card-link:hover .project-title {
+    color: #0d6efd;
+}
+
+.project-card-link:hover .project-open-icon {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* ID - mínimo ancho, centrado */
+.col-id {
+    width: 50px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Acciones - ancho fijo para botones */
+.col-actions {
+    width: 180px;
+    white-space: nowrap;
+}
+
+/* Tarea - ocupa todo el espacio disponible */
+.col-task {
+    width: auto;
+    max-width: none;
+    white-space: normal;
+}
+
+/* Timestamps - lo más compacto posible, centrado */
+.col-timestamps {
+    min-width: 130px;
+    max-width: 150px;
+    white-space: nowrap;
+    text-align: center;
+    padding-right: 8px; /* un poco de espacio hacia la columna de estado */
+}
+
+/* Estado + Prioridad - lo más compacto posible */
+.col-status {
+    min-width: 140px;
+    max-width: 160px;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 8px; /* un poco de espacio desde timestamps */
+}
+
+/* Ajuste para td de la columna tarea */
+td .task-title,
+td .task-description {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Selects en columna estado + prioridad, uno debajo del otro */
+.task-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+/* TABLA */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    table-layout: auto; /* clave: permite que la columna de tarea crezca y las otras se ajusten */
+}
+
+th, td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+/* ACCIONES */
+.col-actions {
+    width: 180px;
+    white-space: nowrap;
+}
+
+/* ID */
+.col-id {
+    width: 50px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* TAREA - ocupa todo el espacio disponible */
+.col-task {
+    width: 100%; /* ocupa todo el espacio sobrante */
+    white-space: normal;
+}
+
+/* TIMESTAMPS - lo más compacto posible */
+.col-timestamps {
+    width: 120px; /* ancho mínimo fijo */
+    white-space: nowrap;
+    text-align: center;
+    padding-right: 6px; /* espacio hacia estado */
+}
+
+/* ESTADO + PRIORIDAD - lo más compacto posible */
+.col-status {
+    width: 140px; /* ancho mínimo fijo */
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 6px; /* espacio desde timestamps */
+}
+
+/* Ajuste visual para td de tarea */
+td .task-title,
+td .task-description {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Selects en columna estado + prioridad, uno debajo del otro */
+.task-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+:root {
+    --navbar-height: 64px;
+    --sidebar-width: 260px;
+}
+
+.search-controls-wrapper {
+    position: sticky;
+    top: calc(var(--navbar-height) + 24px);
+    background: #fff;
+    z-index: 40;
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table thead th {
+    position: sticky;
+    top: calc(var(--navbar-height) + var(--search-height) + 35px);
+    background: #fff;
+    z-index: 30;
+    box-shadow: inset 0 -1px 0 0 #dee2e6; /* línea debajo */
+}
+
+.piecharts-fixed {
+    position: fixed;
+    top: calc(var(--navbar-height) + 20px); /* debajo del navbar */
+    right: 20px; /* margen derecho */
+    width: 180px; /* ancho del sidebar */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    z-index: 100; /* encima de todo */
+    background: #fff;
+    padding: 12px;
+    border-radius: 8px;
+}
+.piecharts-fixed h5 {
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+table tbody tr.bg-softdeleted td {
+    background-color: #ffe5e5 !important;
+}
+table tbody tr.bg-softdeleted:hover td {
+    background-color: #ffdada !important;
+}
+
+.badge.deleted {
+    background: #dc3545; /* rojo fuerte */
+    color: #fff;
+}
+
+.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+.dark-mode .card {
+    background-color: #1e1e1e;
+    color: white;
 }

@@ -2,39 +2,47 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Livewire\Traits\FormValidationRules;
 use App\Models\Project;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Livewire\Traits\Notifies;
 
 class ProjectForm extends Component
 {
+    use FormValidationRules, AuthorizesRequests, Notifies;
+    
     public string $name = '';
     public ?string $description = null;
     public string $status = 'active';
 
-    protected $rules = [
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'status' => 'required|in:active,archived',
-    ];
-
     public function save()
     {
-        $this->validate();
+        try {
+            $this->authorize('create', Project::class);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            $this->notify('No tienes permisos para crear proyectos.', 'danger');
+            return;
+        }
+
+        $this->validate($this->projectRules());
 
         Project::create([
             'name' => $this->name,
             'description' => $this->description,
             'status' => $this->status,
+            'tenant_id' => Auth::user()->tenant_id,
+            'created_by' => Auth::id(),
         ]);
 
         $this->reset();
-
         $this->dispatch('projectCreated');
         $this->dispatch('closeForm');
     }
 
     public function render()
     {
-        return view('livewire.project-form');
+        return view('livewire.projects.project-form');
     }
 }

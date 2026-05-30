@@ -26,6 +26,7 @@ class StoreApiTaskRequest extends FormRequest
             'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:pending,in_progress,done'],
+            'priority' => ['required', 'in:very_high,high,mid,low,very_low'],
         ];
     }
 }
