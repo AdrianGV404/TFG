@@ -7,26 +7,27 @@ use App\Models\Task;
 use App\Models\Label;
 use App\Models\TaskTimeEntry;
 use App\Livewire\Traits\Notifies;
+use App\Livewire\Traits\RegistraHistoricoHoras;   // ← NUEVO
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class TaskDetail extends Component
 {
-    use Notifies, AuthorizesRequests;
+    use Notifies, AuthorizesRequests, RegistraHistoricoHoras;   // ← NUEVO
 
     public Task $task;
 
     // Campos editables
-    public string $title = '';
+    public string $title       = '';
     public string $description = '';
-    public string $status = 'pending';
-    public int $priority = 5;
-    public ?string $due_date = null;
-    public array $selected_labels = [];
+    public string $status      = 'pending';
+    public int    $priority    = 5;
+    public ?string $due_date   = null;
+    public array  $selected_labels = [];
 
     // Modal tiempo manual
     public bool $showManualTimeModal = false;
-    public int $manualHours = 0;
-    public int $manualMinutes = 0;
+    public int  $manualHours         = 0;
+    public int  $manualMinutes       = 0;
 
     // Control edición
     public bool $isEditing = false;
@@ -43,7 +44,6 @@ class TaskDetail extends Component
 
     public function mount(Task $task): void
     {
-        // Verificar permiso de ver
         try {
             $this->authorize('view', $task);
         } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
@@ -123,8 +123,14 @@ class TaskDetail extends Component
         $this->redirect(route('projects.show', $projectId));
     }
 
-    // ── Time tracking ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  TIME TRACKING
+    // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Inicia o detiene el contador.
+     * Al detener acumula en historico_horas_dia a través del trait.
+     */
     public function toggleTimeTracking(): void
     {
         $running = TaskTimeEntry::where('task_id', $this->task->id)
@@ -133,29 +139,26 @@ class TaskDetail extends Component
             ->first();
 
         if ($running) {
-            $running->update([
-                'ended_at'         => now(),
-                'duration_seconds' => now()->diffInSeconds($running->started_at),
-                'is_running'       => false,
-            ]);
-            $this->notify('Tiempo detenido', 'success');
+            // ── Detener: cierra entrada, pone en pausa y acumula histórico ───
+            $this->detenerYRegistrar($running, $this->task);
+            $this->notify('Tiempo detenido — tarea en pausa', 'success');
         } else {
-            TaskTimeEntry::create([
-                'task_id'    => $this->task->id,
-                'user_id'    => auth()->id(),
-                'started_at' => now(),
-                'is_running' => true,
-            ]);
-            $this->notify('Tiempo iniciado', 'success');
+            // ── Iniciar: crea entrada y pone en progreso ──────────────────────
+            $this->iniciarGrabacion($this->task);
+            $this->notify('Tiempo iniciado — tarea en progreso', 'success');
         }
 
         $this->task->refresh()->load(['timeEntries.user', 'labels', 'creator', 'project']);
+
+        // Sincronizar la propiedad del componente con el nuevo estado de la tarea
+        // para que el select de estado se actualice en el frontend
+        $this->status = $this->task->status;
     }
 
     public function openManualTimeModal(): void
     {
-        $this->manualHours   = 0;
-        $this->manualMinutes = 0;
+        $this->manualHours         = 0;
+        $this->manualMinutes       = 0;
         $this->showManualTimeModal = true;
     }
 
@@ -164,6 +167,9 @@ class TaskDetail extends Component
         $this->reset(['showManualTimeModal', 'manualHours', 'manualMinutes']);
     }
 
+    /**
+     * Guarda tiempo manual y lo acumula en historico_horas_dia.
+     */
     public function saveManualTime(): void
     {
         $this->validate([
@@ -171,21 +177,25 @@ class TaskDetail extends Component
             'manualMinutes' => 'required|integer|min:0|max:59',
         ]);
 
-        $seconds = ($this->manualHours * 3600) + ($this->manualMinutes * 60);
+        $segundos = ($this->manualHours * 3600) + ($this->manualMinutes * 60);
 
-        if ($seconds <= 0) {
+        if ($segundos <= 0) {
             $this->notify('Debes introducir un tiempo válido', 'danger');
             return;
         }
 
+        // 1. Guardar entrada de tiempo
         TaskTimeEntry::create([
             'task_id'          => $this->task->id,
             'user_id'          => auth()->id(),
             'started_at'       => now(),
             'ended_at'         => now(),
-            'duration_seconds' => $seconds,
+            'duration_seconds' => $segundos,
             'is_running'       => false,
         ]);
+
+        // 2. Acumular en histórico diario ← NUEVO
+        $this->registrarTiempoManual($this->task, $segundos);
 
         $this->task->refresh()->load(['timeEntries.user', 'labels', 'creator', 'project']);
         $this->notify('Tiempo añadido correctamente', 'success');
@@ -194,8 +204,8 @@ class TaskDetail extends Component
 
     public function render()
     {
-        $labels         = Label::where('tenant_id', auth()->user()->tenant_id)->get();
-        $runningEntry   = TaskTimeEntry::where('task_id', $this->task->id)
+        $labels       = Label::where('tenant_id', auth()->user()->tenant_id)->get();
+        $runningEntry = TaskTimeEntry::where('task_id', $this->task->id)
             ->where('user_id', auth()->id())
             ->where('is_running', true)
             ->first();
