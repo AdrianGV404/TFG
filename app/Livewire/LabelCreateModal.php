@@ -13,19 +13,55 @@ class LabelCreateModal extends Component
 
     public bool $showModal = false;
     public string $name = '';
+    
+    // Nueva variable para saber si estamos editando
+    public ?int $editId = null; 
 
-    // Escucha el evento global para abrir el modal desde cualquier sitio
     #[On('open-label-modal')]
     public function openModal()
     {
-        $this->reset('name');
-        $this->resetValidation();
+        $this->resetForm();
         $this->showModal = true;
     }
 
     public function closeModal()
     {
         $this->showModal = false;
+    }
+
+    // Método de apoyo para limpiar el formulario
+    public function resetForm()
+    {
+        $this->reset(['name', 'editId']);
+        $this->resetValidation();
+    }
+
+    public function editLabel($id)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        
+        // Buscamos la etiqueta asegurando que pertenece a este tenant
+        $label = Label::where('tenant_id', $tenantId)->findOrFail($id);
+        
+        $this->editId = $label->id;
+        $this->name = $label->name;
+        $this->resetValidation();
+    }
+
+    public function deleteLabel($id)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        
+        $label = Label::where('tenant_id', $tenantId)->findOrFail($id);
+        $labelName = $label->name;
+        $label->delete();
+
+        $this->notify("Etiqueta \"{$labelName}\" eliminada", 'success');
+        
+        // Si estábamos editando la etiqueta que acabamos de borrar, limpiamos el formulario
+        if ($this->editId === $id) {
+            $this->resetForm();
+        }
     }
 
     public function save()
@@ -38,31 +74,44 @@ class LabelCreateModal extends Component
 
         $tenantId = auth()->user()->tenant_id;
 
-        // Verificar si la etiqueta ya existe en este tenant para no duplicarla
-        $exists = Label::where('tenant_id', $tenantId)
-                       ->where('name', $this->name)
-                       ->exists();
+        // Verificar si existe otra etiqueta con este nombre, ignorando la que estamos editando
+        $query = Label::where('tenant_id', $tenantId)->where('name', $this->name);
+        if ($this->editId) {
+            $query->where('id', '!=', $this->editId);
+        }
 
-        if ($exists) {
+        if ($query->exists()) {
             $this->addError('name', 'Ya existe una etiqueta con este nombre en tu espacio.');
             return;
         }
 
-        // Crear la etiqueta
-        Label::create([
-            'tenant_id' => $tenantId,
-            'name' => $this->name,
-        ]);
+        // Determinar si actualizamos o creamos
+        if ($this->editId) {
+            $label = Label::where('tenant_id', $tenantId)->findOrFail($this->editId);
+            $label->update(['name' => $this->name]);
+            $this->notify("Etiqueta \"{$this->name}\" actualizada", 'success');
+        } else {
+            Label::create([
+                'tenant_id' => $tenantId,
+                'name' => $this->name,
+            ]);
+            $this->notify("Etiqueta \"{$this->name}\" creada con éxito", 'success');
+        }
 
-        // Lanzar tu notificación
-        $this->notify("Etiqueta \"{$this->name}\" creada con éxito", 'success');
-        
-        // Cerrar el modal
-        $this->closeModal();
+        // Limpiamos el form para seguir gestionando, pero NO cerramos el modal
+        // para que el usuario pueda ver la lista actualizada al instante.
+        $this->resetForm();
     }
 
     public function render()
     {
-        return view('livewire.label-create-modal');
+        // Traemos todas las etiquetas del Tenant actual para listarlas
+        $labels = Label::where('tenant_id', auth()->user()->tenant_id)
+                       ->orderBy('name')
+                       ->get();
+
+        return view('livewire.label-create-modal', [
+            'labels' => $labels
+        ]);
     }
 }
