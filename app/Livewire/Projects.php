@@ -21,7 +21,7 @@ class Projects extends Component
     public string $editingName = '';
     public string $editingDescription = '';
     public string $editingStatus = 'active';
-
+    public array $searchLabels = [];
     protected $listeners = [
         'delete-project' => 'deleteFromModal',
         'restore-project' => 'restoreProject',
@@ -141,41 +141,59 @@ class Projects extends Component
         $this->notify("Proyecto \"{$project->name}\" y sus tareas restauradas con éxito", 'success');
     }
 
-    public function render()
-    {
-        $user = auth()->user();
+public function render()
+{
+    $user = auth()->user();
 
-        $query = Project::query()
-            ->where('tenant_id', $user->tenant_id)
-            ->with(['users'])
-            ->withCount([
-                'tasks as total_tasks' => function ($q) {
-                    if ($this->showDeleted) $q->withTrashed();
-                },
-                'tasks as pending_tasks' => function ($q) {
-                    if ($this->showDeleted) $q->withTrashed();
-                    $q->where('status', 'pending');
-                },
-                'tasks as in_progress_tasks' => function ($q) {
-                    if ($this->showDeleted) $q->withTrashed();
-                    $q->where('status', 'in_progress');
-                },
-                'tasks as done_tasks' => function ($q) {
-                    if ($this->showDeleted) $q->withTrashed();
-                    $q->where('status', 'done');
-                },
-            ]);
+    // 1. Iniciamos la consulta
+    $query = Project::query()
+        ->where('tenant_id', $user->tenant_id)
+        ->with(['users']);
 
-        if ($this->showDeleted) {
-            $query = $query->withTrashed();
-        }
-
-        $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
-        $projects = $this->applyFilters($query, 'name');
-
-        return view('livewire.projects.projects', [
-            'projects' => $projects,
-            'isProjectList' => true,
-        ]);
+    // 2. Aplicamos filtros condicionales de etiquetas
+    if (!empty($this->searchLabels)) {
+        $query->whereHas('tasks', function ($q) {
+            $q->whereHas('labels', function ($qLabel) {
+                $qLabel->whereIn('labels.id', $this->searchLabels);
+            });
+        });
     }
+
+    // 3. Consultas withCount
+    $query->withCount([
+        'tasks as total_tasks' => function ($q) {
+            if ($this->showDeleted) $q->withTrashed();
+        },
+        'tasks as pending_tasks' => function ($q) {
+            if ($this->showDeleted) $q->withTrashed();
+            $q->where('status', 'pending');
+        },
+        'tasks as in_progress_tasks' => function ($q) {
+            if ($this->showDeleted) $q->withTrashed();
+            $q->where('status', 'in_progress');
+        },
+        'tasks as done_tasks' => function ($q) {
+            if ($this->showDeleted) $q->withTrashed();
+            $q->where('status', 'done');
+        },
+    ]);
+
+    if ($this->showDeleted) {
+        $query = $query->withTrashed();
+    }
+
+    // Ordenamiento y paginación (usando tu Trait)
+    $query = $query->orderByRaw("FIELD(status, 'active', 'archived')");
+    $projects = $this->applyFilters($query, 'name');
+
+    // 4. OBTENER ETIQUETAS Y ENVIAR A LA VISTA
+    // Asegúrate de que el modelo Label tenga 'tenant_id'
+    $labels = \App\Models\Label::where('tenant_id', $user->tenant_id)->get();
+
+    return view('livewire.projects.projects', [
+        'projects' => $projects,
+        'labels'   => $labels, // <--- ESTO ES LO QUE HACÍA QUE NO SE VIERAN
+        'isProjectList' => true,
+    ]);
+}
 }

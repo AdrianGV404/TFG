@@ -43,11 +43,19 @@ class ProjectUsersManager extends Component
 
     public function getAvailableUsersProperty()
     {
-        return User::query()
+        // IDs de usuarios ya asignados a este proyecto
+        $assignedIds = $this->project->users()->pluck('users.id')->toArray();
+
+        $query = User::query()
             ->where('tenant_id', auth()->user()->tenant_id)
-            ->where('name', 'like', "%{$this->search}%")
-            ->limit(10)
-            ->get();
+            ->whereNotIn('id', $assignedIds); // excluir los ya asignados
+
+        // Si hay texto de búsqueda, filtrar por nombre
+        if (trim($this->search) !== '') {
+            $query->where('name', 'like', '%' . trim($this->search) . '%');
+        }
+
+        return $query->orderBy('name')->limit(20)->get();
     }
 
     public function render()
