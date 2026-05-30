@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Task;
 use App\Models\Project;
+use App\Models\Label;
 use App\Models\HistoricoHorasDia;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
@@ -17,14 +18,50 @@ class TaskSeeder extends Seeder
         $faker    = Faker::create('es_ES');
         $projects = Project::with('users')->get();
 
+        // 1. GENERAR 20 ETIQUETAS POR TENANT
+        // Agrupamos los tenants únicos de los proyectos existentes
+        $tenantIds = $projects->pluck('tenant_id')->unique();
+        $tenantLabels = []; // Guardará los IDs de las etiquetas creadas por cada tenant
+
+        // Nombres de etiquetas realistas para evitar el límite de palabras únicas del faker
+        $labelNames = [
+            'Urgente', 'Frontend', 'Backend', 'Bug', 'Diseño', 'Mejora', 'QA',
+            'Documentación', 'Despliegue', 'Revisión', 'Optimización', 'Soporte',
+            'Cliente', 'Interno', 'Bloqueado', 'Ventas', 'Marketing', 'Prioridad Alta',
+            'Legal', 'Infraestructura', 'Seguridad', 'Base de datos', 'API'
+        ];
+
+        foreach ($tenantIds as $tenantId) {
+            $labelsIds = [];
+            // Seleccionamos 20 nombres aleatorios sin repetir de nuestra lista
+            $selectedNames = $faker->randomElements($labelNames, 20);
+            
+            foreach ($selectedNames as $name) {
+                $label = Label::firstOrCreate([
+                    'tenant_id' => $tenantId,
+                    'name'      => $name
+                ]);
+                $labelsIds[] = $label->id;
+            }
+            // Guardamos los IDs disponibles para este tenant
+            $tenantLabels[$tenantId] = $labelsIds;
+        }
+
         foreach ($projects as $project) {
             $assignedUsers = $project->users;
+            
+            // Obtenemos las etiquetas disponibles para el tenant de este proyecto
+            $projectLabelsPool = $tenantLabels[$project->tenant_id] ?? [];
 
             for ($i = 0; $i < 50; $i++) {
                 $status = $this->weightedStatus();
 
-                // Fecha de creación de la tarea (hace 1 a 3 meses)
-                $createdAt = now()->subDays(rand(30, 90));
+                // 2. FECHAS DE CREACIÓN Y CADUCIDAD
+                // Creación: un día aleatorio desde hace 1 año (0 a 365 días atrás)
+                $createdAt = now()->subDays(rand(0, 365));
+                
+                // Caducidad: un día aleatorio desde mañana hasta 1 año en el futuro
+                $dueDate = now()->addDays(rand(1, 365));
 
                 $task = Task::create([
                     'project_id'  => $project->id,
@@ -32,17 +69,23 @@ class TaskSeeder extends Seeder
                     'description' => $faker->paragraph(2),
                     'status'      => $status,
                     'priority'    => rand(0, 10),
-                    'due_date'    => $createdAt->copy()->addDays(rand(10, 40)),
+                    'due_date'    => $dueDate,
                     'created_at'  => $createdAt,
                     'updated_at'  => $createdAt->copy()->addDays(rand(1, 10)),
                 ]);
 
+                // 3. ASIGNAR ENTRE 0 y 3 ETIQUETAS
+                if (!empty($projectLabelsPool)) {
+                    $numLabelsToAttach = rand(0, 3);
+                    if ($numLabelsToAttach > 0) {
+                        // Selecciona IDs aleatorios sin repetir
+                        $randomLabelIds = $faker->randomElements($projectLabelsPool, $numLabelsToAttach);
+                        // Asegúrate de tener la relación public function labels() en tu modelo Task
+                        $task->labels()->attach($randomLabelIds);
+                    }
+                }
+
                 // Número de entradas de tiempo según estado:
-                //   done        → 2–5 entradas (ya terminó, tuvo bastante actividad)
-                //   in_progress → 1–3 entradas (activa ahora)
-                //   on_hold     → 1–2 entradas (estuvo activa, ahora pausada)
-                //   testing     → 1–2 entradas (también tuvo actividad previa)
-                //   pending     → 0   entradas (aún no se ha empezado)
                 $numEntries = match ($status) {
                     'done'        => rand(2, 5),
                     'in_progress' => rand(1, 3),
@@ -56,10 +99,14 @@ class TaskSeeder extends Seeder
 
                     $worker = $assignedUsers->random();
 
-                    // Día aleatorio entre hoy y hace 60 días, en horario laboral
-                    $randomDays      = rand(0, 60);
-                    $startedAt       = now()->subDays($randomDays)
-                                           ->setTime(rand(8, 16), rand(0, 59), 0);
+                    // Ajuste: El día aleatorio de la imputación debe ser estrictamente
+                    // posterior a la creación de la tarea y como máximo hoy.
+                    $maxDaysSinceCreation = max(0, $createdAt->diffInDays(now()));
+                    $randomDaysAdd   = rand(0, $maxDaysSinceCreation);
+                    
+                    $startedAt       = $createdAt->copy()->addDays($randomDaysAdd)
+                                                 ->setTime(rand(8, 16), rand(0, 59), 0);
+                    
                     // Bloques de 15 min (1–16 bloques = 15 min – 4 h)
                     $durationSeconds = rand(1, 16) * 900;
                     $endedAt         = $startedAt->copy()->addSeconds($durationSeconds);
@@ -76,8 +123,6 @@ class TaskSeeder extends Seeder
                     ]);
 
                     // ── Acumular en historico_horas_dia ───────────────────────
-                    // Usa el mismo método del modelo que usa la app en producción,
-                    // así los datos del seeder son coherentes con los reales.
                     HistoricoHorasDia::acumular(
                         tenantId:  $project->tenant_id,
                         projectId: $project->id,
@@ -90,12 +135,7 @@ class TaskSeeder extends Seeder
     }
 
     /**
-     * Distribución de estados con los 5 valores actuales:
-     *   pending     30 %
-     *   in_progress 25 %
-     *   on_hold     15 %  ← nuevo
-     *   testing     10 %  ← nuevo
-     *   done        20 %
+     * Distribución de estados con los 5 valores actuales.
      */
     private function weightedStatus(): string
     {
