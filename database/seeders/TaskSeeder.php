@@ -50,6 +50,12 @@ class TaskSeeder extends Seeder
         foreach ($projects as $project) {
             $assignedUsers = $project->users;
             
+            // PRECAUCIÓN: Si el proyecto no tiene usuarios asignados, saltamos al siguiente
+            // Esto asegura que "created_by" nunca intente ser nulo.
+            if ($assignedUsers->isEmpty()) {
+                continue;
+            }
+            
             // Obtenemos las etiquetas disponibles para el tenant de este proyecto
             $projectLabelsPool = $tenantLabels[$project->tenant_id] ?? [];
 
@@ -63,8 +69,13 @@ class TaskSeeder extends Seeder
                 // Caducidad: un día aleatorio desde mañana hasta 1 año en el futuro
                 $dueDate = now()->addDays(rand(1, 365));
 
+                // 3. SELECCIONAR CREADOR DE LA TAREA
+                // Seleccionamos aleatoriamente uno de los usuarios que ya están asignados a este proyecto
+                $taskCreator = $assignedUsers->random();
+
                 $task = Task::create([
                     'project_id'  => $project->id,
+                    'created_by'  => $taskCreator->id,
                     'title'       => ucfirst($faker->words(rand(3, 6), true)),
                     'description' => $faker->paragraph(2),
                     'status'      => $status,
@@ -74,7 +85,7 @@ class TaskSeeder extends Seeder
                     'updated_at'  => $createdAt->copy()->addDays(rand(1, 10)),
                 ]);
 
-                // 3. ASIGNAR ENTRE 0 y 3 ETIQUETAS
+                // 4. ASIGNAR ENTRE 0 y 3 ETIQUETAS
                 if (!empty($projectLabelsPool)) {
                     $numLabelsToAttach = rand(0, 3);
                     if ($numLabelsToAttach > 0) {
@@ -131,6 +142,79 @@ class TaskSeeder extends Seeder
                     );
                 }
             }
+
+            // ── 30 tareas extra con vencimiento en el mes actual ──────────
+            for ($i = 0; $i < 30; $i++) {
+                $status = $this->weightedStatus();
+
+                $createdAt = now()->subDays(rand(0, 365));
+
+                // Due date: día aleatorio dentro del mes en curso
+                $dueDate = Carbon::create(now()->year, now()->month, rand(1, now()->daysInMonth));
+
+                $taskCreator = $assignedUsers->random();
+
+                $task = Task::create([
+                    'project_id'  => $project->id,
+                    'created_by'  => $taskCreator->id,
+                    'title'       => ucfirst($faker->words(rand(3, 6), true)),
+                    'description' => $faker->paragraph(2),
+                    'status'      => $status,
+                    'priority'    => rand(0, 10),
+                    'due_date'    => $dueDate,
+                    'created_at'  => $createdAt,
+                    'updated_at'  => $createdAt->copy()->addDays(rand(1, 10)),
+                ]);
+
+                if (!empty($projectLabelsPool)) {
+                    $numLabelsToAttach = rand(0, 3);
+                    if ($numLabelsToAttach > 0) {
+                        $randomLabelIds = $faker->randomElements($projectLabelsPool, $numLabelsToAttach);
+                        $task->labels()->attach($randomLabelIds);
+                    }
+                }
+
+                $numEntries = match ($status) {
+                    'done'        => rand(2, 5),
+                    'in_progress' => rand(1, 3),
+                    'on_hold'     => rand(1, 2),
+                    'testing'     => rand(1, 2),
+                    default       => 0,
+                };
+
+                for ($e = 0; $e < $numEntries; $e++) {
+                    if ($assignedUsers->isEmpty()) continue;
+
+                    $worker = $assignedUsers->random();
+
+                    $maxDaysSinceCreation = max(0, $createdAt->diffInDays(now()));
+                    $randomDaysAdd        = rand(0, $maxDaysSinceCreation);
+
+                    $startedAt       = $createdAt->copy()->addDays($randomDaysAdd)
+                                                 ->setTime(rand(8, 16), rand(0, 59), 0);
+                    $durationSeconds = rand(1, 16) * 900;
+                    $endedAt         = $startedAt->copy()->addSeconds($durationSeconds);
+
+                    DB::table('task_time_entries')->insert([
+                        'task_id'          => $task->id,
+                        'user_id'          => $worker->id,
+                        'started_at'       => $startedAt,
+                        'ended_at'         => $endedAt,
+                        'duration_seconds' => $durationSeconds,
+                        'is_running'       => false,
+                        'created_at'       => $startedAt,
+                        'updated_at'       => $endedAt,
+                    ]);
+
+                    HistoricoHorasDia::acumular(
+                        tenantId:  $project->tenant_id,
+                        projectId: $project->id,
+                        dia:       $startedAt->toDateString(),
+                        segundos:  $durationSeconds
+                    );
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
         }
     }
 
