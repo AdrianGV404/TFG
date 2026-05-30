@@ -7,14 +7,18 @@
             <div class="mb-3">
                 <label for="email" class="form-label">Correo electrónico</label>
                 <input type="email" id="email" wire:model.defer="email" class="form-control">
-                @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+                @error('email')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
 
             {{-- Contraseña --}}
             <div class="mb-3">
                 <label for="password" class="form-label">Contraseña</label>
                 <input type="password" id="password" wire:model.defer="password" class="form-control">
-                @error('password') <span class="text-danger">{{ $message }}</span> @enderror
+                @error('password')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Ingresar</button>

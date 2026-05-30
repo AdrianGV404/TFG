@@ -38,9 +38,9 @@
         </div>
 
         @include('livewire.partials.search-controls', [
-            'textPlaceholder'  => 'Buscar por título...',
+            'textPlaceholder' => 'Buscar por título...',
             'allowStatusOrder' => true,
-            'labels'           => $labels,
+            'labels' => $labels,
         ])
     </div>
 
@@ -59,13 +59,13 @@
         <tbody>
             @forelse ($tasks as $task)
                 @php
-                    $status     = $task->status;
-                    $priority   = $task->priority;
-                    $isDeleted  = $task->trashed();
-                    $deletedAt  = $isDeleted ? $task->deleted_at : null;
+                    $status = $task->status;
+                    $priority = $task->priority;
+                    $isDeleted = $task->trashed();
+                    $deletedAt = $isDeleted ? $task->deleted_at : null;
                     $daysToKeep = config('prune.days_to_keep_deleted.' . \App\Models\Task::class, 60);
-                    $expiresAt  = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
-                    $daysLeft   = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
+                    $expiresAt = $isDeleted ? $deletedAt->copy()->addDays($daysToKeep) : null;
+                    $daysLeft = $isDeleted ? now()->diffInDays($expiresAt, false) : null;
                 @endphp
 
                 <tr wire:key="task-{{ $task->id }}" class="{{ $isDeleted ? 'bg-softdeleted' : '' }}">
@@ -75,9 +75,8 @@
                         <div class="d-flex gap-1 align-items-center flex-wrap">
                             {{-- Enlace a detalle --}}
                             @if (!$isDeleted)
-                                <a href="{{ route('tasks.show', $task) }}"
-                                   class="btn btn-sm btn-outline-secondary"
-                                   title="Ver detalle">
+                                <a href="{{ route('tasks.show', $task) }}" class="btn btn-sm btn-outline-secondary"
+                                    title="Ver detalle">
                                     🔍
                                 </a>
                             @endif
@@ -89,8 +88,7 @@
                                     title="Restaurar">
                                     ♻️
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger"
-                                    wire:click="delete({{ $task->id }})"
+                                <button class="btn btn-sm btn-outline-danger" wire:click="delete({{ $task->id }})"
                                     wire:confirm="¿Eliminar definitivamente esta tarea?"
                                     title="Eliminar definitivamente">
                                     🗑
@@ -101,10 +99,8 @@
                                     </span>
                                 @endif
                             @else
-                                <button class="btn btn-sm btn-outline-danger"
-                                    wire:click="delete({{ $task->id }})"
-                                    wire:confirm="¿Eliminar esta tarea?"
-                                    title="Eliminar">
+                                <button class="btn btn-sm btn-outline-danger" wire:click="delete({{ $task->id }})"
+                                    wire:confirm="¿Eliminar esta tarea?" title="Eliminar">
                                     🗑
                                 </button>
                             @endif
@@ -129,9 +125,8 @@
                         @endif
 
                         {{-- Título como enlace --}}
-                        <a href="{{ route('tasks.show', $task) }}"
-                           class="task-title"
-                           style="font-weight:600; text-decoration:none; color:inherit;">
+                        <a href="{{ route('tasks.show', $task) }}" class="task-title"
+                            style="font-weight:600; text-decoration:none; color:inherit;">
                             {{ $task->title }}
                             @if ($isDeleted)
                                 <span class="badge bg-danger ms-1" style="font-size:.7rem;">Eliminada</span>
@@ -141,7 +136,7 @@
                         {{-- Descripción (preview) --}}
                         @if ($task->description)
                             <div class="task-description text-muted"
-                                 style="font-size:.82rem; margin-top:2px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+                                style="font-size:.82rem; margin-top:2px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
                                 {{ $task->description }}
                             </div>
                         @endif
@@ -149,9 +144,8 @@
                         {{-- Creado por --}}
                         @if ($task->creator)
                             <div class="d-flex align-items-center gap-1 mt-1">
-                                <img src="{{ $task->creator->profile_photo_url }}"
-                                     alt="{{ $task->creator->name }}"
-                                     style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
+                                <img src="{{ $task->creator->profile_photo_url }}" alt="{{ $task->creator->name }}"
+                                    style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
                                 <span style="font-size:.75rem; color:#9ca3af;">{{ $task->creator->name }}</span>
                             </div>
                         @endif
@@ -174,7 +168,9 @@
                                 @php $isOverdue = $task->due_date->isPast() && !$task->isDone(); @endphp
                                 <span class="{{ $isOverdue ? 'text-danger fw-bold' : '' }}">
                                     {{ $task->due_date->format('d/m/Y') }}
-                                    @if ($isOverdue) ⚠️ @endif
+                                    @if ($isOverdue)
+                                        ⚠️
+                                    @endif
                                 </span>
                             @else
                                 <span style="font-style:italic;">Sin fecha</span>
@@ -192,11 +188,11 @@
                     <td>
                         <div class="task-status-wrapper" style="display:flex; flex-direction:column; gap:4px;">
                             <select class="task-status-select {{ $status }} readonly" disabled>
-                                <option value="pending"     @selected($status === 'pending')>⏳ Pendiente</option>
+                                <option value="pending" @selected($status === 'pending')>⏳ Pendiente</option>
                                 <option value="in_progress" @selected($status === 'in_progress')>▶ En progreso</option>
-                                <option value="on_hold"     @selected($status === 'on_hold')>⏸ En pausa</option>
-                                <option value="testing"     @selected($status === 'testing')>🧪 En pruebas</option>
-                                <option value="done"        @selected($status === 'done')>✅ Hecha</option>
+                                <option value="on_hold" @selected($status === 'on_hold')>⏸ En pausa</option>
+                                <option value="testing" @selected($status === 'testing')>🧪 En pruebas</option>
+                                <option value="done" @selected($status === 'done')>✅ Hecha</option>
                             </select>
 
                             <select class="task-priority-select readonly" disabled>
@@ -204,7 +200,8 @@
                                     @php $cls = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown'; @endphp
                                     <option value="{{ $i }}" class="priority-{{ $cls }}"
                                         @selected($priority == $i)>
-                                        {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }} ({{ $i }})
+                                        {{ \App\Models\Task::PRIORITY_LABELS[$i] ?? 'Desconocida' }}
+                                        ({{ $i }})
                                     </option>
                                 @endfor
                             </select>
@@ -226,11 +223,25 @@
     </div>
 
     <style>
-        .task-status-select.on_hold { background-color: #f59e0b !important; color: #fff !important; }
-        .task-status-select.testing { background-color: #8b5cf6 !important; color: #fff !important; }
+        .task-status-select.on_hold {
+            background-color: #f59e0b !important;
+            color: #fff !important;
+        }
+
+        .task-status-select.testing {
+            background-color: #8b5cf6 !important;
+            color: #fff !important;
+        }
+
         .task-status-select.readonly,
-        .task-priority-select.readonly { opacity: .85; cursor: default; }
-        .task-title:hover { text-decoration: underline !important; }
+        .task-priority-select.readonly {
+            opacity: .85;
+            cursor: default;
+        }
+
+        .task-title:hover {
+            text-decoration: underline !important;
+        }
     </style>
 
     <script>

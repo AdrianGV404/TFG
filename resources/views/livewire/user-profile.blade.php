@@ -34,7 +34,7 @@
 
         .dark-mode-active .card-header,
         .dark-mode-active .card-footer {
-            background-color: rgba(255,255,255,0.03) !important;
+            background-color: rgba(255, 255, 255, 0.03) !important;
             border-color: var(--border-color) !important;
         }
 
@@ -51,7 +51,7 @@
         }
 
         .dark-mode-active .bg-light {
-            background-color: rgba(0,0,0,0.2) !important;
+            background-color: rgba(0, 0, 0, 0.2) !important;
         }
 
         /* ── Selector de tema ── */
@@ -73,10 +73,10 @@
 
         .theme-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        input[type="radio"]:checked + .theme-card {
+        input[type="radio"]:checked+.theme-card {
             border-color: #0d6efd;
             box-shadow: 0 0 0 1px #0d6efd;
         }
@@ -91,18 +91,42 @@
             padding: 8px;
         }
 
-        .preview-light { background: #ffffff; border: 1px solid #eee; }
-        .preview-dark  { background: #1e293b; border: 1px solid #334155; }
+        .preview-light {
+            background: #ffffff;
+            border: 1px solid #eee;
+        }
 
-        .p-line { height: 6px; border-radius: 3px; background: #e2e8f0; }
-        .preview-dark .p-line { background: #475569; }
-        .p-line-primary { background: #0d6efd !important; opacity: 0.6; }
+        .preview-dark {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        .p-line {
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+        }
+
+        .preview-dark .p-line {
+            background: #475569;
+        }
+
+        .p-line-primary {
+            background: #0d6efd !important;
+            opacity: 0.6;
+        }
 
         .check-icon {
-            position: absolute; top: 8px; right: 8px;
-            color: #0d6efd; display: none;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: #0d6efd;
+            display: none;
         }
-        input[type="radio"]:checked + .theme-card .check-icon { display: block; }
+
+        input[type="radio"]:checked+.theme-card .check-icon {
+            display: block;
+        }
 
         /* ── Toggles ── */
         .toggle-row {
@@ -113,14 +137,29 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .toggle-desc .title { font-weight: 600; font-size: 0.85rem; }
-        .toggle-desc .sub   { font-size: 0.75rem; color: var(--text-muted); }
+        .toggle-desc .title {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
 
-        .toggle-switch { position: relative; width: 52px; height: 28px; }
-        .toggle-switch input { display: none; }
+        .toggle-desc .sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
 
         .toggle-slider {
-            position: absolute; inset: 0;
+            position: absolute;
+            inset: 0;
             cursor: pointer;
             background-color: #cbd5e1;
             border-radius: 999px;
@@ -130,19 +169,28 @@
         .toggle-slider:before {
             content: "";
             position: absolute;
-            height: 22px; width: 22px;
-            left: 3px; top: 3px;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            top: 3px;
             background: #fff;
             border-radius: 50%;
             transition: 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        .toggle-switch input:checked + .toggle-slider { background-color: #0d6efd; }
-        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+        .toggle-switch input:checked+.toggle-slider {
+            background-color: #0d6efd;
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
 
         /* ── Canal de notificación ── */
-        .channel-option input[type="radio"] { display: none; }
+        .channel-option input[type="radio"] {
+            display: none;
+        }
 
         .channel-btn {
             display: flex;
@@ -161,14 +209,20 @@
             width: 100%;
         }
 
-        .channel-btn i { font-size: 1.1rem; }
-        .channel-btn:hover { border-color: #0d6efd; color: #0d6efd; }
+        .channel-btn i {
+            font-size: 1.1rem;
+        }
 
-        .channel-option input[type="radio"]:checked + .channel-btn {
+        .channel-btn:hover {
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        .channel-option input[type="radio"]:checked+.channel-btn {
             border-color: #0d6efd;
             color: #0d6efd;
             box-shadow: 0 0 0 1px #0d6efd;
-            background: rgba(13,110,253,0.05);
+            background: rgba(13, 110, 253, 0.05);
         }
     </style>
 
@@ -178,7 +232,8 @@
                 <h2 class="fw-bold">
                     <i class="fas fa-user-gear me-2 text-primary"></i>Configuración de Usuario y Sistema
                 </h2>
-                <p class="text-muted">Personaliza tu experiencia y gestiona las reglas de negocio de la organización.</p>
+                <p class="text-muted">Personaliza tu experiencia y gestiona las reglas de negocio de la organización.
+                </p>
             </div>
 
             <div class="row g-4">
@@ -198,20 +253,20 @@
                                 <div class="position-relative d-inline-block">
                                     @if ($photo)
                                         <img src="{{ $photo->temporaryUrl() }}"
-                                             class="rounded-circle img-thumbnail shadow-sm"
-                                             style="width:130px;height:130px;object-fit:cover;">
+                                            class="rounded-circle img-thumbnail shadow-sm"
+                                            style="width:130px;height:130px;object-fit:cover;">
                                     @elseif ($profile_photo_path)
                                         <img src="{{ asset('storage/' . $profile_photo_path) }}?v={{ time() }}"
-                                             class="rounded-circle img-thumbnail shadow-sm"
-                                             style="width:130px;height:130px;object-fit:cover;">
+                                            class="rounded-circle img-thumbnail shadow-sm"
+                                            style="width:130px;height:130px;object-fit:cover;">
                                     @else
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode($name) }}&background=0D6EFD&color=fff"
-                                             class="rounded-circle img-thumbnail shadow-sm"
-                                             style="width:130px;height:130px;object-fit:cover;">
+                                            class="rounded-circle img-thumbnail shadow-sm"
+                                            style="width:130px;height:130px;object-fit:cover;">
                                     @endif
 
                                     <div wire:loading wire:target="photo"
-                                         class="position-absolute top-50 start-50 translate-middle">
+                                        class="position-absolute top-50 start-50 translate-middle">
                                         <div class="spinner-border text-primary"></div>
                                     </div>
                                 </div>
@@ -230,13 +285,17 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold small">Nombre Completo</label>
                                 <input type="text" class="form-control" wire:model="name">
-                                @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
+                                @error('name')
+                                    <div class="text-danger small">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold small">Correo Electrónico</label>
                                 <input type="email" class="form-control" wire:model="email">
-                                @error('email') <div class="text-danger small">{{ $message }}</div> @enderror
+                                @error('email')
+                                    <div class="text-danger small">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <hr class="my-4">
@@ -250,21 +309,20 @@
                                     <div class="col-md-12 mb-2">
                                         <label class="small text-muted">Contraseña Actual</label>
                                         <input type="password" class="form-control form-control-sm"
-                                               wire:model="current_password">
+                                            wire:model="current_password">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="small text-muted">Nueva Contraseña</label>
                                         <input type="password" class="form-control form-control-sm"
-                                               wire:model="new_password">
+                                            wire:model="new_password">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="small text-muted">Confirmar Nueva</label>
                                         <input type="password" class="form-control form-control-sm"
-                                               wire:model="new_password_confirmation">
+                                            wire:model="new_password_confirmation">
                                     </div>
                                 </div>
-                                <button type="button" wire:click="updatePassword"
-                                        class="btn btn-dark btn-sm w-100">
+                                <button type="button" wire:click="updatePassword" class="btn btn-dark btn-sm w-100">
                                     Actualizar Contraseña
                                 </button>
                             </div>
@@ -390,7 +448,8 @@
                             <div class="toggle-row">
                                 <div class="toggle-desc">
                                     <div class="title">
-                                        <i class="fas fa-arrows-rotate me-1" style="color:#8b5cf6; font-size:.8rem;"></i>
+                                        <i class="fas fa-arrows-rotate me-1"
+                                            style="color:#8b5cf6; font-size:.8rem;"></i>
                                         Cambio de estado
                                     </div>
                                     <div class="sub">Cuando otro usuario cambia el estado de una tarea</div>

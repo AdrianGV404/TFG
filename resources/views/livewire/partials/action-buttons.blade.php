@@ -23,8 +23,7 @@
     @else
         @if ($trashed)
             {{-- Botón Restaurar --}}
-            <button type="button" class="btn btn-success btn-sm btn-loading" x-data
-                data-id="{{ $id }}"
+            <button type="button" class="btn btn-success btn-sm btn-loading" x-data data-id="{{ $id }}"
                 data-title="Restaurar {{ $title }}"
                 data-message="Vas a restaurar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>."
                 data-action="{{ $restoreEvent }}"
@@ -38,8 +37,7 @@
             </button>
 
             {{-- Botón Eliminar Permanente --}}
-            <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
-                data-id="{{ $id }}"
+            <button type="button" class="btn btn-danger btn-sm btn-loading" x-data data-id="{{ $id }}"
                 data-title="Eliminar {{ $title }}"
                 data-message="Ya está eliminado y se borrará permanentemente. Esta acción <b>no se puede deshacer</b>."
                 data-action="{{ $deleteEvent }}"
@@ -58,8 +56,7 @@
             </button>
 
             {{-- Botón Eliminar Soft --}}
-            <button type="button" class="btn btn-danger btn-sm btn-loading" x-data
-                data-id="{{ $id }}"
+            <button type="button" class="btn btn-danger btn-sm btn-loading" x-data data-id="{{ $id }}"
                 data-title="Eliminar {{ $title }}"
                 data-message="¿Seguro que quieres eliminar {{ $isTask ? 'la tarea' : 'el proyecto' }} <i>{{ $title }}</i>? Esta acción solo la podrá deshacer el administrador."
                 data-action="{{ $deleteEvent }}"
@@ -74,7 +71,7 @@
         @endif
     @endif
 
-    @if($isTask && isset($task) && $task)
+    @if ($isTask && isset($task) && $task)
         @php
             $isTracking = ($task->timeEntries ?? collect())
                 ->where('user_id', auth()->id())
@@ -82,18 +79,12 @@
                 ->isNotEmpty();
         @endphp
 
-        <button
-            wire:click="toggleTimeTracking({{ $task->id }})"
-            class="btn btn-sm {{ $isTracking ? 'btn-danger' : 'btn-outline-primary' }}"
-        >
+        <button wire:click="toggleTimeTracking({{ $task->id }})"
+            class="btn btn-sm {{ $isTracking ? 'btn-danger' : 'btn-outline-primary' }}">
             {{ $isTracking ? '⏹ Detener' : '▶ Grabar tiempo' }}
         </button>
-        <button
-            type="button"
-            x-on:click="openModal = true; $wire.openManualTimeModal({{ $task->id }})"
-            class="btn btn-sm btn-outline-secondary"
-            title="Añadir tiempo manual"
-        >
+        <button type="button" x-on:click="openModal = true; $wire.openManualTimeModal({{ $task->id }})"
+            class="btn btn-sm btn-outline-secondary" title="Añadir tiempo manual">
             ➕⏱
         </button>
     @endif

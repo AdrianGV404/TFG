@@ -13,10 +13,11 @@
     <div class="d-flex align-items-start justify-content-between gap-3 mb-4 flex-wrap">
         <div style="flex:1; min-width:0;">
             @if ($isEditing)
-                <input type="text" wire:model.defer="title"
-                    class="form-control form-control-lg fw-semibold"
+                <input type="text" wire:model.defer="title" class="form-control form-control-lg fw-semibold"
                     style="font-size:1.4rem;">
-                @error('title') <small class="text-danger">{{ $message }}</small> @enderror
+                @error('title')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             @else
                 <h1 style="font-size:1.6rem; font-weight:700; margin:0; line-height:1.3;">
                     {{ $task->title }}
@@ -32,8 +33,7 @@
                 @else
                     <button wire:click="startEdit" class="btn btn-outline-primary btn-sm">✏️ Editar</button>
                 @endif
-                <button wire:click="delete"
-                    wire:confirm="¿Eliminar esta tarea? Podrá recuperarse más tarde."
+                <button wire:click="delete" wire:confirm="¿Eliminar esta tarea? Podrá recuperarse más tarde."
                     class="btn btn-outline-danger btn-sm">🗑 Eliminar</button>
             @else
                 <span class="badge bg-danger" style="font-size:.85rem; padding:.4rem .8rem;">Eliminada</span>
@@ -51,11 +51,8 @@
                 <div class="card-body">
                     <h6 class="card-subtitle mb-2 text-muted">Descripción</h6>
                     @if ($isEditing)
-                        <textarea wire:model.defer="description"
-                            class="form-control auto-resize-textarea"
-                            rows="5"
-                            x-data x-init="$el.style.height = $el.scrollHeight + 'px'"
-                            x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+                        <textarea wire:model.defer="description" class="form-control auto-resize-textarea" rows="5" x-data
+                            x-init="$el.style.height = $el.scrollHeight + 'px'" x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
                             placeholder="Describe la tarea..."></textarea>
                     @else
                         @if ($task->description)
@@ -124,9 +121,9 @@
                     <div class="mb-3 p-2 rounded" style="background:#f8f9fa;">
                         <strong>Total:</strong>
                         <span style="font-size:1.1rem; font-family:monospace;">
-                            {{ str_pad($totalH,2,'0',STR_PAD_LEFT) }}:{{ str_pad($totalM,2,'0',STR_PAD_LEFT) }}:{{ str_pad($totalS,2,'0',STR_PAD_LEFT) }}
+                            {{ str_pad($totalH, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($totalM, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($totalS, 2, '0', STR_PAD_LEFT) }}
                         </span>
-                        @if($runningEntry)
+                        @if ($runningEntry)
                             <span class="badge bg-danger ms-2" style="animation:pulse 1.5s infinite;">
                                 ● En curso
                             </span>
@@ -146,9 +143,9 @@
                                 @foreach ($task->timeEntries->sortByDesc('started_at') as $entry)
                                     @php
                                         $dur = $entry->duration_seconds ?? 0;
-                                        $dH  = floor($dur / 3600);
-                                        $dM  = floor(($dur % 3600) / 60);
-                                        $dS  = $dur % 60;
+                                        $dH = floor($dur / 3600);
+                                        $dM = floor(($dur % 3600) / 60);
+                                        $dS = $dur % 60;
                                     @endphp
                                     <tr>
                                         <td>
@@ -162,7 +159,7 @@
                                             @if ($entry->is_running)
                                                 <span class="text-danger">En curso...</span>
                                             @else
-                                                {{ str_pad($dH,2,'0',STR_PAD_LEFT) }}:{{ str_pad($dM,2,'0',STR_PAD_LEFT) }}:{{ str_pad($dS,2,'0',STR_PAD_LEFT) }}
+                                                {{ str_pad($dH, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($dM, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($dS, 2, '0', STR_PAD_LEFT) }}
                                             @endif
                                         </td>
                                     </tr>
@@ -201,8 +198,7 @@
                 <div class="card-body">
                     <h6 class="card-subtitle mb-2 text-muted">Prioridad</h6>
                     <select wire:model{{ $isEditing ? '.defer' : '' }}="priority"
-                        class="task-priority-select form-select"
-                        @if (!$isEditing) disabled @endif>
+                        class="task-priority-select form-select" @if (!$isEditing) disabled @endif>
                         @for ($i = 0; $i <= 10; $i++)
                             @php $cls = \App\Models\Task::PRIORITY_CLASSES[$i] ?? 'unknown'; @endphp
                             <option value="{{ $i }}" class="priority-{{ $cls }}">
@@ -219,13 +215,17 @@
                     <h6 class="card-subtitle mb-2 text-muted">Fecha límite</h6>
                     @if ($isEditing)
                         <input type="date" wire:model.defer="due_date" class="form-control">
-                        @error('due_date') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('due_date')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     @else
                         @if ($task->due_date)
                             @php $isOverdue = $task->due_date->isPast() && !$task->isDone(); @endphp
                             <span class="{{ $isOverdue ? 'text-danger fw-bold' : '' }}">
                                 {{ $task->due_date->format('d/m/Y') }}
-                                @if ($isOverdue) ⚠️ @endif
+                                @if ($isOverdue)
+                                    ⚠️
+                                @endif
                             </span>
                         @else
                             <span class="text-muted fst-italic">Sin fecha</span>
@@ -240,8 +240,7 @@
                     <h6 class="card-subtitle mb-2 text-muted">Creado por</h6>
                     @if ($task->creator)
                         <div class="d-flex align-items-center gap-2">
-                            <img src="{{ $task->creator->profile_photo_url }}"
-                                alt="{{ $task->creator->name }}"
+                            <img src="{{ $task->creator->profile_photo_url }}" alt="{{ $task->creator->name }}"
                                 style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;">
                             <div>
                                 <div style="font-weight:600;font-size:.9rem;">{{ $task->creator->name }}</div>
@@ -279,41 +278,72 @@
 
     {{-- MODAL TIEMPO MANUAL --}}
     @if ($showManualTimeModal)
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Añadir tiempo manual</h5>
-                    <button type="button" class="btn-close" wire:click="closeManualTimeModal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col">
-                            <label>Horas</label>
-                            <input type="number" min="0" class="form-control" wire:model="manualHours">
-                            @error('manualHours') <span class="text-danger small">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="col">
-                            <label>Minutos</label>
-                            <input type="number" min="0" max="59" class="form-control" wire:model="manualMinutes">
-                            @error('manualMinutes') <span class="text-danger small">{{ $message }}</span> @enderror
+        <div class="modal fade show d-block" style="background:rgba(0,0,0,.5);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Añadir tiempo manual</h5>
+                        <button type="button" class="btn-close" wire:click="closeManualTimeModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col">
+                                <label>Horas</label>
+                                <input type="number" min="0" class="form-control" wire:model="manualHours">
+                                @error('manualHours')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="col">
+                                <label>Minutos</label>
+                                <input type="number" min="0" max="59" class="form-control"
+                                    wire:model="manualMinutes">
+                                @error('manualMinutes')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" wire:click="closeManualTimeModal">Cancelar</button>
-                    <button class="btn btn-primary" wire:click="saveManualTime">Guardar tiempo</button>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" wire:click="closeManualTimeModal">Cancelar</button>
+                        <button class="btn btn-primary" wire:click="saveManualTime">Guardar tiempo</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 
     <style>
-        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
-        .task-status-select.on_hold  { background-color:#f59e0b!important;color:#fff!important; }
-        .task-status-select.testing  { background-color:#8b5cf6!important;color:#fff!important; }
-        .task-status-select:disabled { opacity:.85; cursor:default; }
-        .task-priority-select:disabled { opacity:.85; cursor:default; }
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .4;
+            }
+        }
+
+        .task-status-select.on_hold {
+            background-color: #f59e0b !important;
+            color: #fff !important;
+        }
+
+        .task-status-select.testing {
+            background-color: #8b5cf6 !important;
+            color: #fff !important;
+        }
+
+        .task-status-select:disabled {
+            opacity: .85;
+            cursor: default;
+        }
+
+        .task-priority-select:disabled {
+            opacity: .85;
+            cursor: default;
+        }
     </style>
 </div>

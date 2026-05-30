@@ -12,7 +12,8 @@
     @livewireStyles
 
     <style>
-        .no-transition, .no-transition * {
+        .no-transition,
+        .no-transition * {
             transition: none !important;
         }
 
@@ -60,7 +61,8 @@
             border-right: 1px solid var(--sidebar-border);
         }
 
-        .main-wrapper, .fixed-top {
+        .main-wrapper,
+        .fixed-top {
             transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100% !important;
             margin-left: 0;
@@ -92,30 +94,35 @@
             margin: 4px 10px;
         }
 
-        .sidebar-link:hover, .sidebar-link.active {
+        .sidebar-link:hover,
+        .sidebar-link.active {
             background: var(--sidebar-hover-bg);
             color: #fff;
         }
 
-        .sidebar-link i { width: 25px; }
-        [x-cloak] { display: none !important; }
+        .sidebar-link i {
+            width: 25px;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 
-    @if(auth()->check())
-    <script>
-        (function() {
-            const sidebarStatus = localStorage.getItem('sidebar-status') === 'true';
-            if (sidebarStatus) {
-                document.documentElement.classList.add('sidebar-open', 'no-transition');
-            }
-        })();
-    </script>
+    @if (auth()->check())
+        <script>
+            (function() {
+                const sidebarStatus = localStorage.getItem('sidebar-status') === 'true';
+                if (sidebarStatus) {
+                    document.documentElement.classList.add('sidebar-open', 'no-transition');
+                }
+            })();
+        </script>
     @endif
 </head>
 
 <body
-@if(auth()->check())
-    x-data="{ 
+    @if (auth()->check()) x-data="{ 
         sidebarOpen: localStorage.getItem('sidebar-status') === 'true',
         theme: '{{ auth()->user()?->settings?->theme ?? 'light' }}',
 
@@ -141,9 +148,7 @@
     :class="{ 
         'sidebar-open': sidebarOpen,
         'dark-mode-active': theme === 'dark'
-    }"
-@endif
->
+    }" @endif>
 
     @auth
         <aside id="sidebar-panel" class="shadow">
@@ -167,9 +172,10 @@
                 <a href="{{ route('calendar') }}" class="sidebar-link {{ Route::is('calendar') ? 'active' : '' }}">
                     <i class="fas fa-calendar"></i> Calendario
                 </a>
-                
+
                 @if (auth()->user()->isAdmin())
-                    <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">
+                    <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title"
+                        style="font-size: 0.7rem;">
                         Administración</div>
                     <a href="{{ route('users.index') }}" class="sidebar-link">
                         <i class="fas fa-users-cog"></i> Gestión Usuarios
@@ -179,9 +185,11 @@
                     </a>
                 @endif
 
-                <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">Cuenta</div>
-                
-                <form method="POST" action="{{ route('logout') }}" class="m-0" x-on:submit="localStorage.removeItem('sidebar-status')">
+                <div class="px-4 mt-4 mb-2 text-uppercase small fw-bold sidebar-section-title" style="font-size: 0.7rem;">
+                    Cuenta</div>
+
+                <form method="POST" action="{{ route('logout') }}" class="m-0"
+                    x-on:submit="localStorage.removeItem('sidebar-status')">
                     @csrf
                     <button type="submit" class="sidebar-link border-0 bg-transparent w-100 text-start">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -194,10 +202,10 @@
 
         {{-- MODAL DE CONFIRMACIÓN GLOBAL (Atrapa eventos de eliminar/restaurar) --}}
         <div x-data="{ open: false, id: null, title: '', message: '', action: '', isDanger: true }"
-             x-on:confirm-delete.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = true;"
-             x-on:confirm-restore.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = false;"
-             class="modal fade" :class="{ 'show d-block': open, 'd-none': !open }" 
-             style="background: rgba(0,0,0,0.5); z-index: 1070;" x-cloak>
+            x-on:confirm-delete.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = true;"
+            x-on:confirm-restore.window="open = true; id = $event.detail.id; title = $event.detail.title; message = $event.detail.message; action = $event.detail.action; isDanger = false;"
+            class="modal fade" :class="{ 'show d-block': open, 'd-none': !open }"
+            style="background: rgba(0,0,0,0.5); z-index: 1070;" x-cloak>
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content text-dark">
                     <div class="modal-header">
@@ -210,7 +218,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" x-on:click="open = false">Cancelar</button>
                         <button type="button" class="btn" :class="isDanger ? 'btn-danger' : 'btn-success'"
-                                x-on:click="Livewire.dispatch(action, { id: id }); open = false;">
+                            x-on:click="Livewire.dispatch(action, { id: id }); open = false;">
                             Confirmar
                         </button>
                     </div>
@@ -229,15 +237,24 @@
 
     <script>
         document.addEventListener('livewire:init', () => {
-            Livewire.on('notify', ({ message, type }) => {
+            Livewire.on('notify', ({
+                message,
+                type
+            }) => {
                 document.querySelectorAll('.lw-notification').forEach(n => n.remove());
                 const alert = document.createElement('div');
                 alert.className = `lw-notification alert alert-${type}`;
                 alert.innerText = message;
                 Object.assign(alert.style, {
-                    position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
-                    minWidth: '320px', maxWidth: '420px', padding: '16px 20px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,.15)', borderRadius: '10px',
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    zIndex: 9999,
+                    minWidth: '320px',
+                    maxWidth: '420px',
+                    padding: '16px 20px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,.15)',
+                    borderRadius: '10px',
                     transition: 'all .25s ease'
                 });
                 document.body.appendChild(alert);
@@ -248,4 +265,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -4,9 +4,9 @@
     $inProgress = $inProgress ?? 0;
     $pending = $pending ?? 0;
 
-    $donePct = $total > 0 ? round($done * 100 / $total) : 0;
-    $inProgressPct = $total > 0 ? round($inProgress * 100 / $total) : 0;
-    $pendingPct = $total > 0 ? round($pending * 100 / $total) : 0;
+    $donePct = $total > 0 ? round(($done * 100) / $total) : 0;
+    $inProgressPct = $total > 0 ? round(($inProgress * 100) / $total) : 0;
+    $pendingPct = $total > 0 ? round(($pending * 100) / $total) : 0;
 @endphp
 
 <div class="project-stats">

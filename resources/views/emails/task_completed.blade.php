@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Tarea completada</title>
 </head>
+
 <body>
     <h1>Tarea completada</h1>
 
@@ -11,7 +13,7 @@
         La tarea <strong>{{ $task->title }}</strong> ha sido marcada como completada.
     </p>
 
-    @if($task->description)
+    @if ($task->description)
         <p>{{ $task->description }}</p>
     @endif
 
@@ -19,4 +21,5 @@
         Estado: {{ $task->status }}
     </p>
 </body>
+
 </html>

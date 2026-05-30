@@ -3,7 +3,7 @@
 
         {{-- COLUMNA IZQUIERDA: Botón Menú --}}
         <div class="d-flex align-items-center" style="flex: 1; flex-basis: 0;">
-            @if(auth()->check() && Route::currentRouteName() !== 'login')
+            @if (auth()->check() && Route::currentRouteName() !== 'login')
                 <button class="btn btn-dark me-2" x-on:click="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>

@@ -16,6 +16,9 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('projects');
     }
+    Route::post('/projects', [App\Http\Controllers\ProjectController::class, 'store'])
+    ->name('projects.store');
+    
     return view('livewire.partials.wrapper', ['component' => 'landingpage']);
 })->name('landingpage');
 

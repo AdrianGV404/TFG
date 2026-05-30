@@ -3,7 +3,7 @@
     {{-- ASIGNADOS --}}
     <h6>Usuarios asignados</h6>
 
-    @foreach($this->users as $user)
+    @foreach ($this->users as $user)
         <span class="badge bg-secondary">
             {{ $user->name }}
 
@@ -17,7 +17,7 @@
     <input type="text" wire:model.live="search" placeholder="Buscar usuarios...">
 
     {{-- RESULTADOS --}}
-    @foreach($this->availableUsers as $user)
+    @foreach ($this->availableUsers as $user)
         <div class="d-flex justify-content-between">
             <span>{{ $user->name }}</span>
 

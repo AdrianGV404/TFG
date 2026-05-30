@@ -5,7 +5,8 @@
     $labels = $labels ?? [];
 @endphp
 
-<div class="search-controls" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+<div class="search-controls"
+    style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center;">
 
     {{-- BUSCADORES Y FILTROS --}}
     <div class="search-left" style="display: flex; gap: 0.5rem; align-items: center;">
@@ -17,18 +18,17 @@
 
         {{-- NUEVO: DESPLEGABLE DE ETIQUETAS --}}
         <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterLabelsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterLabelsDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                 Filtrar Etiquetas
             </button>
-            <ul class="dropdown-menu p-2 shadow" aria-labelledby="filterLabelsDropdown" style="max-height: 250px; overflow-y: auto; min-width: 200px;">
+            <ul class="dropdown-menu p-2 shadow" aria-labelledby="filterLabelsDropdown"
+                style="max-height: 250px; overflow-y: auto; min-width: 200px;">
                 @forelse($labels as $label)
                     <li>
                         <div class="form-check m-1">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
-                                   value="{{ $label->id }}" 
-                                   id="filter-label-{{ $label->id }}" 
-                                   wire:model.live="searchLabels">
+                            <input class="form-check-input" type="checkbox" value="{{ $label->id }}"
+                                id="filter-label-{{ $label->id }}" wire:model.live="searchLabels">
                             <label class="form-check-label" for="filter-label-{{ $label->id }}">
                                 {{ $label->name }}
                             </label>

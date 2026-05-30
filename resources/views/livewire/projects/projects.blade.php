@@ -1,6 +1,6 @@
 <div class="container">
 
-{{-- HEADER --}}
+    {{-- HEADER --}}
     <div class="page-header d-flex align-items-center justify-content-between mb-4">
         <h1 class="m-0">Proyectos</h1>
 
@@ -11,7 +11,8 @@
             </button>
 
             @if (!$showForm)
-                <button type="button" class="btn btn-primary btn-loading" wire:click="openForm" wire:loading.attr="disabled" wire:target="openForm">
+                <button type="button" class="btn btn-primary btn-loading" wire:click="openForm"
+                    wire:loading.attr="disabled" wire:target="openForm">
                     <span class="btn-text">+ Nuevo proyecto</span>
                     <span class="btn-spinner" wire:loading.delay wire:target="openForm">⏳</span>
                 </button>
@@ -74,7 +75,7 @@
                         @include('livewire.partials.action-buttons', [
                             'editingId' => $editingProjectId,
                             'project' => $project,
-                            'isTask' => false
+                            'isTask' => false,
                         ])
                     </td>
 
@@ -97,9 +98,9 @@
                                         {{ $project->name }}
                                         <span class="project-open-icon">→</span>
                                     </div>
-                                    @if($project->users->count())
+                                    @if ($project->users->count())
                                         <div class="mt-1">
-                                            @foreach($project->users as $user)
+                                            @foreach ($project->users as $user)
                                                 <span class="badge bg-secondary" style="font-size: 10px;">
                                                     {{ $user->name }}
                                                 </span>
@@ -138,22 +139,22 @@
                             </a>
                         @endif
                     </td>
-<th>Usuarios</th>
-<td>
-    @foreach($project->users as $user)
-        <span class="badge bg-secondary">
-            {{ $user->name }}
-        </span>
-    @endforeach
+                    <th>Usuarios</th>
+                    <td>
+                        @foreach ($project->users as $user)
+                            <span class="badge bg-secondary">
+                                {{ $user->name }}
+                            </span>
+                        @endforeach
 
-    @if($project->users->count() === 0)
-        <span class="text-muted">Sin asignar</span>
-    @endif
+                        @if ($project->users->count() === 0)
+                            <span class="text-muted">Sin asignar</span>
+                        @endif
 
-    @if(auth()->user()->isAdmin() || $project->created_by === auth()->id())
-        <livewire:project-users-manager :project="$project" :key="$project->id" />
-    @endif
-</td>
+                        @if (auth()->user()->isAdmin() || $project->created_by === auth()->id())
+                            <livewire:project-users-manager :project="$project" :key="$project->id" />
+                        @endif
+                    </td>
                     {{-- ESTADO --}}
                     <td>
                         @if ($editingProjectId == $project->id)
@@ -180,12 +181,12 @@
     </table>
 
     <div class="mt-3">
-            {{ $projects->links() }}
-        </div>
-
-        {{-- MODAL DE ETIQUETAS --}}
-        <livewire:label-create-modal />
-
+        {{ $projects->links() }}
     </div>
+
+    {{-- MODAL DE ETIQUETAS --}}
+    <livewire:label-create-modal />
+
+</div>
 
 </div>
