@@ -30,6 +30,7 @@ class Dashboard extends Component
     public array  $taskTimeList    = [];   // lista id+titulo+horas
     public array  $heatmapData     = [];   // para el heatmap anual
     public array  $heatmapTooltips = [];   // desglose por día (tooltip)
+    public array  $labelStats      = [];   // NUEVO: estadísticas por etiqueta
     public $recentTasks            = [];   // últimas 15 modificadas
 
     // ─── Permisos de UI ─────────────────────────────────────────────────────
@@ -65,8 +66,6 @@ class Dashboard extends Component
         $this->loadData();
     }
 
-    // ❌ El método updated() ha sido eliminado para evitar recargas automáticas conflictivas
-
     // ────────────────────────────────────────────────────────────────────────
 
     public function loadData(): void
@@ -92,9 +91,119 @@ class Dashboard extends Component
 
         // ── 5. Tareas recientes (últimas 15 por updated_at) ──────────────────
         $this->recentTasks = $this->buildRecentTasks($tenantId);
+
+        // ── 6. Estadísticas por Etiquetas (NUEVO) ────────────────────────────
+        $this->labelStats = $this->buildLabelStats($tenantId);
     }
 
     // ─── Builders privados ──────────────────────────────────────────────────
+
+    /**
+     * Calcula horas, cantidad de tareas y desglose de estados por cada etiqueta
+     */
+    private function buildLabelStats(int $tenantId): array
+    {
+        // 1. Obtener los IDs y estados de las tareas que cumplen los filtros
+        $tasksQuery = DB::table('tasks')
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->where('projects.tenant_id', $tenantId)
+            ->whereNull('projects.deleted_at')
+            ->whereNull('tasks.deleted_at')
+            ->select('tasks.id', 'tasks.status');
+
+        if ($this->projectId) {
+            $tasksQuery->where('tasks.project_id', $this->projectId);
+        }
+
+        if ($this->userId) {
+            $tasksQuery->whereExists(function($q) {
+                $q->select(DB::raw(1))
+                  ->from('task_time_entries')
+                  ->whereColumn('task_time_entries.task_id', 'tasks.id')
+                  ->where('task_time_entries.user_id', $this->userId);
+            });
+        }
+
+        $tasks = $tasksQuery->get();
+        if ($tasks->isEmpty()) return [];
+
+        $taskIds = $tasks->pluck('id')->toArray();
+
+        // 2. Obtener las etiquetas asociadas a estas tareas
+        $labelsData = DB::table('label_task')
+            ->join('labels', 'labels.id', '=', 'label_task.label_id')
+            ->whereIn('label_task.task_id', $taskIds)
+            ->select('label_task.task_id', 'labels.id as label_id', 'labels.name')
+            ->get();
+
+        if ($labelsData->isEmpty()) return [];
+
+        // 3. Obtener el tiempo sumado por cada tarea (filtrado por usuario si aplica)
+        $timeQuery = DB::table('task_time_entries')
+            ->whereIn('task_id', $taskIds)
+            ->where('is_running', false)
+            ->select('task_id', DB::raw('SUM(duration_seconds) as total_seconds'))
+            ->groupBy('task_id');
+
+        if ($this->userId) {
+            $timeQuery->where('user_id', $this->userId);
+        }
+
+        $timeData = $timeQuery->pluck('total_seconds', 'task_id')->toArray();
+
+        // 4. Agrupar y procesar
+        $stats = [];
+        $taskMap = $tasks->keyBy('id')->toArray();
+
+        foreach ($labelsData as $row) {
+            $lId = $row->label_id;
+            $tId = $row->task_id;
+            
+            $status = $taskMap[$tId]->status ?? 'pending';
+            $seconds = (float) ($timeData[$tId] ?? 0);
+
+            if (!isset($stats[$lId])) {
+                $stats[$lId] = [
+                    'name' => $row->name,
+                    'total_tasks' => 0,
+                    'total_seconds' => 0,
+                    'statuses' => [
+                        'pending' => 0,
+                        'in_progress' => 0,
+                        'on_hold' => 0,
+                        'testing' => 0,
+                        'done' => 0,
+                    ]
+                ];
+            }
+
+            $stats[$lId]['total_tasks']++;
+            $stats[$lId]['total_seconds'] += $seconds;
+
+            if (isset($stats[$lId]['statuses'][$status])) {
+                $stats[$lId]['statuses'][$status]++;
+            } else {
+                $stats[$lId]['statuses'][$status] = 1;
+            }
+        }
+
+        // 5. Convertir segundos a horas y ordenar de mayor a menor tiempo
+        $result = [];
+        foreach ($stats as $data) {
+            $data['total_hours'] = round($data['total_seconds'] / 3600, 1);
+            unset($data['total_seconds']);
+            $result[] = $data;
+        }
+
+        usort($result, function($a, $b) {
+            if ($a['total_hours'] == $b['total_hours']) {
+                return $b['total_tasks'] <=> $a['total_tasks'];
+            }
+            return $b['total_hours'] <=> $a['total_hours'];
+        });
+
+        return $result;
+    }
 
     /**
      * Devuelve [ ['id', 'title', 'horas'], … ] de las tareas con tiempo registrado,
@@ -191,9 +300,6 @@ class Dashboard extends Component
 
     /**
      * Construye el array de celdas del heatmap (desde hace ~1 año hasta hoy).
-     * Usa historico_horas_dia para obtener las horas por día.
-     *
-     * @return array  [ 'date' => 'Y-m-d', 'horas' => float, 'level' => 0-3 ][]
      */
     private function buildHeatmap(int $tenantId): array
     {
@@ -238,11 +344,7 @@ class Dashboard extends Component
     }
 
     /**
-     * Para cada día con actividad construye el desglose que mostrará el tooltip:
-     * lista de [ task_id, title, horas ] del día.
-     * Solo se calculan los días que tienen horas > 0 para no sobrecargar.
-     *
-     * @return array  [ 'Y-m-d' => [ ['task_id', 'title', 'horas'], … ] ]
+     * Para cada día con actividad construye el desglose que mostrará el tooltip
      */
     private function buildHeatmapTooltips(int $tenantId): array
     {
@@ -314,7 +416,6 @@ class Dashboard extends Component
 
     /**
      * Se ejecuta al pulsar el botón "Aplicar filtros".
-     * Recarga los datos y emite un evento al navegador para que JS redibuje los gráficos.
      */
     public function applyFilters(): void
     {
