@@ -385,37 +385,6 @@
                                 <i class="fas fa-bell me-1"></i> Notificaciones
                             </label>
 
-                            {{-- Canal de entrega --}}
-                            <div class="mb-3">
-                                <label class="small text-muted mb-2 d-block">Canal de entrega</label>
-                                <div class="d-flex gap-2">
-                                    <label class="channel-option" style="flex:1;">
-                                        <input type="radio" value="app" wire:model.live="notif_channel">
-                                        <div class="channel-btn">
-                                            <i class="fas fa-mobile-alt"></i>
-                                            App
-                                        </div>
-                                    </label>
-                                    <label class="channel-option" style="flex:1;">
-                                        <input type="radio" value="email" wire:model.live="notif_channel">
-                                        <div class="channel-btn">
-                                            <i class="fas fa-envelope"></i>
-                                            Email
-                                        </div>
-                                    </label>
-                                    <label class="channel-option" style="flex:1;">
-                                        <input type="radio" value="both" wire:model.live="notif_channel">
-                                        <div class="channel-btn">
-                                            <i class="fas fa-layer-group"></i>
-                                            Ambos
-                                        </div>
-                                    </label>
-                                </div>
-                                @error('notif_channel')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-
                             {{-- Toggles de eventos --}}
                             <div class="toggle-row">
                                 <div class="toggle-desc">

@@ -25,9 +25,9 @@ class UserSeeder extends Seeder
 
         // 2. Adrián — único admin de toda la aplicación (Tenant 1)
         User::create([
-            'name'      => 'Adrian',
-            'email'     => 'adrian@adrian.adrian',
-            'password'  => Hash::make('adrian'),
+            'name'      => 'admin',
+            'email'     => 'admin@admin.admin',
+            'password'  => Hash::make('admin'),
             'tenant_id' => $tenants[0]->id,
             'role'      => 'admin',   // ← único admin
         ]);

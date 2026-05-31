@@ -40,9 +40,9 @@
             <div class="form-group">
                 <label class="form-label">Estado</label>
                 <select wire:model.defer="status" class="task-status-select">
-                    <option value="pending" class="status-pending">Pendiente</option>
-                    <option value="in_progress" class="status-progress">En progreso</option>
-                    <option value="done" class="status-done">Hecha</option>
+                    <option value="pending"     style="background:#fffbeb; color:#92400e;">⏳ Pendiente</option>
+                    <option value="in_progress" style="background:#eff6ff; color:#1e40af;">▶ En progreso</option>
+                    <option value="done"        style="background:#f0fdf4; color:#15803d;">✅ Hecha</option>
                 </select>
             </div>
 
@@ -64,7 +64,8 @@
 
             <div class="form-group">
                 <label class="form-label">Fecha Límite</label>
-                <input type="date" wire:model.defer="due_date" class="form-control">
+                <input type="date" wire:model.defer="due_date" class="form-control"
+                    value="{{ date('Y-m-d') }}">
                 @error('due_date')
                     <small class="text-error">{{ $message }}</small>
                 @enderror
