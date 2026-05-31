@@ -13,12 +13,13 @@
 4. [Funcionalidades principales](#funcionalidades-principales)
 5. [Modelo de datos](#modelo-de-datos)
 6. [Sistema de permisos](#sistema-de-permisos)
-7. [Instalación y puesta en marcha](#instalación-y-puesta-en-marcha)
-8. [Variables de entorno](#variables-de-entorno)
-9. [Base de datos y migraciones](#base-de-datos-y-migraciones)
-10. [API REST](#api-rest)
-11. [Tests](#tests)
-12. [Estructura del proyecto](#estructura-del-proyecto)
+7. [Infraestructura con Docker](#infraestructura-con-docker)
+8. [Instalación y puesta en marcha](#instalación-y-puesta-en-marcha)
+9. [Variables de entorno](#variables-de-entorno)
+10. [Base de datos y migraciones](#base-de-datos-y-migraciones)
+11. [API REST](#api-rest)
+12. [Tests](#tests)
+13. [Estructura del proyecto](#estructura-del-proyecto)
 
 ---
 
@@ -242,13 +243,102 @@ Cuando `can_any` y `can_project_by_others` conviven, prevalece `can_any` si est�
 
 ---
 
+## Infraestructura con Docker
+
+El proyecto incluye un `docker-compose.yml` que levanta todos los servicios de infraestructura necesarios para el entorno de desarrollo: base de datos MySQL, interfaz web phpMyAdmin, caché/cola con Redis e interfaz Redis Insight.
+
+### Servicios
+
+| Servicio | Imagen | Puerto local | Descripción |
+|---|---|---|---|
+| `mysql` | `mysql:8.1` | `3306` | Base de datos principal |
+| `phpmyadmin` | `phpmyadmin/phpmyadmin` | `8080` | Interfaz web de administración de MySQL |
+| `redis` | `redis:7.2-alpine` | `6379` | Caché y sistema de colas |
+| `redisinsight` | `redis/redisinsight:latest` | `5540` | Interfaz web de administración de Redis |
+
+### Levantar los servicios
+
+```bash
+docker compose up -d
+```
+
+Para detenerlos:
+
+```bash
+docker compose down
+```
+
+### Credenciales por defecto
+
+**MySQL**
+
+| Campo | Valor |
+|---|---|
+| Host | `127.0.0.1` |
+| Puerto | `3306` |
+| Base de datos | `mydatabase` |
+| Usuario | `root` |
+| Contraseña | `rootpassword` |
+
+**phpMyAdmin** — accesible en [http://localhost:8080](http://localhost:8080)
+
+| Campo | Valor |
+|---|---|
+| Usuario | `root` |
+| Contraseña | `rootpassword` |
+
+**RedisInsight** — accesible en [http://localhost:5540](http://localhost:5540)
+
+> RedisInsight se conecta automáticamente al contenedor `redis` a través de la red interna `redisnet` (host `redis`, puerto `6379`).
+
+### Volúmenes y persistencia
+
+| Servicio | Volumen local | Destino en contenedor |
+|---|---|---|
+| `mysql` | `./mysql_data` | `/var/lib/mysql` |
+| `redis` | `./data` | `/data` |
+| `redis` | `./redis.conf` | `/usr/local/etc/redis/redis.conf` |
+
+> El archivo `redis.conf` debe existir en la raíz del proyecto antes de levantar los servicios. Redis arranca con esa configuración personalizada mediante el comando `redis-server /usr/local/etc/redis/redis.conf`.
+
+### Redes
+
+Los servicios `redis` y `redisinsight` comparten la red bridge `redisnet`, de forma que RedisInsight puede conectar con Redis usando el nombre de servicio como hostname (`redis:6379`). El resto de servicios (MySQL, phpMyAdmin) utilizan la red por defecto de Docker Compose.
+
+### Variables de entorno para usar con Docker
+
+Una vez los contenedores estén en marcha, configura el `.env` de Laravel con los siguientes valores:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=mydatabase
+DB_USERNAME=root
+DB_PASSWORD=rootpassword
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+
+# Usar Redis como driver de cola y caché
+QUEUE_CONNECTION=redis
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+```
+
+> Si prefieres seguir usando colas síncronas en local, mantén `QUEUE_CONNECTION=sync` y usa Redis únicamente para caché y sesiones.
+
+---
+
 ## Instalación y puesta en marcha
 
 ### Requisitos previos
 - PHP 8.1+
 - Composer
 - Node.js 18+ y npm
-- MySQL 8+ (o SQLite para desarrollo)
+- Docker y Docker Compose (recomendado para la infraestructura)
+- MySQL 8+ (o SQLite para desarrollo sin Docker)
 
 ### Pasos
 
@@ -257,30 +347,34 @@ Cuando `can_any` y `can_project_by_others` conviven, prevalece `can_any` si est�
 git clone <url-del-repo>
 cd promati
 
-# 2. Instalar dependencias PHP
+# 2. Levantar la infraestructura con Docker (MySQL, Redis, phpMyAdmin, RedisInsight)
+docker compose up -d
+
+# 3. Instalar dependencias PHP
 composer install
 
-# 3. Instalar dependencias JS
+# 4. Instalar dependencias JS
 npm install
 
-# 4. Configurar el entorno
+# 5. Configurar el entorno
 cp .env.example .env
 php artisan key:generate
 
-# 5. Configurar la base de datos en .env (ver sección siguiente)
+# 6. Ajustar las variables de base de datos y Redis en .env
+#    (ver sección "Infraestructura con Docker" → "Variables de entorno para usar con Docker")
 
-# 6. Ejecutar migraciones y seeders
+# 7. Ejecutar migraciones y seeders
 php artisan migrate --seed
 
-# 7. Enlace simbólico para almacenamiento público
+# 8. Enlace simbólico para almacenamiento público
 php artisan storage:link
 
-# 8. Compilar assets
+# 9. Compilar assets
 npm run build
 # o en desarrollo:
 npm run dev
 
-# 9. Lanzar el servidor de desarrollo (incluye cola y Vite en paralelo)
+# 10. Lanzar el servidor de desarrollo (incluye cola y Vite en paralelo)
 composer run dev
 ```
 
@@ -310,12 +404,19 @@ APP_URL=http://localhost
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=promati
+DB_DATABASE=mydatabase
 DB_USERNAME=root
-DB_PASSWORD=
+DB_PASSWORD=rootpassword
 
-# Cola (usar 'database' en producción)
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+
+# Cola (usar 'redis' en producción o con Docker, 'sync' en desarrollo sin Docker)
 QUEUE_CONNECTION=sync
+CACHE_DRIVER=file
+SESSION_DRIVER=file
 
 # Correo
 MAIL_MAILER=smtp
@@ -412,7 +513,6 @@ php artisan test --coverage
 
 # Un fichero concreto
 php artisan test tests/Feature/ProjectAndTaskTest.php
-
 ```
 
 ### Suites de tests
@@ -474,6 +574,8 @@ promati/
 │   ├── factories/          # ProjectFactory, TaskFactory, UserFactory
 │   ├── migrations/         # Todas las migraciones ordenadas por fecha
 │   └── seeders/            # DatabaseSeeder, UserSeeder, ProjectSeeder, TaskSeeder
+├── docker-compose.yml      # Infraestructura de desarrollo (MySQL, Redis, phpMyAdmin, RedisInsight)
+├── redis.conf              # Configuración personalizada de Redis
 ├── public/
 │   └── css/app.css         # Estilos principales
 ├── resources/
