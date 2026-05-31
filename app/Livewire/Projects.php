@@ -192,7 +192,7 @@ public function render()
 
     return view('livewire.projects.projects', [
         'projects' => $projects,
-        'labels'   => $labels, // <--- ESTO ES LO QUE HACÍA QUE NO SE VIERAN
+        'labels'   => $labels,
         'isProjectList' => true,
     ]);
 }
