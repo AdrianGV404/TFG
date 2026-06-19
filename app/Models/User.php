@@ -89,6 +89,16 @@ class User extends Authenticatable
      */
     public function hasCustomPermission(string $action, $target = null): bool
     {
+
+            if ($target) {
+            $project = $target instanceof Task
+                ? $target->project
+                : ($target instanceof Project ? $target : null);
+
+            if ($project && $project->tenant_id !== $this->tenant_id) {
+                return false;
+            }
+        }
         // Administradores globales (o Responsables) tienen acceso total por defecto
         if ($this->isAdmin()) {
             return true;

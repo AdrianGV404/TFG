@@ -50,10 +50,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/tasks/{task}', fn(\App\Models\Task $task) => view('livewire.partials.wrapper', [
-        'component' => 'tasks.task-detail',
-        'task'      => $task,
-    ]))->name('tasks.show');
+    Route::get('/tasks/{task}', function (\App\Models\Task $task) {
+        abort_unless(auth()->user()->can('view', $task), 403);
+
+        return view('livewire.partials.wrapper', [
+            'component' => 'tasks.task-detail',
+            'task'      => $task,
+        ]);
+    })->name('tasks.show');
 
     Route::get('/dashboard', fn () => view('livewire.partials.wrapper', [
         'component' => 'dashboard',
@@ -73,10 +77,14 @@ Route::middleware(['auth'])->group(function () {
         'component' => 'projects',
     ]))->name('projects');
 
-    Route::get('/projects/{project}', fn(Project $project) => view('livewire.partials.wrapper', [
-        'component' => 'project-detail',
-        'project' => $project,
-    ]))->name('projects.show');
+    Route::get('/projects/{project}', function (Project $project) {
+        abort_unless(auth()->user()->can('view', $project), 403);
+
+        return view('livewire.partials.wrapper', [
+            'component' => 'project-detail',
+            'project' => $project,
+        ]);
+    })->name('projects.show');
 
     // CRUD de tareas
     Route::resource('projects.tasks', TaskController::class)

@@ -30,8 +30,14 @@ class TaskPolicy
     }
     public function view(User $user, Task $task): bool
     {
+        // Tenant distinto → denegado siempre
+        if ($user->tenant_id !== $task->tenant_id) {
+            return false;
+        }
+
         if ($user->isAdmin()) return true;
         if ($task->created_by === $user->id) return true;
+
         return $user->hasCustomPermission('edit_task', $task)
             || $user->hasCustomPermission('delete_task', $task);
     }

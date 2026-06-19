@@ -21,10 +21,9 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request, Project $project)
     {
-        $this->taskService->createForProject(
-            $project,
-            $request->validated()
-        );
+        $this->authorize('create', [Task::class, $project]);
+
+        $this->taskService->createForProject($project, $request->validated());
 
         return redirect()->back();
     }
@@ -37,16 +36,17 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Project $project, Task $task)
     {
-        $this->taskService->update(
-            $task,
-            $request->validated()
-        );
+        $this->authorize('update', $task);
+
+        $this->taskService->update($task, $request->validated());
 
         return redirect()->route('projects.show', $project);
     }
 
     public function destroy(Project $project, Task $task)
     {
+        $this->authorize('delete', $task);
+
         $task->delete();
 
         return back();
